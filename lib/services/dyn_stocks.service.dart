@@ -10,7 +10,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 class DynStocksService {
   Future<List<DynStock>> getDynStocks(String userId) async {
     Uri url = Uri.parse(
-        '${dotenv.env["DYNSTOCKS_API_ENDPOINT_LOCAL"]}/$userId/dynStocks?accessCode=${appStore.state.accessCode}');
+        '${dotenv.env["DYNSTOCKS_API_ENDPOINT_PROD"]}/$userId/dynStocks?accessCode=${appStore.state.accessCode}');
     var client = http.Client();
     var response = await client.get(url, headers: {
       HttpHeaders.authorizationHeader:
@@ -23,7 +23,7 @@ class DynStocksService {
 
   Future<DynStock> createDynStock(String userId, DynStockBody body) async {
     Uri url = Uri.parse(
-        '${dotenv.env["DYNSTOCKS_API_ENDPOINT_LOCAL"]}/$userId/dynStocks?accessCode=${appStore.state.accessCode}');
+        '${dotenv.env["DYNSTOCKS_API_ENDPOINT_PROD"]}/$userId/dynStocks?accessCode=${appStore.state.accessCode}');
     var client = http.Client();
     var response = await client.post(url, body: jsonEncode(body), headers: {
       HttpHeaders.authorizationHeader:
@@ -38,7 +38,7 @@ class DynStocksService {
   Future<DynStock> updateDynStock(
       String userId, String dynStockId, DynStockBody body) async {
     Uri url = Uri.parse(
-        '${dotenv.env["DYNSTOCKS_API_ENDPOINT_LOCAL"]}/$userId/dynStocks/$dynStockId?accessCode=${appStore.state.accessCode}');
+        '${dotenv.env["DYNSTOCKS_API_ENDPOINT_PROD"]}/$userId/dynStocks/$dynStockId?accessCode=${appStore.state.accessCode}');
     var client = http.Client();
     var response = await client.put(url, body: jsonEncode(body), headers: {
       HttpHeaders.authorizationHeader:
@@ -52,7 +52,7 @@ class DynStocksService {
 
   Future<String> deleteDynStock(String userId, String dynStockId) async {
     Uri url = Uri.parse(
-        '${dotenv.env["DYNSTOCKS_API_ENDPOINT_LOCAL"]}/$userId/dynStocks/$dynStockId?accessCode=${appStore.state.accessCode}');
+        '${dotenv.env["DYNSTOCKS_API_ENDPOINT_PROD"]}/$userId/dynStocks/$dynStockId?accessCode=${appStore.state.accessCode}');
     var client = http.Client();
     var response = await client.delete(url, headers: {
       HttpHeaders.authorizationHeader:
