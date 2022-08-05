@@ -128,14 +128,21 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
     DateTime lastTransactionTime =
         DateTime.fromMillisecondsSinceEpoch(dynStock.lastTransactionTime!.date);
     DateTime now = DateTime.now();
-    bool sellCondition = (now.hour < 9) ||
+    DateTime secondNextDayOfTransaction =
+        lastTransactionTime.add(Duration(days: 2));
+    secondNextDayOfTransaction = secondNextDayOfTransaction.subtract(Duration(
+        minutes: lastTransactionTime.minute,
+        hours: lastTransactionTime.hour,
+        seconds: lastTransactionTime.second));
+    bool stockMarketClosedCondition = (now.hour < 9) ||
         now.hour >= 16 ||
         (now.hour == 9 && now.minute < 15) ||
         (now.hour == 15 && now.minute > 30) ||
         (now.weekday > 5);
-    if ((lastTransactionTime.day == now.day &&
+    if (((secondNextDayOfTransaction.compareTo(now) > 0 &&
+                dynStock.stockType == EStockType.BE.name) &&
             dynStock.lastTransactionType == 'BUY') ||
-        sellCondition) {
+        stockMarketClosedCondition) {
       deleteButtonDisabled = true;
     } else {
       deleteButtonDisabled = false;
@@ -156,7 +163,7 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
             ),
           ),
           content: Text(
-            'You cannot delete this dynstock, as either it was created today or market is closed currently',
+            'You cannot delete this dynstock, as it\'s a BE stock or market is closed currently',
             style: GoogleFonts.outfit(
               fontSize: 20,
               fontWeight: FontWeight.bold,
@@ -419,6 +426,17 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                                   child: (TextFormField(
                                     initialValue: currentNoOfStocks,
                                     keyboardType: TextInputType.number,
+                                    validator: (value) {
+                                      if (value!.isEmpty) {
+                                        return 'Please enter a value';
+                                      }
+                                      if (value.contains('.')) {
+                                        return 'No decimal places allowed';
+                                      }
+                                      return null;
+                                    },
+                                    autovalidateMode:
+                                        AutovalidateMode.onUserInteraction,
                                     onChanged: (newValue) => setState(() {
                                       currentNoOfStocks = newValue;
                                     }),
@@ -448,6 +466,27 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                                   child: (TextFormField(
                                       initialValue: currentBTP,
                                       keyboardType: TextInputType.number,
+                                      autovalidateMode:
+                                          AutovalidateMode.onUserInteraction,
+                                      validator: (value) {
+                                        if (value!.isEmpty) {
+                                          return 'Please enter a value';
+                                        }
+                                        if (currentDSTPUnit ==
+                                                EDSTPUnit.Percentage &&
+                                            (double.parse(value as String) >
+                                                    100.0 ||
+                                                double.parse(value as String) <
+                                                    0.0)) {
+                                          return 'Please enter a valid percentage';
+                                        }
+                                        if (currentDSTPUnit ==
+                                                EDSTPUnit.Price &&
+                                            value.split('.').length > 2) {
+                                          return 'Please enter a valid decimal number';
+                                        }
+                                        return null;
+                                      },
                                       onChanged: (newValue) => setState(() {
                                             currentBTP = newValue;
                                           })))),
@@ -474,7 +513,12 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                                       color: PaletteColors.blue3),
                                   padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
                                   child: (TextFormField(
+                                      autovalidateMode:
+                                          AutovalidateMode.onUserInteraction,
                                       validator: (value) {
+                                        if (value!.isEmpty) {
+                                          return 'Please enter a value';
+                                        }
                                         if (currentDSTPUnit ==
                                                 EDSTPUnit.Percentage &&
                                             (double.parse(value as String) >
@@ -482,6 +526,11 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                                                 double.parse(value as String) <
                                                     0.0)) {
                                           return 'Please enter a valid percentage';
+                                        }
+                                        if (currentDSTPUnit ==
+                                                EDSTPUnit.Price &&
+                                            value.split('.').length > 2) {
+                                          return 'Please enter a valid decimal number';
                                         }
                                         return null;
                                       },
@@ -544,6 +593,12 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                                                     stockName:
                                                         dynStockToBeUpdated
                                                             .stockName,
+                                                    exchange:
+                                                        dynStockToBeUpdated
+                                                            .exchange,
+                                                    stockType:
+                                                        dynStockToBeUpdated
+                                                            .stockType,
                                                     yFinStockCode:
                                                         dynStockToBeUpdated
                                                             .yFinStockCode,
@@ -613,6 +668,8 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                       stockCode: '',
                       yFinStockCode: '',
                       stockName: '',
+                      exchange: '',
+                      stockType: '',
                       instrumentToken: '',
                       DSTPUnit: '',
                       noOfStocks: 0));
@@ -899,6 +956,76 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                                             currentDynStock.DSTPUnit == 'Price'
                                                 ? 'BTPr'
                                                 : 'BTPe',
+                                            style: GoogleFonts.outfit(
+                                              color: PaletteColors.blue4,
+                                              fontSize: 15,
+                                            ),
+                                          )
+                                        ],
+                                      )),
+                                ),
+                              ]),
+                        ),
+                        Container(
+                          margin: EdgeInsets.fromLTRB(20, 10, 20, 10),
+                          child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                Container(
+                                  child: Container(
+                                      width: screenSize.width * 0.35,
+                                      height: screenSize.height * 0.075,
+                                      decoration: BoxDecoration(
+                                          color: PaletteColors.blue3,
+                                          borderRadius:
+                                              BorderRadius.circular(15)),
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            currentDynStock.exchange,
+                                            style: GoogleFonts.daysOne(
+                                              color: PaletteColors.blue2,
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          Text(
+                                            'Exchange',
+                                            style: GoogleFonts.outfit(
+                                              color: PaletteColors.blue4,
+                                              fontSize: 15,
+                                            ),
+                                          )
+                                        ],
+                                      )),
+                                ),
+                                Container(
+                                  decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(15)),
+                                  child: Container(
+                                      width: screenSize.width * 0.35,
+                                      height: screenSize.height * 0.075,
+                                      decoration: BoxDecoration(
+                                          color: PaletteColors.blue3,
+                                          borderRadius:
+                                              BorderRadius.circular(15)),
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            currentDynStock.stockType
+                                                .toString(),
+                                            style: GoogleFonts.daysOne(
+                                              color: PaletteColors.blue2,
+                                              fontSize: 25,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          Text(
+                                            'Stock Type',
                                             style: GoogleFonts.outfit(
                                               color: PaletteColors.blue4,
                                               fontSize: 15,

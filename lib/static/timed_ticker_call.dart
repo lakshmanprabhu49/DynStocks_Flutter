@@ -24,7 +24,7 @@ class TimedTickerCall {
           (now.weekday > 5);
       if (!sellCondition) {
         Timer timer = Timer.periodic(Duration(seconds: 10), (timer) {
-          print('Tick : ' + timer.tick.toString());
+          print('Here');
           if (!appStore.state.allTransactions.creating &&
               !appStore.state.allTransactions.loading &&
               !appStore.state.allDynStocks.loading &&
@@ -32,6 +32,7 @@ class TimedTickerCall {
               !appStore.state.allDynStocks.updating &&
               !appStore.state.allDynStocks.deleting &&
               !appStore.state.allTickerData.loading) {
+            print('Tick : ' + timer.tick.toString());
             StoreProvider.of<AppState>(context)
                 .dispatch(GetAllTickerDataAction());
             DateTime now = DateTime.now();

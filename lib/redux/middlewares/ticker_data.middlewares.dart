@@ -51,16 +51,18 @@ void tickerDataMiddleWare(
             minutes: lastTransactionTime.minute,
             seconds: lastTransactionTime.second,
             milliseconds: lastTransactionTime.millisecond));
-        DateTime nextDayOfLastTransactionTime =
-            lastTransactionTime.add(Duration(days: 1));
-        String formattedNextDayOfLastTransactionTime =
-            formatter.format(nextDayOfLastTransactionTime);
+        DateTime secondNextDayOfLastTransactionTime =
+            lastTransactionTime.add(Duration(days: 2));
+        String formattedsecondNextDayOfLastTransactionTime =
+            formatter.format(secondNextDayOfLastTransactionTime);
         lastTransactionTime =
-            DateTime.parse(formattedNextDayOfLastTransactionTime);
+            DateTime.parse(formattedsecondNextDayOfLastTransactionTime);
         // SELL Logic
         if (dynStock.lastTransactionType == 'BUY' &&
             dynStock.stocksAvailableForTrade > 0) {
-          if (now.compareTo(nextDayOfLastTransactionTime) >= 0) {
+          if ((now.compareTo(secondNextDayOfLastTransactionTime) >= 0 &&
+                  dynStock.stockType == EStockType.BE.name) ||
+              dynStock.stockType != EStockType.BE.name) {
             switch (dynStock.DSTPUnit) {
               case 'Price':
                 if (response.price.currentPrice != null &&
@@ -113,7 +115,7 @@ void tickerDataMiddleWare(
                     body: TransactionBody(
                         transactionId: '',
                         type: 'BUY',
-                        noOfStocks: dynStock.stocksAvailableForTrade,
+                        noOfStocks: dynStock.noOfStocks,
                         stockCode: dynStock.stockCode,
                         stockPrice: response.price.currentPrice!)));
               }
@@ -130,7 +132,7 @@ void tickerDataMiddleWare(
                     body: TransactionBody(
                         transactionId: '',
                         type: 'BUY',
-                        noOfStocks: dynStock.stocksAvailableForTrade,
+                        noOfStocks: dynStock.noOfStocks,
                         stockCode: dynStock.stockCode,
                         stockPrice: response.price.currentPrice!)));
               }

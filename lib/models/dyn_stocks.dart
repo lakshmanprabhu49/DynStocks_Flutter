@@ -15,6 +15,8 @@ class DynStock {
     required this.stockCode,
     required this.yFinStockCode,
     required this.stockName,
+    required this.exchange,
+    required this.stockType,
     required this.instrumentToken,
     required this.DSTPUnit,
     required this.noOfStocks,
@@ -35,6 +37,8 @@ class DynStock {
   String instrumentToken;
   String yFinStockCode;
   String stockName;
+  String exchange;
+  String stockType;
   String DSTPUnit;
   int noOfStocks;
   double lastTradedPrice;
@@ -54,6 +58,8 @@ class DynStock {
         instrumentToken: json["instrumentToken"],
         yFinStockCode: json["yFinStockCode"],
         stockName: json["stockName"],
+        exchange: json["exchange"],
+        stockType: json["stockType"],
         DSTPUnit: json["DSTPUnit"],
         lastTradedPrice: json["lastTradedPrice"],
         lastTransactionType: json["lastTransactionType"],
@@ -76,6 +82,8 @@ class DynStock {
         "instrumentToken": instrumentToken,
         "yFinStockCode": yFinStockCode,
         "stockName": stockName,
+        "exchange": exchange,
+        "stockType": stockType,
         "DSTPUnit": DSTPUnit,
         "lastTradedPrice": lastTradedPrice,
         "lastTransactionType": lastTransactionType,
@@ -112,6 +120,8 @@ class DynStockBody {
     required this.instrumentToken,
     required this.yFinStockCode,
     required this.stockName,
+    required this.exchange,
+    required this.stockType,
     required this.DSTPUnit,
     required this.noOfStocks,
     this.BTPr = 0.0,
@@ -125,6 +135,8 @@ class DynStockBody {
   String instrumentToken;
   String yFinStockCode;
   String stockName;
+  String exchange;
+  String stockType;
   String DSTPUnit;
   int noOfStocks;
   double BTPr;
@@ -138,6 +150,8 @@ class DynStockBody {
         instrumentToken: json["instrumentToken"],
         yFinStockCode: json["yFinStockCode"],
         stockName: json["stockName"],
+        exchange: json["exchange"],
+        stockType: json["stockType"],
         DSTPUnit: json["DSTPUnit"],
         BTPr: json["BTPr"],
         BTPe: json["BTPe"],
@@ -153,6 +167,8 @@ class DynStockBody {
         "instrumentToken": instrumentToken,
         "yFinStockCode": yFinStockCode,
         "stockName": stockName,
+        "exchange": exchange,
+        "stockType": stockType,
         "DSTPUnit": DSTPUnit,
         "BTPr": BTPr,
         "BTPe": BTPe,

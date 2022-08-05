@@ -7,6 +7,7 @@ import 'package:dynstocks/models/transactions.dart';
 import 'package:dynstocks/redux/actions/dyn_stocks.actions.dart';
 import 'package:dynstocks/redux/actions/dyn_stocks.actions.dart';
 import 'package:dynstocks/redux/actions/kotak_stock_api.actions.dart';
+import 'package:dynstocks/redux/actions/ticker_data.actions.dart';
 import 'package:dynstocks/redux/app_state.dart';
 import 'package:dynstocks/services/dyn_stocks.service.dart';
 import 'package:dynstocks/services/emailjs.service.dart';
@@ -61,6 +62,9 @@ void dynStocksMiddleWare(
                 .createDynStock(action.userId, action.body)
                 .then((response) {
               store.dispatch(CreateDynStockSuccessAction(dynStock: response));
+              if (!store.state.allTickerData.loading) {
+                store.dispatch(GetAllTickerDataAction());
+              }
               String emailBodyLine1 =
                   ' Stock Code: ${response.stockCode}, Stock Name: ${response.stockName}, Stock Price: ${response.lastTradedPrice} Number of Stocks: ${response.noOfStocks}';
               String emailBodyLine2 =
@@ -165,7 +169,7 @@ void dynStocksMiddleWare(
                             .firstWhere((element) =>
                                 element.instrumentToken ==
                                 int.parse(dynStockToBeDeleted.instrumentToken))
-                            .buyTradedVal))
+                            .sellTradedVal))
                 .then((transaction) {
               DynStocksService()
                   .deleteDynStock(action.userId, action.dynStockId)

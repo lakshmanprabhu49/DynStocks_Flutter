@@ -61,6 +61,9 @@ class _ViewTransactionsScreenState extends State<ViewTransactionsScreen>
           currentStocksFilterCriterion = EStocksFilterCriterion.Custom;
         });
       }
+      setState(() {
+        currentStocksCustomInput = customStockCode;
+      });
     }
   }
 
@@ -354,15 +357,14 @@ class _ViewTransactionsScreenState extends State<ViewTransactionsScreen>
                                 ? screenSize.height * 0.5
                                 : screenSize.height * 0.4),
                             child: ListView.builder(
-                                itemCount: allTransactionsState.data.length,
+                              itemCount: sortedTransactions.length,
                                 itemBuilder: (BuildContext context, int index) {
-                                  return Container(
-                                      margin: EdgeInsets.fromLTRB(0, 15, 0, 15),
-                                      child: TransactionsListItem(
-                                          screenSize: screenSize,
-                                          transaction:
-                                              sortedTransactions[index]));
-                                }));
+                              return Container(
+                                  margin: EdgeInsets.fromLTRB(0, 15, 0, 15),
+                                  child: TransactionsListItem(
+                                      screenSize: screenSize,
+                                      transaction: sortedTransactions[index]));
+                            }));
                       }
                       return Text('Store is empty: $userId');
                     },

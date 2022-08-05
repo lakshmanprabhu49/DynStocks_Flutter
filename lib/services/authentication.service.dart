@@ -8,7 +8,7 @@ import 'dart:io';
 class AuthService {
   Future<AuthResponse> login(String username, String password) async {
     Uri url =
-        Uri.parse('${dotenv.env["DYNSTOCKS_API_ENDPOINT_PROD"]}/auth/login');
+        Uri.parse('${dotenv.env["DYNSTOCKS_API_ENDPOINT_LOCAL"]}/auth/login');
     var client = http.Client();
     var response = await client.post(url,
         headers: {
@@ -22,7 +22,7 @@ class AuthService {
 
   Future<AuthResponse> logout(String userId) async {
     Uri url = Uri.parse(
-        '${dotenv.env["DYNSTOCKS_API_ENDPOINT_PROD"]}/auth/logout/$userId');
+        '${dotenv.env["DYNSTOCKS_API_ENDPOINT_LOCAL"]}/auth/logout/$userId');
     var client = http.Client();
     var response = await client.post(url,
         headers: {'x-request-id': appStore.state.DYNSTOCKS_X_REQUEST_ID});

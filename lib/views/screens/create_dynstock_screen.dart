@@ -53,6 +53,8 @@ class _CreateDynStockScreenState extends State<CreateDynStockScreen>
   String currentKOTAKStockCode = '';
   String currentInstrumentToken = '';
   String currentStockName = '';
+  EExchange currentExchange = EExchange.NSE;
+  EStockType currentStockType = EStockType.EQ;
   String currentNoOfStocks = '0';
   String currentBTP = '0.0';
   String currentSTP = '0.0';
@@ -266,6 +268,8 @@ class _CreateDynStockScreenState extends State<CreateDynStockScreen>
                                 currentStockName = '';
                                 currentNoOfStocks = '';
                                 currentDSTPUnit = EDSTPUnit.Price;
+                                currentExchange = EExchange.NSE;
+                                currentStockType = EStockType.EQ;
                                 currentBTP = '';
                                 currentSTP = '';
                               });
@@ -513,6 +517,118 @@ class _CreateDynStockScreenState extends State<CreateDynStockScreen>
                                               currentStockName = newValue;
                                             }),
                                           ))),
+                                    ])),
+                                Container(
+                                    margin: EdgeInsets.fromLTRB(5, 10, 5, 0),
+                                    padding: EdgeInsets.fromLTRB(20, 5, 10, 5),
+                                    decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius:
+                                            BorderRadius.circular(30)),
+                                    child: Column(children: [
+                                      Row(children: [
+                                        Text(
+                                          'Exchange',
+                                          textAlign: TextAlign.left,
+                                          style: GoogleFonts.lusitana(
+                                              fontSize: 23,
+                                              color: PaletteColors.blue2),
+                                        )
+                                      ]),
+                                      Container(
+                                          margin:
+                                              EdgeInsets.fromLTRB(0, 0, 0, 10),
+                                          decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                              color: PaletteColors.blue3),
+                                          padding:
+                                              EdgeInsets.fromLTRB(10, 0, 10, 0),
+                                          child: DropdownButton(
+                                              style: GoogleFonts.overlock(
+                                                  color: PaletteColors.purple1,
+                                                  fontSize: 20,
+                                                  fontWeight: FontWeight.bold),
+                                              isExpanded: true,
+                                              alignment:
+                                                  AlignmentDirectional.center,
+                                              dropdownColor:
+                                                  PaletteColors.blue3,
+                                              value: currentExchange.name,
+                                              items: EExchange.values.map((e) {
+                                                return DropdownMenuItem<String>(
+                                                    value: e.name.toString(),
+                                                    child: Text(
+                                                      e.name.toString(),
+                                                      textAlign:
+                                                          TextAlign.center,
+                                                    ));
+                                              }).toList(),
+                                              onChanged: (newValue) {
+                                                setState(() {
+                                                  currentExchange = EExchange
+                                                      .values
+                                                      .firstWhere((element) =>
+                                                          element.name ==
+                                                          newValue);
+                                                });
+                                              })),
+                                    ])),
+                                Container(
+                                    margin: EdgeInsets.fromLTRB(5, 10, 5, 0),
+                                    padding: EdgeInsets.fromLTRB(20, 5, 10, 5),
+                                    decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius:
+                                            BorderRadius.circular(30)),
+                                    child: Column(children: [
+                                      Row(children: [
+                                        Text(
+                                          'Stock Type',
+                                          textAlign: TextAlign.left,
+                                          style: GoogleFonts.lusitana(
+                                              fontSize: 23,
+                                              color: PaletteColors.blue2),
+                                        )
+                                      ]),
+                                      Container(
+                                          margin:
+                                              EdgeInsets.fromLTRB(0, 0, 0, 10),
+                                          decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                              color: PaletteColors.blue3),
+                                          padding:
+                                              EdgeInsets.fromLTRB(10, 0, 10, 0),
+                                          child: DropdownButton(
+                                              style: GoogleFonts.overlock(
+                                                  color: PaletteColors.purple1,
+                                                  fontSize: 20,
+                                                  fontWeight: FontWeight.bold),
+                                              isExpanded: true,
+                                              alignment:
+                                                  AlignmentDirectional.center,
+                                              dropdownColor:
+                                                  PaletteColors.blue3,
+                                              value: currentStockType.name,
+                                              items: EStockType.values.map((e) {
+                                                return DropdownMenuItem<String>(
+                                                    value: e.name.toString(),
+                                                    child: Text(
+                                                      e.name.toString(),
+                                                      textAlign:
+                                                          TextAlign.center,
+                                                    ));
+                                              }).toList(),
+                                              onChanged: (newValue) {
+                                                setState(() {
+                                                  currentStockType = EStockType
+                                                      .values
+                                                      .firstWhere((element) =>
+                                                          element.name ==
+                                                          newValue);
+                                                });
+                                              })),
                                     ])),
                                 Container(
                                     margin: EdgeInsets.fromLTRB(5, 10, 5, 0),
@@ -795,6 +911,8 @@ class _CreateDynStockScreenState extends State<CreateDynStockScreen>
                                       instrumentToken: currentInstrumentToken,
                                       yFinStockCode: stockSearchInput,
                                       stockName: currentStockName,
+                                      exchange: currentExchange.name,
+                                      stockType: currentStockType.name,
                                       noOfStocks: int.parse(currentNoOfStocks),
                                       DSTPUnit:
                                           currentDSTPUnit == EDSTPUnit.Price

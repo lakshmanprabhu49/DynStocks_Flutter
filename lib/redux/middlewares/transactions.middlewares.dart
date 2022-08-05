@@ -44,6 +44,9 @@ void transactionsMiddleWare(
             .getPositions(action.userId, store.state.accessCode,
                 EPositions.TODAYS, action.instrumentToken)
             .then((position) {
+          PositionsSuccess tradedStock = position!.success.firstWhere(
+              (element) =>
+                  element.instrumentToken == int.parse(action.instrumentToken));
           TransactionsService()
               .createTransaction(
                   action.userId,
@@ -55,15 +58,12 @@ void transactionsMiddleWare(
                       type: action.body.type,
                       noOfStocks: action.body.noOfStocks,
                       stockCode: action.body.stockCode,
-                      stockPrice: position!.success
-                          .firstWhere((element) =>
-                              element.instrumentToken ==
-                              int.parse(action.instrumentToken))
-                          .buyTradedVal))
+                      stockPrice: action.body.type == 'BUY'
+                          ? tradedStock.buyTradedVal
+                          : tradedStock.sellTradedVal))
               .then((response) {
             store.dispatch(
                 CreateTransactionSuccessAction(transaction: response));
-            store.dispatch(GetAllDynStocksAction(userId: action.userId));
             DateTime transactionTime = DateTime.fromMillisecondsSinceEpoch(
                 response.transactionTime.date);
             String emailBodyLine1 =
@@ -80,8 +80,9 @@ void transactionsMiddleWare(
                         'Transaction has been made for ${action.body.stockCode} with the following params',
                     body:
                         '${emailBodyLine1} ${emailBodyLine2} ${emailBodyLine3}'))
-                .then((value) {})
-                .catchError((error) {});
+                .then((value) {
+              store.dispatch(GetAllDynStocksAction(userId: action.userId));
+            }).catchError((error) {});
           }).catchError((error) {
             store.dispatch(CreateTransactionFailAction(error: error));
           });
