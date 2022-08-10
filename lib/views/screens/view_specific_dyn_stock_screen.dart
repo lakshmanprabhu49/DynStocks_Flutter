@@ -8,6 +8,7 @@ import 'package:dynstocks/redux/actions/dyn_stocks.actions.dart';
 import 'package:dynstocks/redux/actions/ticker_data.actions.dart';
 import 'package:dynstocks/redux/app_state.dart';
 import 'package:dynstocks/redux/state/dyn_stocks.state.dart';
+import 'package:dynstocks/static/toast_message_handler.dart';
 import 'package:dynstocks/static/timed_ticker_call.dart';
 import 'package:dynstocks/views/screens/view_chart_for_specific_dynstock_screen.dart';
 import 'package:dynstocks/views/screens/view_dynstocks_list_screen.dart';
@@ -48,6 +49,7 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
   bool deleteButtonDisabled = true;
 
   bool shouldLoadInitialValues = true;
+  bool errorMessageShown = false;
   _ViewSpecificDynStockScreenState(
       {Key? key, required this.currentDynStockCode});
   @override
@@ -244,6 +246,9 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                   stockCode: currentDynStock.stockCode,
                   dynStockId: currentDynStock.dynStockId.uuid,
                 ));
+                setState(() {
+                  errorMessageShown = false;
+                });
                 Navigator.pop(context, 'Delete');
                 Route newRoute = MaterialPageRoute(
                     builder: (context) => ViewDynStocksListScreen());
@@ -273,6 +278,26 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
     Size screenSize;
     double aggregatedNetReturns = 0.0;
     screenSize = MediaQuery.of(context).size;
+    if (appStore.state.allDynStocks.deleteFailed && !errorMessageShown) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            ToastMessageHandler.showErrorMessageSnackBar(
+                'Error while deleting DynStock'));
+      });
+      setState(() {
+        errorMessageShown = true;
+      });
+    }
+    if (appStore.state.allDynStocks.updateFailed && !errorMessageShown) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            ToastMessageHandler.showErrorMessageSnackBar(
+                'Error while updating DynStock'));
+      });
+      setState(() {
+        errorMessageShown = true;
+      });
+    }
     if (appStore.state.allDynStocks.loaded &&
         !appStore.state.allDynStocks.loading &&
         appStore.state.allDynStocks.data.isNotEmpty) {
@@ -337,6 +362,28 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
         resizeToAvoidBottomInset: false,
         key: Key("EventsTodayScreen"),
         drawer: StoreConnector<AppState, AppState>(
+            onDidChange: (previousState, state) {
+              if (state.allDynStocks.deleteFailed && !errorMessageShown) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                      ToastMessageHandler.showErrorMessageSnackBar(
+                          'Error while deleting DynStock'));
+                });
+                setState(() {
+                  errorMessageShown = true;
+                });
+              }
+              if (state.allDynStocks.updateFailed && !errorMessageShown) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                      ToastMessageHandler.showErrorMessageSnackBar(
+                          'Error while updating DynStock'));
+                });
+                setState(() {
+                  errorMessageShown = true;
+                });
+              }
+            },
             converter: ((store) => store.state),
             builder: (context, state) {
               DynStock currentDynStock = state.allDynStocks.data.firstWhere(
@@ -629,6 +676,9 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                                                             currentSTP)
                                                         : 0.0,
                                                   )));
+                                          setState(() {
+                                            errorMessageShown = false;
+                                          });
 
                                           Scaffold.of(context).closeDrawer();
                                         }
@@ -1064,8 +1114,8 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                                             state
                                                         .allTickerData
                                                         .data[
-                                                            currentDynStockCode]!
-                                                        .price
+                                                            currentDynStockCode]
+                                                        ?.price
                                                         .currentPrice !=
                                                     null
                                                 ? state
@@ -1099,8 +1149,8 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                                             (state
                                                                 .allTickerData
                                                                 .data[
-                                                                    currentDynStockCode]!
-                                                                .priceChange
+                                                                    currentDynStockCode]
+                                                                ?.priceChange
                                                                 .regularMarketChange !=
                                                             null &&
                                                         state
@@ -1115,8 +1165,8 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                                                 (state
                                                             .allTickerData
                                                             .data[
-                                                                currentDynStockCode]!
-                                                            .priceChange
+                                                                currentDynStockCode]
+                                                            ?.priceChange
                                                             .regularMarketChange !=
                                                         null
                                                     ? state
@@ -1132,8 +1182,8 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                                                 color: state
                                                                 .allTickerData
                                                                 .data[
-                                                                    currentDynStockCode]!
-                                                                .priceChange
+                                                                    currentDynStockCode]
+                                                                ?.priceChange
                                                                 .regularMarketChange !=
                                                             null &&
                                                         state
@@ -1147,14 +1197,14 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                                                     : AccentColors.red1),
                                           ),
                                           Text(
-                                            '(${state.allTickerData.data[currentDynStockCode]!.priceChange.regularMarketChangePercent != null && state.allTickerData.data[currentDynStockCode]!.priceChange.regularMarketChangePercent! > 0 ? '+' : ''}${state.allTickerData.data[currentDynStockCode]!.priceChange.regularMarketChangePercent != null ? state.allTickerData.data[currentDynStockCode]!.priceChange.regularMarketChangePercent!.toStringAsFixed(2) : ''} %)',
+                                            '(${state.allTickerData.data[currentDynStockCode]?.priceChange.regularMarketChangePercent != null && state.allTickerData.data[currentDynStockCode]!.priceChange.regularMarketChangePercent! > 0 ? '+' : ''}${state.allTickerData.data[currentDynStockCode]!.priceChange.regularMarketChangePercent != null ? state.allTickerData.data[currentDynStockCode]!.priceChange.regularMarketChangePercent!.toStringAsFixed(2) : ''} %)',
                                             style: GoogleFonts.lusitana(
                                                 fontSize: 15,
                                                 color: state
                                                                 .allTickerData
                                                                 .data[
-                                                                    currentDynStockCode]!
-                                                                .priceChange
+                                                                    currentDynStockCode]
+                                                                ?.priceChange
                                                                 .regularMarketChangePercent !=
                                                             null &&
                                                         state

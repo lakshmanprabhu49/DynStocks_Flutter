@@ -11,6 +11,7 @@ import 'package:dynstocks/redux/actions/ticker_data.actions.dart';
 import 'package:dynstocks/redux/actions/transactions.actions.dart';
 import 'package:dynstocks/redux/app_state.dart';
 import 'package:dynstocks/services/transactions.service.dart';
+import 'package:dynstocks/static/toast_message_handler.dart';
 import 'package:dynstocks/static/timed_ticker_call.dart';
 import 'package:dynstocks/views/widgets/bottom_navigation_bar_custom.dart';
 import 'package:dynstocks/views/widgets/transactions_today_bar_chart.dart';
@@ -46,6 +47,7 @@ class _EventsTodayScreenState extends State<EventsTodayScreen> with RouteAware {
   bool isLoaded = false;
   int selectedBottomBarIndex = 0;
   bool isTimedTickerFetchStarted = false;
+  bool errorMessageShown = false;
   void resetState() {
     transactionsToday = null;
     isLoaded = false;
@@ -87,162 +89,177 @@ class _EventsTodayScreenState extends State<EventsTodayScreen> with RouteAware {
   }
 
   void getTransactionsForToday() async {
-    if (appStore.state.userId.isNotEmpty &&
-        appStore.state.accessCode.isNotEmpty) {
-      DateTime now = DateTime.now();
-      String formattedDate = DateFormat('MMM dd yyyy').format(now);
-      List<Transaction> res = await TransactionsService()
-          .getTransactionsForDate(appStore.state.userId, date: formattedDate);
-      List<ITransactionsBarChart> barChartData = [
-        ITransactionsBarChart(
-          id: 1,
-          time: '09:00',
-          percentage: 0.0,
-          amount: 0.0,
-          color: charts.ColorUtil.fromDartColor(Colors.black),
-          labelColor: charts.ColorUtil.fromDartColor(Colors.black),
-        ),
-        ITransactionsBarChart(
-          id: 2,
-          time: '10:00',
-          percentage: 0.0,
-          amount: 0.0,
-          color: charts.ColorUtil.fromDartColor(Colors.black),
-          labelColor: charts.ColorUtil.fromDartColor(Colors.black),
-        ),
-        ITransactionsBarChart(
-          id: 3,
-          time: '11:00',
-          percentage: 0.0,
-          amount: 0.0,
-          color: charts.ColorUtil.fromDartColor(Colors.black),
-          labelColor: charts.ColorUtil.fromDartColor(Colors.black),
-        ),
-        ITransactionsBarChart(
-          id: 4,
-          time: '12:00',
-          percentage: 0.0,
-          amount: 0.0,
-          color: charts.ColorUtil.fromDartColor(Colors.black),
-          labelColor: charts.ColorUtil.fromDartColor(Colors.black),
-        ),
-        ITransactionsBarChart(
-          id: 5,
-          time: '01:00',
-          percentage: 0.0,
-          amount: 0.0,
-          color: charts.ColorUtil.fromDartColor(Colors.black),
-          labelColor: charts.ColorUtil.fromDartColor(Colors.black),
-        ),
-        ITransactionsBarChart(
-          id: 6,
-          time: '02:00',
-          percentage: 0.0,
-          amount: 0.0,
-          color: charts.ColorUtil.fromDartColor(Colors.black),
-          labelColor: charts.ColorUtil.fromDartColor(Colors.black),
-        ),
-        ITransactionsBarChart(
-          id: 7,
-          time: '03:00',
-          percentage: 0.0,
-          amount: 0.0,
-          color: charts.ColorUtil.fromDartColor(Colors.black),
-          labelColor: charts.ColorUtil.fromDartColor(Colors.black),
-        ),
-      ];
-      noOfStocks['SELL'] = 0;
-      noOfStocks['BUY'] = 0;
-      res.forEach((transaction) {
-        DateTime transactionTimeUTC = DateTime.fromMicrosecondsSinceEpoch(
-            transaction.transactionTime.date * 1000,
-            isUtc: true);
-        DateTime transactionTimeIST =
-            transactionTimeUTC.add(const Duration(seconds: 19800));
-        String time = '${transactionTimeIST.hour}:00';
-        double multiplier = 1.0;
-        if (transaction.type == 'BUY') {
-          multiplier = -1.0;
-          noOfStocks.update('BUY', (value) => value + transaction.noOfStocks);
-        } else {
-          noOfStocks.update('SELL', (value) => value + transaction.noOfStocks);
-        }
-        if (time.contains('9:00')) {
-          barChartData[0].amount += (transaction.amount * multiplier);
-        } else if (time.contains('10:00')) {
-          barChartData[1].amount += (transaction.amount * multiplier);
-        } else if (time.contains('11:00')) {
-          barChartData[2].amount += (transaction.amount * multiplier);
-        } else if (time.contains('12:00')) {
-          barChartData[3].amount += (transaction.amount * multiplier);
-        } else if (time.contains('13:00')) {
-          barChartData[4].amount += (transaction.amount * multiplier);
-        } else if (time.contains('14:00')) {
-          barChartData[5].amount += (transaction.amount * multiplier);
-        } else if (time.contains('15:00')) {
-          barChartData[6].amount += (transaction.amount * multiplier);
-        }
-      });
-
-      double maxAmount = 0.0;
-      barChartData.forEach((element) {
-        element.amount = double.parse(element.amount.toStringAsFixed(2));
-        netReturnsToday += element.amount;
-        if ((element.amount.abs()) > maxAmount) {
-          maxAmount = element.amount.abs();
-        }
-      });
-      netReturnsToday = double.parse(netReturnsToday.toStringAsFixed(2));
-
-      if (maxAmount > 0) {
-        barChartData.forEach((element) {
-          double percentage = element.amount * 100 / maxAmount;
-          Color color = (Colors.black);
-          Color labelColor = Colors.black;
-          if (percentage >= 50 && percentage <= 100) {
-            color = (AccentColors.green2);
-            labelColor = (AccentColors.green1);
-          } else if (percentage >= 0 && percentage < 50) {
-            color = (AccentColors.yellow2);
-            labelColor = (AccentColors.yellow1);
-          } else if (percentage >= -50 && percentage < 0) {
-            color = (AccentColors.blue2);
-            labelColor = (AccentColors.blue1);
-          } else if (percentage >= -100 && percentage < -50) {
-            color = (AccentColors.red2);
-            labelColor = (AccentColors.red1);
+    try {
+      if (appStore.state.userId.isNotEmpty &&
+          appStore.state.accessCode.isNotEmpty) {
+        DateTime now = DateTime.now();
+        String formattedDate = DateFormat('MMM dd yyyy').format(now);
+        List<Transaction> res = await TransactionsService()
+            .getTransactionsForDate(appStore.state.userId, date: formattedDate);
+        List<ITransactionsBarChart> barChartData = [
+          ITransactionsBarChart(
+            id: 1,
+            time: '09:00',
+            percentage: 0.0,
+            amount: 0.0,
+            color: charts.ColorUtil.fromDartColor(Colors.black),
+            labelColor: charts.ColorUtil.fromDartColor(Colors.black),
+          ),
+          ITransactionsBarChart(
+            id: 2,
+            time: '10:00',
+            percentage: 0.0,
+            amount: 0.0,
+            color: charts.ColorUtil.fromDartColor(Colors.black),
+            labelColor: charts.ColorUtil.fromDartColor(Colors.black),
+          ),
+          ITransactionsBarChart(
+            id: 3,
+            time: '11:00',
+            percentage: 0.0,
+            amount: 0.0,
+            color: charts.ColorUtil.fromDartColor(Colors.black),
+            labelColor: charts.ColorUtil.fromDartColor(Colors.black),
+          ),
+          ITransactionsBarChart(
+            id: 4,
+            time: '12:00',
+            percentage: 0.0,
+            amount: 0.0,
+            color: charts.ColorUtil.fromDartColor(Colors.black),
+            labelColor: charts.ColorUtil.fromDartColor(Colors.black),
+          ),
+          ITransactionsBarChart(
+            id: 5,
+            time: '01:00',
+            percentage: 0.0,
+            amount: 0.0,
+            color: charts.ColorUtil.fromDartColor(Colors.black),
+            labelColor: charts.ColorUtil.fromDartColor(Colors.black),
+          ),
+          ITransactionsBarChart(
+            id: 6,
+            time: '02:00',
+            percentage: 0.0,
+            amount: 0.0,
+            color: charts.ColorUtil.fromDartColor(Colors.black),
+            labelColor: charts.ColorUtil.fromDartColor(Colors.black),
+          ),
+          ITransactionsBarChart(
+            id: 7,
+            time: '03:00',
+            percentage: 0.0,
+            amount: 0.0,
+            color: charts.ColorUtil.fromDartColor(Colors.black),
+            labelColor: charts.ColorUtil.fromDartColor(Colors.black),
+          ),
+        ];
+        noOfStocks['SELL'] = 0;
+        noOfStocks['BUY'] = 0;
+        res.forEach((transaction) {
+          DateTime transactionTimeUTC = DateTime.fromMicrosecondsSinceEpoch(
+              transaction.transactionTime.date * 1000,
+              isUtc: true);
+          DateTime transactionTimeIST =
+              transactionTimeUTC.add(const Duration(seconds: 19800));
+          String time = '${transactionTimeIST.hour}:00';
+          double multiplier = 1.0;
+          if (transaction.type == 'BUY') {
+            multiplier = -1.0;
+            noOfStocks.update('BUY', (value) => value + transaction.noOfStocks);
+          } else {
+            noOfStocks.update(
+                'SELL', (value) => value + transaction.noOfStocks);
           }
+          if (time.contains('9:00')) {
+            barChartData[0].amount += (transaction.amount * multiplier);
+          } else if (time.contains('10:00')) {
+            barChartData[1].amount += (transaction.amount * multiplier);
+          } else if (time.contains('11:00')) {
+            barChartData[2].amount += (transaction.amount * multiplier);
+          } else if (time.contains('12:00')) {
+            barChartData[3].amount += (transaction.amount * multiplier);
+          } else if (time.contains('13:00')) {
+            barChartData[4].amount += (transaction.amount * multiplier);
+          } else if (time.contains('14:00')) {
+            barChartData[5].amount += (transaction.amount * multiplier);
+          } else if (time.contains('15:00')) {
+            barChartData[6].amount += (transaction.amount * multiplier);
+          }
+        });
 
-          element.percentage = percentage;
-          element.color = charts.ColorUtil.fromDartColor(color);
-          element.labelColor = charts.ColorUtil.fromDartColor(labelColor);
+        double maxAmount = 0.0;
+        barChartData.forEach((element) {
+          element.amount = double.parse(element.amount.toStringAsFixed(2));
+          netReturnsToday += element.amount;
+          if ((element.amount.abs()) > maxAmount) {
+            maxAmount = element.amount.abs();
+          }
+        });
+        netReturnsToday = double.parse(netReturnsToday.toStringAsFixed(2));
+
+        if (maxAmount > 0) {
+          barChartData.forEach((element) {
+            double percentage = element.amount * 100 / maxAmount;
+            Color color = (Colors.black);
+            Color labelColor = Colors.black;
+            if (percentage >= 50 && percentage <= 100) {
+              color = (AccentColors.green2);
+              labelColor = (AccentColors.green1);
+            } else if (percentage >= 0 && percentage < 50) {
+              color = (AccentColors.yellow2);
+              labelColor = (AccentColors.yellow1);
+            } else if (percentage >= -50 && percentage < 0) {
+              color = (AccentColors.blue2);
+              labelColor = (AccentColors.blue1);
+            } else if (percentage >= -100 && percentage < -50) {
+              color = (AccentColors.red2);
+              labelColor = (AccentColors.red1);
+            }
+
+            element.percentage = percentage;
+            element.color = charts.ColorUtil.fromDartColor(color);
+            element.labelColor = charts.ColorUtil.fromDartColor(labelColor);
+          });
+        }
+
+        barChartsRenderData = [
+          charts.Series(
+            id: "BarChart",
+            data: barChartData,
+            measureFn: (ITransactionsBarChart barChart, _) =>
+                barChart.percentage,
+            domainFn: (ITransactionsBarChart barChart, _) => (barChart.time),
+            colorFn: (ITransactionsBarChart barChart, _) => barChart.color,
+            labelAccessorFn: (ITransactionsBarChart barChart, _) =>
+                barChart.percentage.toStringAsFixed(1),
+            outsideLabelStyleAccessorFn: (ITransactionsBarChart barChart, _) {
+              return charts.TextStyleSpec(
+                color: barChart.labelColor,
+                fontSize: 10,
+                fontWeight: '500',
+              );
+            },
+          ),
+        ];
+        maxTradedAmount = maxAmount;
+        setState(() {
+          isLoaded = true;
+          transactionsToday = res;
+          barChartData = barChartData;
+          maxTradedAmount = maxAmount;
         });
       }
-
-      barChartsRenderData = [
-        charts.Series(
-          id: "BarChart",
-          data: barChartData,
-          measureFn: (ITransactionsBarChart barChart, _) => barChart.percentage,
-          domainFn: (ITransactionsBarChart barChart, _) => (barChart.time),
-          colorFn: (ITransactionsBarChart barChart, _) => barChart.color,
-          labelAccessorFn: (ITransactionsBarChart barChart, _) =>
-              barChart.percentage.toStringAsFixed(1),
-          outsideLabelStyleAccessorFn: (ITransactionsBarChart barChart, _) {
-            return charts.TextStyleSpec(
-              color: barChart.labelColor,
-              fontSize: 10,
-              fontWeight: '500',
-            );
-          },
-        ),
-      ];
-      maxTradedAmount = maxAmount;
+    } catch (error) {
+      if (!errorMessageShown) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          ScaffoldMessenger.of(context).showSnackBar(
+              ToastMessageHandler.showErrorMessageSnackBar(
+                  'Error while fetching today\'s transactions'));
+        });
+      }
       setState(() {
-        isLoaded = true;
-        transactionsToday = res;
-        barChartData = barChartData;
-        maxTradedAmount = maxAmount;
+        errorMessageShown = true;
       });
     }
   }
@@ -314,12 +331,37 @@ class _EventsTodayScreenState extends State<EventsTodayScreen> with RouteAware {
         appStore.state.accessCode.isNotEmpty) {
       StoreProvider.of<AppState>(context)
           .dispatch(GetAllDynStocksAction(userId: appStore.state.userId));
+      setState(() {
+        errorMessageShown = false;
+      });
+    }
+    if (appStore.state.allDynStocks.loadFailed && !errorMessageShown) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            ToastMessageHandler.showErrorMessageSnackBar(
+                'Error while loading dynstocks'));
+      });
+      setState(() {
+        errorMessageShown = true;
+      });
     }
     Size screenSize = MediaQuery.of(context).size;
     return Scaffold(
       resizeToAvoidBottomInset: false,
       key: Key("EventsTodayScreen"),
       body: StoreConnector<AppState, AppState>(
+          onDidChange: (previousState, state) {
+            if (appStore.state.allDynStocks.loadFailed && !errorMessageShown) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                    ToastMessageHandler.showErrorMessageSnackBar(
+                        'Error while loading dynstocks'));
+              });
+              setState(() {
+                errorMessageShown = true;
+              });
+            }
+          },
           converter: ((store) => store.state),
           builder: (context, state) => Container(
               color: Colors.transparent,

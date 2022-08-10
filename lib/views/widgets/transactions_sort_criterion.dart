@@ -39,7 +39,7 @@ class _SortCriterionState extends State<TransactionsSortCriterion> {
       required this.sortDirectionCallback});
   Map<ESortCriterion, String> sortCriterionMap = Map();
   ESortCriterion currentSortCriterion = ESortCriterion.TransactionTime;
-  ESortDirection currentSortDirection = ESortDirection.ASC;
+  ESortDirection currentSortDirection = ESortDirection.DESC;
 
   StringCallback sortCriterionCallback;
   StringCallback sortDirectionCallback;

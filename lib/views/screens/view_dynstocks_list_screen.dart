@@ -7,6 +7,7 @@ import 'package:dynstocks/redux/actions/dyn_stocks.actions.dart';
 import 'package:dynstocks/redux/actions/ticker_data.actions.dart';
 import 'package:dynstocks/redux/app_state.dart';
 import 'package:dynstocks/redux/state/dyn_stocks.state.dart';
+import 'package:dynstocks/static/toast_message_handler.dart';
 import 'package:dynstocks/static/timed_ticker_call.dart';
 import 'package:dynstocks/views/widgets/bottom_navigation_bar_custom.dart';
 import 'package:dynstocks/views/widgets/dyn_stocks_list_item.dart';
@@ -29,6 +30,7 @@ class _ViewDynStocksListScreenState extends State<ViewDynStocksListScreen>
   String userId = appStore.state.userId;
   String searchStocksInput = '';
   bool isTimedTickerFetchStarted = false;
+  bool errorMessageShown = false;
   @override
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
@@ -80,6 +82,10 @@ class _ViewDynStocksListScreenState extends State<ViewDynStocksListScreen>
     super.didPush();
     StoreProvider.of<AppState>(context)
         .dispatch(GetAllDynStocksAction(userId: userId));
+
+    setState(() {
+      errorMessageShown = false;
+    });
     startPeriodicTimer();
   }
 
@@ -98,7 +104,16 @@ class _ViewDynStocksListScreenState extends State<ViewDynStocksListScreen>
   @override
   Widget build(BuildContext context) {
     Size screenSize = MediaQuery.of(context).size;
-
+    // if (appStore.state.allDynStocks.loadFailed && !errorMessageShown) {
+    //   WidgetsBinding.instance.addPostFrameCallback((_) {
+    //     ScaffoldMessenger.of(context).showSnackBar(
+    //         ToastMessageHandler.showErrorMessageSnackBar(
+    //             'Error while fetching today\'s transactions'));
+    //   });
+    //   setState(() {
+    //     errorMessageShown = true;
+    //   });
+    // }
     return Scaffold(
       resizeToAvoidBottomInset: false,
       body: Container(
@@ -210,6 +225,18 @@ class _ViewDynStocksListScreenState extends State<ViewDynStocksListScreen>
                         end: Alignment.bottomCenter)),
                 child: Container(
                     child: StoreConnector<AppState, DynStocksState>(
+                        onDidChange: (previousState, state) {
+                          if (state.loadFailed && !errorMessageShown) {
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                  ToastMessageHandler.showErrorMessageSnackBar(
+                                      'Error while fetching today\'s transactions'));
+                            });
+                            setState(() {
+                              errorMessageShown = true;
+                            });
+                          }
+                        },
                         converter: ((store) => store.state.allDynStocks),
                         builder: (context, allDynStocksState) {
                           if (allDynStocksState.loadFailed) {

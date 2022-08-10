@@ -7,6 +7,7 @@ import 'package:dynstocks/models/transactions.dart';
 import 'package:dynstocks/redux/actions/transactions.actions.dart';
 import 'package:dynstocks/redux/app_state.dart';
 import 'package:dynstocks/redux/state/transactions.state.dart';
+import 'package:dynstocks/static/toast_message_handler.dart';
 import 'package:dynstocks/static/timed_ticker_call.dart';
 import 'package:dynstocks/views/widgets/transactions_filter_criterion.dart';
 import 'package:dynstocks/views/widgets/transactions_list_item.dart';
@@ -41,8 +42,8 @@ class _ViewTransactionsScreenState extends State<ViewTransactionsScreen>
   EDaysFilterCriterion currentDaysFilterCriterion = EDaysFilterCriterion.All;
   String currentStocksCustomInput = '';
   ESortCriterion currentSortCriterion = ESortCriterion.TransactionTime;
-  ESortDirection currentSortDirection = ESortDirection.ASC;
-
+  ESortDirection currentSortDirection = ESortDirection.DESC;
+  bool errorMessageShown = false;
   String customStockCode;
   @override
   void initState() {
@@ -108,6 +109,9 @@ class _ViewTransactionsScreenState extends State<ViewTransactionsScreen>
     super.didPush();
     StoreProvider.of<AppState>(context)
         .dispatch(GetAllTransactionsAction(userId: userId, date: ''));
+    setState(() {
+      errorMessageShown = false;
+    });
     startPeriodicTimer();
   }
 
@@ -126,7 +130,16 @@ class _ViewTransactionsScreenState extends State<ViewTransactionsScreen>
   @override
   Widget build(BuildContext context) {
     Size screenSize = MediaQuery.of(context).size;
-
+    if (appStore.state.allTransactions.loadFailed && !errorMessageShown) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            ToastMessageHandler.showErrorMessageSnackBar(
+                'Error while fetching list of transactions'));
+      });
+      setState(() {
+        errorMessageShown = true;
+      });
+    }
     return Scaffold(
         resizeToAvoidBottomInset: false,
         body: Container(
@@ -174,7 +187,10 @@ class _ViewTransactionsScreenState extends State<ViewTransactionsScreen>
                                 flex: 3,
                                 child: Container(
                                   margin: EdgeInsets.fromLTRB(10, 0, 0, 0),
-                                  child: Text('View all Transactions',
+                                  child: Text(
+                                      customStockCode.isEmpty
+                                          ? 'View all Transactions'
+                                          : 'Transactions - ${customStockCode}',
                                       style: GoogleFonts.overlock(
                                           color: Colors.white,
                                           fontSize: 30,
@@ -235,6 +251,18 @@ class _ViewTransactionsScreenState extends State<ViewTransactionsScreen>
               Container(
                   margin: EdgeInsets.fromLTRB(10, 0, 10, 0),
                   child: StoreConnector<AppState, TransactionsState>(
+                    onDidChange: (previousState, state) {
+                      if (state.loadFailed && !errorMessageShown) {
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                              ToastMessageHandler.showErrorMessageSnackBar(
+                                  'Error while fetching list of transactions'));
+                        });
+                        setState(() {
+                          errorMessageShown = true;
+                        });
+                      }
+                    },
                     converter: ((store) => store.state.allTransactions),
                     builder: (context, allTransactionsState) {
                       if (allTransactionsState.loadFailed) {
@@ -351,20 +379,31 @@ class _ViewTransactionsScreenState extends State<ViewTransactionsScreen>
                             });
                             break;
                         }
-                        return Container(
-                            height: (currentStocksFilterCriterion ==
-                                    EStocksFilterCriterion.All
-                                ? screenSize.height * 0.5
-                                : screenSize.height * 0.4),
-                            child: ListView.builder(
-                              itemCount: sortedTransactions.length,
-                                itemBuilder: (BuildContext context, int index) {
-                              return Container(
-                                  margin: EdgeInsets.fromLTRB(0, 15, 0, 15),
-                                  child: TransactionsListItem(
-                                      screenSize: screenSize,
-                                      transaction: sortedTransactions[index]));
-                            }));
+                        return Column(children: [
+                          Text(
+                              'No of transactions: ${sortedTransactions.length}',
+                              style: GoogleFonts.actor(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: PaletteColors.purple1)),
+                          Container(
+                              height: (currentStocksFilterCriterion ==
+                                      EStocksFilterCriterion.All
+                                  ? screenSize.height * 0.5
+                                  : screenSize.height * 0.4),
+                              child: (ListView.builder(
+                                  itemCount: sortedTransactions.length,
+                                  itemBuilder:
+                                      (BuildContext context, int index) {
+                                    return Container(
+                                        margin:
+                                            EdgeInsets.fromLTRB(0, 15, 0, 15),
+                                        child: TransactionsListItem(
+                                            screenSize: screenSize,
+                                            transaction:
+                                                sortedTransactions[index]));
+                                  })))
+                        ]);
                       }
                       return Text('Store is empty: $userId');
                     },

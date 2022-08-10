@@ -1,3 +1,5 @@
+// ignore_for_file: unnecessary_brace_in_string_interps
+
 import 'dart:io';
 
 import 'package:dynstocks/main.dart';
@@ -14,7 +16,7 @@ class KotakStockAPIService {
     KotakStockAPIPlaceOrderBody body,
   ) async {
     Uri url = Uri.parse(
-        '${dotenv.env["DYNSTOCKS_API_ENDPOINT_PROD"]}/$userId/kotakStock/placeOrder?accessCode=$accessCode');
+        '${dotenv.env["DYNSTOCKS_API_ENDPOINT_LOCAL"]}/$userId/kotakStock/placeOrder?accessCode=$accessCode');
     var client = http.Client();
     var response = await client.post(url, body: jsonEncode(body), headers: {
       HttpHeaders.authorizationHeader:
@@ -29,7 +31,7 @@ class KotakStockAPIService {
   Future<KotakStockApiPositionsResponse?> getPositions(String userId,
       String accessCode, EPositions position, String instrumentToken) async {
     Uri url = Uri.parse(
-        '${dotenv.env["DYNSTOCKS_API_ENDPOINT_PROD"]}/$userId/kotakStock/positions/${position.name}?accessCode=$accessCode');
+        '${dotenv.env["DYNSTOCKS_API_ENDPOINT_LOCAL"]}/$userId/kotakStock/positions/${position.name}?accessCode=$accessCode');
     var client = http.Client();
     var response = await client.get(url, headers: {
       HttpHeaders.authorizationHeader:
@@ -40,10 +42,24 @@ class KotakStockAPIService {
     return kotakStockApiPositionsResponseFromJson(res);
   }
 
+  Future<KotakStockApiOrderReportsResponse?> getOrderReport(String userId,
+      String accessCode, int orderId, String instrumentToken) async {
+    Uri url = Uri.parse(
+        '${dotenv.env["DYNSTOCKS_API_ENDPOINT_LOCAL"]}/$userId/kotakStock/orderReport/$orderId?accessCode=$accessCode');
+    var client = http.Client();
+    var response = await client.get(url, headers: {
+      HttpHeaders.authorizationHeader:
+          'Bearer ${appStore.state.kotakStockAPI.jwtToken}',
+      'x-request-id': appStore.state.DYNSTOCKS_X_REQUEST_ID
+    });
+    String res = response.body;
+    return kotakStockApiOrderReportsResponseFromJson(res);
+  }
+
   Future<KotakStockApiLoginResponse?> login(
       String userId, String accessCode) async {
     Uri url = Uri.parse(
-        '${dotenv.env["DYNSTOCKS_API_ENDPOINT_PROD"]}/$userId/kotakStock/login?accessCode=$accessCode');
+        '${dotenv.env["DYNSTOCKS_API_ENDPOINT_LOCAL"]}/$userId/kotakStock/login?accessCode=$accessCode');
     var client = http.Client();
     var response = await client.post(url,
         headers: {'x-request-id': appStore.state.DYNSTOCKS_X_REQUEST_ID});

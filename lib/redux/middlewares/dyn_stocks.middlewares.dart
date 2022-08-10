@@ -49,15 +49,13 @@ void dynStocksMiddleWare(
             stockPrice: action.price);
         Future.delayed(Duration(milliseconds: 200), () {
           KotakStockAPIService()
-              .getPositions(action.userId, appStore.state.accessCode,
-                  EPositions.TODAYS, action.body.instrumentToken)
+              .getOrderReport(action.userId, appStore.state.accessCode,
+                  orderData.orderId, action.body.instrumentToken)
               .then((position) {
             action.body.transactionForCreateDynStock!.stockPrice = position!
                 .success
-                .firstWhere((element) =>
-                    element.instrumentToken ==
-                    int.parse(action.body.instrumentToken))
-                .buyTradedVal;
+                .firstWhere((element) => element.orderId == orderData.orderId)
+                .price;
             DynStocksService()
                 .createDynStock(action.userId, action.body)
                 .then((response) {
@@ -151,9 +149,14 @@ void dynStocksMiddleWare(
         bool orderPlacedInNSE = order!.success!.nse != null ? true : false;
         Future.delayed(Duration(milliseconds: 200), () {
           KotakStockAPIService()
-              .getPositions(action.userId, appStore.state.accessCode,
-                  EPositions.TODAYS, dynStockToBeDeleted.instrumentToken)
-              .then((position) {
+              .getOrderReport(
+                  action.userId,
+                  appStore.state.accessCode,
+                  (orderPlacedInNSE
+                      ? order.success!.nse!.orderId
+                      : order.success!.bse!.orderId),
+                  dynStockToBeDeleted.instrumentToken)
+              .then((orderReport) {
             TransactionsService()
                 .createTransaction(
                     action.userId,
@@ -165,11 +168,13 @@ void dynStocksMiddleWare(
                         type: 'SELL',
                         noOfStocks: dynStockToBeDeleted.stocksAvailableForTrade,
                         stockCode: dynStockToBeDeleted.stockCode,
-                        stockPrice: position!.success
+                        stockPrice: orderReport!.success
                             .firstWhere((element) =>
-                                element.instrumentToken ==
-                                int.parse(dynStockToBeDeleted.instrumentToken))
-                            .sellTradedVal))
+                                element.orderId ==
+                                (orderPlacedInNSE
+                                    ? order.success!.nse!.orderId
+                                    : order.success!.bse!.orderId))
+                            .price))
                 .then((transaction) {
               DynStocksService()
                   .deleteDynStock(action.userId, action.dynStockId)

@@ -13,6 +13,7 @@ import 'package:dynstocks/redux/actions/transactions.actions.dart';
 import 'package:dynstocks/redux/app_state.dart';
 import 'package:dynstocks/services/ticker_data.service.dart';
 import 'package:dynstocks/services/transactions.service.dart';
+import 'package:dynstocks/static/toast_message_handler.dart';
 import 'package:dynstocks/static/timed_ticker_call.dart';
 import 'package:dynstocks/views/screens/view_dynstocks_list_screen.dart';
 import 'package:dynstocks/views/widgets/bottom_navigation_bar_custom.dart';
@@ -59,6 +60,7 @@ class _CreateDynStockScreenState extends State<CreateDynStockScreen>
   String currentBTP = '0.0';
   String currentSTP = '0.0';
   bool creatingDynStock = false;
+  bool errorMessageShown = false;
   @override
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
@@ -142,12 +144,23 @@ class _CreateDynStockScreenState extends State<CreateDynStockScreen>
   @override
   Widget build(BuildContext context) {
     Size screenSize = MediaQuery.of(context).size;
+    if (appStore.state.allDynStocks.createFailed && !errorMessageShown) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            ToastMessageHandler.showErrorMessageSnackBar(
+                'Error while creating DynStock'));
+      });
+      setState(() {
+        errorMessageShown = true;
+      });
+    }
     if (mounted) {
       if (appStore.state.allDynStocks.creating &&
           !appStore.state.allDynStocks.created) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          ScaffoldMessenger.of(context)
-              .showSnackBar(SnackBar(content: Text('Creating DynStock.....')));
+          ScaffoldMessenger.of(context).showSnackBar(
+              ToastMessageHandler.showInfoMessageSnackBar(
+                  'Creating DynStock.....'));
         });
         setState(() {
           creatingDynStock = true;
@@ -157,8 +170,9 @@ class _CreateDynStockScreenState extends State<CreateDynStockScreen>
           creatingDynStock) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           ScaffoldMessenger.of(context).hideCurrentSnackBar();
-          ScaffoldMessenger.of(context)
-              .showSnackBar(SnackBar(content: Text('DynStock Created')));
+          ScaffoldMessenger.of(context).showSnackBar(
+              ToastMessageHandler.showSuccessMessageSnackBar(
+                  'DynStock Created'));
           Future.delayed(Duration(seconds: 2), () {
             Route newRoute = MaterialPageRoute(
                 builder: (context) => ViewDynStocksListScreen());
@@ -171,9 +185,10 @@ class _CreateDynStockScreenState extends State<CreateDynStockScreen>
         });
       } else if (appStore.state.allDynStocks.createFailed && creatingDynStock) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content:
-                  Text('${appStore.state.allDynStocks.error.toString()}')));
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          ScaffoldMessenger.of(context).showSnackBar(
+              ToastMessageHandler.showErrorMessageSnackBar(
+                  '${appStore.state.allDynStocks.error.toString()}'));
         });
         setState(() {
           creatingDynStock = false;
@@ -183,6 +198,19 @@ class _CreateDynStockScreenState extends State<CreateDynStockScreen>
     return Scaffold(
       resizeToAvoidBottomInset: false,
       body: StoreConnector<AppState, AppState>(
+          onDidChange: (previousState, state) {
+            if (state.allDynStocks.createFailed && !errorMessageShown) {
+              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                    ToastMessageHandler.showErrorMessageSnackBar(
+                        'Error while creating DynStock'));
+              });
+              setState(() {
+                errorMessageShown = true;
+              });
+            }
+          },
           converter: ((store) => store.state),
           builder: (context, state) => Container(
                 child: Column(
@@ -934,6 +962,9 @@ class _CreateDynStockScreenState extends State<CreateDynStockScreen>
                                           : 0.0,
                                     )),
                               );
+                              setState(() {
+                                errorMessageShown = false;
+                              });
                             },
                           ),
                         ))

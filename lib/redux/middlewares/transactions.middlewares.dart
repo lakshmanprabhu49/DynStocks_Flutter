@@ -41,12 +41,20 @@ void transactionsMiddleWare(
       bool orderPlacedInNSE = order!.success!.nse != null ? true : false;
       Future.delayed(Duration(milliseconds: 200), () {
         KotakStockAPIService()
-            .getPositions(action.userId, store.state.accessCode,
-                EPositions.TODAYS, action.instrumentToken)
+            .getOrderReport(
+                action.userId,
+                store.state.accessCode,
+                (orderPlacedInNSE
+                    ? order.success!.nse!.orderId
+                    : order.success!.bse!.orderId),
+                action.instrumentToken)
             .then((position) {
-          PositionsSuccess tradedStock = position!.success.firstWhere(
+          OrderReportsSuccess tradedStock = position!.success.firstWhere(
               (element) =>
-                  element.instrumentToken == int.parse(action.instrumentToken));
+                  element.orderId ==
+                  (orderPlacedInNSE
+                      ? order.success!.nse!.orderId
+                      : order.success!.bse!.orderId));
           TransactionsService()
               .createTransaction(
                   action.userId,
@@ -58,9 +66,7 @@ void transactionsMiddleWare(
                       type: action.body.type,
                       noOfStocks: action.body.noOfStocks,
                       stockCode: action.body.stockCode,
-                      stockPrice: action.body.type == 'BUY'
-                          ? tradedStock.buyTradedVal
-                          : tradedStock.sellTradedVal))
+                      stockPrice: tradedStock.price))
               .then((response) {
             store.dispatch(
                 CreateTransactionSuccessAction(transaction: response));
@@ -82,7 +88,9 @@ void transactionsMiddleWare(
                         '${emailBodyLine1} ${emailBodyLine2} ${emailBodyLine3}'))
                 .then((value) {
               store.dispatch(GetAllDynStocksAction(userId: action.userId));
-            }).catchError((error) {});
+            }).catchError((error) {
+              store.dispatch(CreateTransactionFailAction(error: error));
+            });
           }).catchError((error) {
             store.dispatch(CreateTransactionFailAction(error: error));
           });
@@ -90,7 +98,9 @@ void transactionsMiddleWare(
           store.dispatch(CreateTransactionFailAction(error: error));
         });
       });
-    }).catchError((error) {});
+    }).catchError((error) {
+      store.dispatch(CreateTransactionFailAction(error: error));
+    });
   }
   next(action);
 }

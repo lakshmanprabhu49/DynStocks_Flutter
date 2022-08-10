@@ -13,6 +13,7 @@ import 'package:dynstocks/redux/actions/ticker_data.actions.dart';
 import 'package:dynstocks/redux/actions/transactions.actions.dart';
 import 'package:dynstocks/redux/app_state.dart';
 import 'package:dynstocks/services/transactions.service.dart';
+import 'package:dynstocks/static/toast_message_handler.dart';
 import 'package:dynstocks/static/timed_ticker_call.dart';
 import 'package:dynstocks/views/screens/events_today_screen.dart';
 import 'package:dynstocks/views/widgets/bottom_navigation_bar_custom.dart';
@@ -49,7 +50,7 @@ class _EnterLocalUserCredsScreenState extends State<EnterLocalUserCredsScreen>
   String password = '';
   bool shouldAskForUsernameAndPassword = false;
   bool userNameAndPasswordObtained = false;
-
+  bool errorMessageShown = true;
   _EnterLocalUserCredsScreenState(
       {required this.shouldAskForUsernameAndPassword});
   @override
@@ -86,9 +87,33 @@ class _EnterLocalUserCredsScreenState extends State<EnterLocalUserCredsScreen>
 
   @override
   Widget build(BuildContext context) {
+    if ((appStore.state.kotakStockAPI.loginFailed ||
+            appStore.state.authState.loginFailed) &&
+        !errorMessageShown) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            ToastMessageHandler.showErrorMessageSnackBar(
+                'Error while logging in'));
+      });
+      setState(() {
+        errorMessageShown = true;
+      });
+    }
     return Scaffold(
         body: StoreConnector<AppState, AppState>(
             onDidChange: (previousState, state) {
+              if ((state.kotakStockAPI.loginFailed ||
+                      appStore.state.authState.loginFailed) &&
+                  !errorMessageShown) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                      ToastMessageHandler.showErrorMessageSnackBar(
+                          'Please enter a valid access code'));
+                });
+                setState(() {
+                  errorMessageShown = true;
+                });
+              }
               if (mounted &&
                   state.kotakStockAPI.jwtToken.isNotEmpty &&
                   state.kotakStockAPI.loggedIn &&
@@ -113,10 +138,16 @@ class _EnterLocalUserCredsScreenState extends State<EnterLocalUserCredsScreen>
                     });
                   }
                 });
-              } else if (mounted && state.kotakStockAPI.loginFailed) {
-                Future.delayed(Duration(seconds: 1), () {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                      content: Text('Please enter a valid access code')));
+              } else if (mounted &&
+                  state.kotakStockAPI.loginFailed &&
+                  !errorMessageShown) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                      ToastMessageHandler.showErrorMessageSnackBar(
+                          'Please enter a valid access code'));
+                });
+                setState(() {
+                  errorMessageShown = true;
                 });
               }
 
@@ -184,6 +215,9 @@ class _EnterLocalUserCredsScreenState extends State<EnterLocalUserCredsScreen>
                                   StoreProvider.of<AppState>(context).dispatch(
                                       KotakStockAPILoginAction(
                                           accessCode: accessCode));
+                                  setState(() {
+                                    errorMessageShown = false;
+                                  });
                                 }
                               },
                               child: Text(
@@ -264,6 +298,9 @@ class _EnterLocalUserCredsScreenState extends State<EnterLocalUserCredsScreen>
                                           authBody: AuthBody(
                                               username: username,
                                               password: password)));
+                                  setState(() {
+                                    errorMessageShown = false;
+                                  });
                                 }
                               },
                               child: Icon(

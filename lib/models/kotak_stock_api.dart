@@ -123,7 +123,6 @@ class PositionsSuccess {
     required this.instrumentName,
     required this.instrumentToken,
     required this.lastPrice,
-    required this.sellOpenVal,
     required this.sellTradedQtyLot,
     required this.sellTradedVal,
     required this.sellTrdAvg,
@@ -137,7 +136,6 @@ class PositionsSuccess {
   String instrumentName;
   int instrumentToken;
   double lastPrice;
-  int sellOpenVal;
   int sellTradedQtyLot;
   double sellTradedVal;
   double sellTrdAvg;
@@ -152,7 +150,6 @@ class PositionsSuccess {
         instrumentName: json["instrumentName"],
         instrumentToken: json["instrumentToken"],
         lastPrice: json["lastPrice"].toDouble(),
-        sellOpenVal: json["sellOpenVal"],
         sellTradedQtyLot: json["sellTradedQtyLot"],
         sellTradedVal: json["sellTradedVal"].toDouble(),
         sellTrdAvg: json["sellTrdAvg"].toDouble(),
@@ -167,7 +164,6 @@ class PositionsSuccess {
         "instrumentName": instrumentName,
         "instrumentToken": instrumentToken,
         "lastPrice": lastPrice,
-        "sellOpenVal": sellOpenVal,
         "sellTradedQtyLot": sellTradedQtyLot,
         "sellTradedVal": sellTradedVal,
         "sellTrdAvg": sellTrdAvg,
@@ -232,5 +228,73 @@ class KotakStockApiLoginResponse {
   Map<String, dynamic> toJson() => {
         "message": message,
         "token": token,
+      };
+}
+
+KotakStockApiOrderReportsResponse kotakStockApiOrderReportsResponseFromJson(
+        String str) =>
+    KotakStockApiOrderReportsResponse.fromJson(json.decode(str));
+
+String kotakStockApiOrderReportsResponseToJson(
+        KotakStockApiOrderReportsResponse data) =>
+    json.encode(data.toJson());
+
+class KotakStockApiOrderReportsResponse {
+  KotakStockApiOrderReportsResponse({
+    required this.success,
+  });
+
+  List<OrderReportsSuccess> success;
+
+  factory KotakStockApiOrderReportsResponse.fromJson(
+          Map<String, dynamic> json) =>
+      KotakStockApiOrderReportsResponse(
+        success: List<OrderReportsSuccess>.from(
+            json["success"].map((x) => OrderReportsSuccess.fromJson(x))),
+      );
+
+  Map<String, dynamic> toJson() => {
+        "success": List<dynamic>.from(success.map((x) => x.toJson())),
+      };
+}
+
+class OrderReportsSuccess {
+  OrderReportsSuccess({
+    required this.exchange,
+    required this.instrumentName,
+    required this.instrumentToken,
+    required this.instrumentType,
+    required this.orderId,
+    required this.price,
+    required this.transactionType,
+  });
+
+  String exchange;
+  String instrumentName;
+  int instrumentToken;
+  String instrumentType;
+  int orderId;
+  double price;
+  String transactionType;
+
+  factory OrderReportsSuccess.fromJson(Map<String, dynamic> json) =>
+      OrderReportsSuccess(
+        exchange: json["exchange"],
+        instrumentName: json["instrumentName"],
+        instrumentToken: json["instrumentToken"],
+        instrumentType: json["instrumentType"],
+        orderId: json["orderId"],
+        price: json["price"].toDouble(),
+        transactionType: json["transactionType"],
+      );
+
+  Map<String, dynamic> toJson() => {
+        "exchange": exchange,
+        "instrumentName": instrumentName,
+        "instrumentToken": instrumentToken,
+        "instrumentType": instrumentType,
+        "orderId": orderId,
+        "price": price,
+        "transactionType": transactionType,
       };
 }

@@ -12,6 +12,7 @@ import 'package:dynstocks/redux/actions/ticker_data.actions.dart';
 import 'package:dynstocks/redux/actions/user_info.actions.dart';
 import 'package:dynstocks/redux/app_state.dart';
 import 'package:dynstocks/redux/state/dyn_stocks.state.dart';
+import 'package:dynstocks/static/toast_message_handler.dart';
 import 'package:dynstocks/static/timed_ticker_call.dart';
 import 'package:dynstocks/views/screens/enter_local_user_creds_screen.dart';
 import 'package:dynstocks/views/screens/view_dynstocks_list_screen.dart';
@@ -50,6 +51,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> with RouteAware {
   List<FlSpot> actualStockChartPoints = [];
   List<FlSpot> dynStockChartPoints = [];
   bool isLoaded = false;
+  bool errorMessageShown = false;
   @override
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
@@ -170,6 +172,9 @@ class _UserInfoScreenState extends State<UserInfoScreen> with RouteAware {
               if (mounted) {
                 StoreProvider.of<AppState>(context)
                     .dispatch(LogoutAction(userId: userId));
+                setState(() {
+                  errorMessageShown = false;
+                });
               }
             },
             child: Container(
@@ -194,11 +199,57 @@ class _UserInfoScreenState extends State<UserInfoScreen> with RouteAware {
     if (mounted && !isLoaded) {
       StoreProvider.of<AppState>(context)
           .dispatch(GetUserInfoAction(userId: userId));
+      setState(() {
+        errorMessageShown = false;
+      });
+    }
+
+    if (appStore.state.userInfo.loadFailed && !errorMessageShown) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            ToastMessageHandler.showErrorMessageSnackBar(
+                'Error while fetching user info'));
+      });
+      setState(() {
+        errorMessageShown = true;
+      });
+    }
+
+    if (appStore.state.authState.logoutFailed && !errorMessageShown) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            ToastMessageHandler.showErrorMessageSnackBar(
+                'Error while logging out'));
+      });
+      setState(() {
+        errorMessageShown = true;
+      });
     }
 
     return Scaffold(
       body: StoreConnector<AppState, AppState>(
           onDidChange: ((previousState, state) {
+            if (state.userInfo.loadFailed && !errorMessageShown) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                    ToastMessageHandler.showErrorMessageSnackBar(
+                        'Error while fetching user info'));
+              });
+              setState(() {
+                errorMessageShown = true;
+              });
+            }
+
+            if (state.authState.logoutFailed && !errorMessageShown) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                    ToastMessageHandler.showErrorMessageSnackBar(
+                        'Error while logging out'));
+              });
+              setState(() {
+                errorMessageShown = true;
+              });
+            }
             if (mounted && state.authState.loggedOut) {
               SharedPreferences.getInstance().then((prefs) {
                 prefs.clear().then((value) {

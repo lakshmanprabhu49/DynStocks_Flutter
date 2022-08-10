@@ -15,6 +15,47 @@ import 'package:dynstocks/services/ticker_data.service.dart';
 import 'package:redux/redux.dart';
 import 'package:collection/collection.dart';
 import 'package:intl/intl.dart';
+import 'package:yahoofin/yahoofin.dart';
+
+double findLocalMaximaFromPreviousData(StockChart? chart) {
+  if (chart == null ||
+      chart.chartQuotes == null ||
+      chart.chartQuotes!.high == null ||
+      chart.chartQuotes!.high!.isEmpty) {
+    return double.negativeInfinity;
+  }
+  num localMaximum = chart.chartQuotes!.high!.last;
+  List<num>? high = chart.chartQuotes!.high;
+  int index = chart.chartQuotes!.high!.length - 1;
+  while (index > 0) {
+    if ((high![index - 1] < high[index]) && (high[index + 1] < high[index])) {
+      localMaximum = high[index];
+      break;
+    }
+    index--;
+  }
+  return localMaximum as double;
+}
+
+double findLocalMinimaFromPreviousData(StockChart? chart) {
+  if (chart == null ||
+      chart.chartQuotes == null ||
+      chart.chartQuotes!.low == null ||
+      chart.chartQuotes!.low!.isEmpty) {
+    return double.infinity;
+  }
+  num localMinimum = chart.chartQuotes!.low!.last;
+  List<num>? low = chart.chartQuotes!.low;
+  int index = chart.chartQuotes!.low!.length - 1;
+  while (index > 0) {
+    if ((low![index - 1] > low[index]) && (low[index + 1] > low[index])) {
+      localMinimum = low[index];
+      break;
+    }
+    index--;
+  }
+  return localMinimum as double;
+}
 
 void tickerDataMiddleWare(
     Store<AppState> store, dynamic action, NextDispatcher next) async {
@@ -27,16 +68,54 @@ void tickerDataMiddleWare(
         map[dynStock.stockCode] = response;
         if (dynStock.lastTransactionType == 'BUY') {
           // Next step is to sell the stocks
-          response.currentLocalMaximumPrice = max(
-              max(response.currentLocalMaximumPrice, dynStock.lastTradedPrice),
-              response.price.currentPrice ?? double.negativeInfinity);
-          response.currentLocalMinimumPrice = double.infinity;
+          if (response.currentLocalMaximumPrice == double.negativeInfinity) {
+            // Means app is restarted, so compare with previous day's local maxima
+            double possibleLocalMaximaFromYesterday =
+                findLocalMaximaFromPreviousData(response.chart);
+            possibleLocalMaximaFromYesterday = double.parse(
+                possibleLocalMaximaFromYesterday.toStringAsFixed(2));
+            response.currentLocalMaximumPrice = max(
+                max(
+                    max(response.currentLocalMaximumPrice,
+                        dynStock.lastTradedPrice),
+                    response.price.currentPrice ?? double.negativeInfinity),
+                possibleLocalMaximaFromYesterday);
+            response.currentLocalMinimumPrice =
+                response.currentLocalMaximumPrice;
+          } else {
+            // App is running, so no need to compare with previous day's local maxima
+            response.currentLocalMaximumPrice = max(
+                max(response.currentLocalMaximumPrice,
+                    dynStock.lastTradedPrice),
+                response.price.currentPrice ?? double.negativeInfinity);
+            response.currentLocalMinimumPrice =
+                response.currentLocalMaximumPrice;
+          }
         } else if (dynStock.lastTransactionType == 'SELL') {
           // Next step is to buy the stocks
-          response.currentLocalMinimumPrice = min(
-              min(response.currentLocalMinimumPrice, dynStock.lastTradedPrice),
-              response.price.currentPrice ?? double.infinity);
-          response.currentLocalMaximumPrice = double.negativeInfinity;
+          if (response.currentLocalMinimumPrice == double.infinity) {
+            // Means app is restarted, so compare with previous day's local minima
+            double possibleLocalMinimaFromYesterday =
+                findLocalMinimaFromPreviousData(response.chart);
+            possibleLocalMinimaFromYesterday = double.parse(
+                (possibleLocalMinimaFromYesterday).toStringAsFixed(2));
+            response.currentLocalMinimumPrice = min(
+                min(
+                    min(response.currentLocalMinimumPrice,
+                        dynStock.lastTradedPrice),
+                    response.price.currentPrice ?? double.infinity),
+                possibleLocalMinimaFromYesterday);
+            response.currentLocalMaximumPrice =
+                response.currentLocalMinimumPrice;
+          } else {
+            // App is running, so no need to compare with previous day's local minima
+            response.currentLocalMinimumPrice = min(
+                min(response.currentLocalMinimumPrice,
+                    dynStock.lastTradedPrice),
+                response.price.currentPrice ?? double.infinity);
+            response.currentLocalMaximumPrice =
+                response.currentLocalMinimumPrice;
+          }
         }
 
         DateTime now = DateTime.now();
@@ -83,8 +162,9 @@ void tickerDataMiddleWare(
               case 'Percentage':
                 if (response.price.currentPrice != null &&
                     response.price.currentPrice! <=
-                        (response.currentLocalMaximumPrice) *
-                            (1 - (dynStock.STPe / 100))) {
+                        double.parse(((response.currentLocalMaximumPrice) *
+                                (1 - (dynStock.STPe / 100)))
+                            .toStringAsFixed(2))) {
                   store.dispatch(CreateTransactionAction(
                       userId: appStore.state.userId,
                       instrumentToken: dynStock.instrumentToken,
@@ -123,8 +203,9 @@ void tickerDataMiddleWare(
             case 'Percentage':
               if (response.price.currentPrice != null &&
                   response.price.currentPrice! >=
-                      (response.currentLocalMinimumPrice) *
-                          (1 + (dynStock.STPe / 100))) {
+                      double.parse(((response.currentLocalMinimumPrice) *
+                              (1 + (dynStock.BTPe / 100)))
+                          .toStringAsFixed(2))) {
                 store.dispatch(CreateTransactionAction(
                     userId: appStore.state.userId,
                     instrumentToken: dynStock.instrumentToken,
