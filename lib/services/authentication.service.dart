@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:dynstocks/main.dart';
 import 'package:dynstocks/models/authentication.dart';
+import 'package:dynstocks/models/error_class.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'dart:io';
@@ -17,7 +18,11 @@ class AuthService {
         },
         body: jsonEncode(AuthBody(username: username, password: password)));
     String res = response.body;
-    return authResponseFromJson(res);
+    if (response.statusCode < 400) {
+      return authResponseFromJson(res);
+    } else {
+      throw Exception(ErrorClass.fromJson(jsonDecode(res)).message);
+    }
   }
 
   Future<AuthResponse> logout(String userId) async {
@@ -27,6 +32,10 @@ class AuthService {
     var response = await client.post(url,
         headers: {'x-request-id': appStore.state.DYNSTOCKS_X_REQUEST_ID});
     String res = response.body;
-    return authResponseFromJson(res);
+    if (response.statusCode < 400) {
+      return authResponseFromJson(res);
+    } else {
+      throw Exception(ErrorClass.fromJson(jsonDecode(res)).message);
+    }
   }
 }

@@ -2,6 +2,7 @@ import 'dart:collection';
 import 'dart:io';
 
 import 'package:dynstocks/main.dart';
+import 'package:dynstocks/models/error_class.dart';
 import 'package:dynstocks/models/transactions.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -24,8 +25,11 @@ class TransactionsService {
     });
 
     String res = response.body;
-
-    return transactionsFromJson(res);
+    if (response.statusCode < 400) {
+      return transactionsFromJson(res);
+    } else {
+      throw Exception(ErrorClass.fromJson(jsonDecode(res)).message);
+    }
   }
 
   Future<Transaction> createTransaction(
@@ -41,6 +45,10 @@ class TransactionsService {
     });
 
     String res = response.body;
-    return Transaction.fromJson(jsonDecode(res));
+    if (response.statusCode < 400) {
+      return Transaction.fromJson(jsonDecode(res));
+    } else {
+      throw Exception(ErrorClass.fromJson(jsonDecode(res)).message);
+    }
   }
 }

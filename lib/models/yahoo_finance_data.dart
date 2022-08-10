@@ -9,11 +9,12 @@ class TickerData {
   double currentLocalMaximumPrice = double.negativeInfinity;
   double currentLocalMinimumPrice = double.infinity;
 
-  TickerData({
-    required this.stockInfo,
-    required this.price,
-    required this.priceChange,
-    this.hist,
-    this.chart,
-  });
+  TickerData(
+      {required this.stockInfo,
+      required this.price,
+      required this.priceChange,
+      this.hist,
+      this.chart,
+      this.currentLocalMaximumPrice = double.negativeInfinity,
+      this.currentLocalMinimumPrice = double.infinity});
 }

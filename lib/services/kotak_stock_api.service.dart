@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:dynstocks/main.dart';
 import 'package:dynstocks/models/common.dart';
+import 'package:dynstocks/models/error_class.dart';
 import 'package:dynstocks/models/kotak_stock_api.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -25,7 +26,11 @@ class KotakStockAPIService {
       'x-request-id': appStore.state.DYNSTOCKS_X_REQUEST_ID
     });
     String res = response.body;
-    return kotakStockApiPlaceOrderResponseFromJson(res);
+    if (response.statusCode < 400) {
+      return kotakStockApiPlaceOrderResponseFromJson(res);
+    } else {
+      throw Exception(ErrorClass.fromJson(jsonDecode(res)).message);
+    }
   }
 
   Future<KotakStockApiPositionsResponse?> getPositions(String userId,
@@ -39,7 +44,11 @@ class KotakStockAPIService {
       'x-request-id': appStore.state.DYNSTOCKS_X_REQUEST_ID
     });
     String res = response.body;
-    return kotakStockApiPositionsResponseFromJson(res);
+    if (response.statusCode < 400) {
+      return kotakStockApiPositionsResponseFromJson(res);
+    } else {
+      throw Exception(ErrorClass.fromJson(jsonDecode(res)).message);
+    }
   }
 
   Future<KotakStockApiOrderReportsResponse?> getOrderReport(String userId,
@@ -53,7 +62,11 @@ class KotakStockAPIService {
       'x-request-id': appStore.state.DYNSTOCKS_X_REQUEST_ID
     });
     String res = response.body;
-    return kotakStockApiOrderReportsResponseFromJson(res);
+    if (response.statusCode < 400) {
+      return kotakStockApiOrderReportsResponseFromJson(res);
+    } else {
+      throw Exception(ErrorClass.fromJson(jsonDecode(res)).message);
+    }
   }
 
   Future<KotakStockApiLoginResponse?> login(
@@ -64,6 +77,10 @@ class KotakStockAPIService {
     var response = await client.post(url,
         headers: {'x-request-id': appStore.state.DYNSTOCKS_X_REQUEST_ID});
     String res = response.body;
-    return kotakStockApiLoginResponseFromJson(res);
+    if (response.statusCode < 400) {
+      return kotakStockApiLoginResponseFromJson(res);
+    } else {
+      throw Exception(ErrorClass.fromJson(jsonDecode(res)).message);
+    }
   }
 }

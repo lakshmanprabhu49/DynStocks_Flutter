@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:dynstocks/main.dart';
 import 'package:dynstocks/models/dyn_stocks.dart';
+import 'package:dynstocks/models/error_class.dart';
 import 'package:dynstocks/models/user_info.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -19,6 +20,10 @@ class UserInfoService {
       'x-request-id': appStore.state.DYNSTOCKS_X_REQUEST_ID
     });
     String res = response.body;
-    return UserInfo.fromJson(jsonDecode(res));
+    if (response.statusCode < 400) {
+      return UserInfo.fromJson(jsonDecode(res));
+    } else {
+      throw Exception(ErrorClass.fromJson(jsonDecode(res)).message);
+    }
   }
 }

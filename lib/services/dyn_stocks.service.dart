@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:dynstocks/main.dart';
 import 'package:dynstocks/models/dyn_stocks.dart';
+import 'package:dynstocks/models/error_class.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -18,7 +19,11 @@ class DynStocksService {
       'x-request-id': appStore.state.DYNSTOCKS_X_REQUEST_ID
     });
     String res = response.body;
-    return dynStockFromJson(res);
+    if (response.statusCode < 400) {
+      return dynStockFromJson(res);
+    } else {
+      throw Exception(ErrorClass.fromJson(jsonDecode(res)).message);
+    }
   }
 
   Future<DynStock> createDynStock(String userId, DynStockBody body) async {
@@ -32,7 +37,11 @@ class DynStocksService {
       'x-request-id': appStore.state.DYNSTOCKS_X_REQUEST_ID
     });
     String res = response.body;
-    return DynStock.fromJson(jsonDecode(res));
+    if (response.statusCode < 400) {
+      return DynStock.fromJson(jsonDecode(res));
+    } else {
+      throw Exception(ErrorClass.fromJson(jsonDecode(res)).message);
+    }
   }
 
   Future<DynStock> updateDynStock(
@@ -47,7 +56,11 @@ class DynStocksService {
       'x-request-id': appStore.state.DYNSTOCKS_X_REQUEST_ID
     });
     String res = response.body;
-    return DynStock.fromJson(jsonDecode(res));
+    if (response.statusCode < 400) {
+      return DynStock.fromJson(jsonDecode(res));
+    } else {
+      throw Exception(ErrorClass.fromJson(jsonDecode(res)).message);
+    }
   }
 
   Future<String> deleteDynStock(String userId, String dynStockId) async {
@@ -60,9 +73,10 @@ class DynStocksService {
       'x-request-id': appStore.state.DYNSTOCKS_X_REQUEST_ID
     });
     String res = response.body;
-    if (response.statusCode == 204) {
+    if (response.statusCode < 400) {
       return dynStockId;
+    } else {
+      throw Exception(ErrorClass.fromJson(jsonDecode(res)).message);
     }
-    return '';
   }
 }

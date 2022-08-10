@@ -62,7 +62,13 @@ void tickerDataMiddleWare(
   if (action is GetAllTickerDataAction) {
     store.state.allDynStocks.data.forEachIndexed((index, dynStock) async {
       TickerDataService()
-          .getTickerData(dynStock.yFinStockCode)
+          .getTickerData(dynStock.yFinStockCode,
+              currentLocalMaximumPrice: store.state.allTickerData
+                      .data[dynStock.stockCode]?.currentLocalMaximumPrice ??
+                  double.negativeInfinity,
+              currentLocalMinimumPrice: store.state.allTickerData
+                      .data[dynStock.stockCode]?.currentLocalMinimumPrice ??
+                  double.infinity)
           .then((response) {
         Map<String, TickerData> map = Map.from(store.state.allTickerData.data);
         map[dynStock.stockCode] = response;
