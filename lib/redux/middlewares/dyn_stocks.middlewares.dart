@@ -119,8 +119,8 @@ void dynStocksMiddleWare(
               subject: 'DynStock Updated',
               title: 'DynStock Updated for ${response.stockCode}',
               subtitle:
-                  'DynStock has been created for ${response.stockCode} with the following params:',
-              body: '$emailBodyLine1$emailBodyLine2$emailBodyLine3'))
+                  'DynStock has been updated for ${response.stockCode} with the following params:',
+              body: '$emailBodyLine1\n$emailBodyLine2\n$emailBodyLine3'))
           .then((value) {})
           .catchError((error) {});
     }).catchError((error) {
@@ -184,10 +184,10 @@ void dynStocksMiddleWare(
                 EmailJSService()
                     .sendEmail(Email(
                         username: 'Myself',
-                        subject: 'DynStock Updated',
-                        title: 'DynStock Updated for ${action.stockCode}',
+                        subject: 'DynStock Deleted',
+                        title: 'DynStock Deleted for ${action.stockCode}',
                         subtitle:
-                            'DynStock has been created for ${action.stockCode}',
+                            'DynStock has been deleted for ${action.stockCode}',
                         body: ''))
                     .then((value) {})
                     .catchError((error) {});
@@ -208,9 +208,9 @@ void dynStocksMiddleWare(
         EmailJSService()
             .sendEmail(Email(
                 username: 'Myself',
-                subject: 'DynStock Updated',
-                title: 'DynStock Updated for ${action.stockCode}',
-                subtitle: 'DynStock has been created for ${action.stockCode}',
+                subject: 'DynStock Deleted',
+                title: 'DynStock Deleted for ${action.stockCode}',
+                subtitle: 'DynStock has been deleted for ${action.stockCode}',
                 body: ''))
             .then((value) {})
             .catchError((error) {});

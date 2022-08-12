@@ -282,7 +282,7 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(
             ToastMessageHandler.showErrorMessageSnackBar(
-                'Error while deleting DynStock'));
+                '${appStore.state.allDynStocks.error.message}'));
       });
       setState(() {
         errorMessageShown = true;
@@ -292,7 +292,7 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(
             ToastMessageHandler.showErrorMessageSnackBar(
-                'Error while updating DynStock'));
+                '${appStore.state.allDynStocks.error.message}'));
       });
       setState(() {
         errorMessageShown = true;
@@ -367,7 +367,7 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   ScaffoldMessenger.of(context).showSnackBar(
                       ToastMessageHandler.showErrorMessageSnackBar(
-                          'Error while deleting DynStock'));
+                          '${state.allDynStocks.error.message}'));
                 });
                 setState(() {
                   errorMessageShown = true;
@@ -377,7 +377,7 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   ScaffoldMessenger.of(context).showSnackBar(
                       ToastMessageHandler.showErrorMessageSnackBar(
-                          'Error while updating DynStock'));
+                          '${state.allDynStocks.error.message}'));
                 });
                 setState(() {
                   errorMessageShown = true;
@@ -1089,138 +1089,208 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                       ]),
                     ),
                     if (state.allTickerData.data.isNotEmpty)
-                      (Container(
-                          width: screenSize.width * 0.9,
-                          margin: EdgeInsets.fromLTRB(0, 10, 0, 0),
-                          child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                Container(
-                                    padding:
-                                        EdgeInsets.fromLTRB(10, 10, 10, 10),
+                      Column(children: [
+                        Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              Container(
+                                child: Container(
+                                    width: screenSize.width * 0.35,
+                                    height: screenSize.height * 0.075,
                                     decoration: BoxDecoration(
-                                        color: PaletteColors.blue3,
+                                        color: PaletteColors.purple2,
                                         borderRadius:
                                             BorderRadius.circular(15)),
-                                    child: Row(children: [
-                                      Column(children: [
-                                        Row(children: [
-                                          Icon(
-                                            Icons.currency_rupee,
-                                            size: 35,
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          '${currentDynStock.lastTransactionType} ',
+                                          style: GoogleFonts.daysOne(
                                             color: PaletteColors.blue2,
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold,
                                           ),
-                                          Text(
-                                            state
-                                                        .allTickerData
-                                                        .data[
-                                                            currentDynStockCode]
-                                                        ?.price
-                                                        .currentPrice !=
-                                                    null
-                                                ? state
-                                                    .allTickerData
-                                                    .data[currentDynStockCode]!
-                                                    .price
-                                                    .currentPrice!
-                                                    .toStringAsFixed(2)
-                                                : '',
-                                            style: GoogleFonts.overlock(
-                                                fontSize: 30,
-                                                color: PaletteColors.blue2,
-                                                fontWeight: FontWeight.bold),
+                                        ),
+                                        Text(
+                                          'Last Transaction Type',
+                                          style: GoogleFonts.outfit(
+                                            color: PaletteColors.blue4,
+                                            fontSize: 12,
+                                          ),
+                                        )
+                                      ],
+                                    )),
+                              ),
+                              Container(
+                                decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(15)),
+                                child: Container(
+                                    width: screenSize.width * 0.35,
+                                    height: screenSize.height * 0.075,
+                                    decoration: BoxDecoration(
+                                        color: PaletteColors.purple2,
+                                        borderRadius:
+                                            BorderRadius.circular(15)),
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          '${currentDynStock.lastTransactionType == 'BUY' ? (state.allTickerData.data[currentDynStockCode]?.currentLocalMaximumPrice ?? '') : (state.allTickerData.data[currentDynStockCode]?.currentLocalMinimumPrice)}',
+                                          style: GoogleFonts.daysOne(
+                                            color: PaletteColors.blue2,
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        Text(
+                                          '${currentDynStock.lastTransactionType == 'BUY' ? 'CLMaP' : 'CLMiP'}',
+                                          style: GoogleFonts.outfit(
+                                            color: PaletteColors.blue4,
+                                            fontSize: 15,
+                                          ),
+                                        )
+                                      ],
+                                    )),
+                              ),
+                            ]),
+                        (Container(
+                            width: screenSize.width * 0.9,
+                            margin: EdgeInsets.fromLTRB(0, 10, 0, 0),
+                            child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  Container(
+                                      padding:
+                                          EdgeInsets.fromLTRB(10, 10, 10, 10),
+                                      decoration: BoxDecoration(
+                                          color: PaletteColors.blue3,
+                                          borderRadius:
+                                              BorderRadius.circular(15)),
+                                      child: Row(children: [
+                                        Column(children: [
+                                          Row(children: [
+                                            Icon(
+                                              Icons.currency_rupee,
+                                              size: 35,
+                                              color: PaletteColors.blue2,
+                                            ),
+                                            Text(
+                                              state
+                                                          .allTickerData
+                                                          .data[
+                                                              currentDynStockCode]
+                                                          ?.price
+                                                          .currentPrice !=
+                                                      null
+                                                  ? state
+                                                      .allTickerData
+                                                      .data[
+                                                          currentDynStockCode]!
+                                                      .price
+                                                      .currentPrice!
+                                                      .toStringAsFixed(2)
+                                                  : '',
+                                              style: GoogleFonts.overlock(
+                                                  fontSize: 30,
+                                                  color: PaletteColors.blue2,
+                                                  fontWeight: FontWeight.bold),
+                                            )
+                                          ]),
+                                          Container(
+                                            child: Text(
+                                              'Stock Price',
+                                              style: GoogleFonts.overlock(
+                                                fontSize: 15,
+                                                color: PaletteColors.blue4,
+                                              ),
+                                            ),
                                           )
                                         ]),
                                         Container(
-                                          child: Text(
-                                            'Stock Price',
-                                            style: GoogleFonts.overlock(
-                                              fontSize: 15,
-                                              color: PaletteColors.blue4,
+                                          margin:
+                                              EdgeInsets.fromLTRB(10, 0, 10, 0),
+                                          child: Column(children: [
+                                            Text(
+                                              (state
+                                                                  .allTickerData
+                                                                  .data[
+                                                                      currentDynStockCode]
+                                                                  ?.priceChange
+                                                                  .regularMarketChange !=
+                                                              null &&
+                                                          state
+                                                                  .allTickerData
+                                                                  .data[
+                                                                      currentDynStockCode]!
+                                                                  .priceChange
+                                                                  .regularMarketChange! >
+                                                              0
+                                                      ? '+'
+                                                      : '') +
+                                                  (state
+                                                              .allTickerData
+                                                              .data[
+                                                                  currentDynStockCode]
+                                                              ?.priceChange
+                                                              .regularMarketChange !=
+                                                          null
+                                                      ? state
+                                                          .allTickerData
+                                                          .data[
+                                                              currentDynStockCode]!
+                                                          .priceChange
+                                                          .regularMarketChange!
+                                                          .toStringAsFixed(2)
+                                                      : ''),
+                                              style: GoogleFonts.lusitana(
+                                                  fontSize: 17,
+                                                  color: state
+                                                                  .allTickerData
+                                                                  .data[
+                                                                      currentDynStockCode]
+                                                                  ?.priceChange
+                                                                  .regularMarketChange !=
+                                                              null &&
+                                                          state
+                                                                  .allTickerData
+                                                                  .data[
+                                                                      currentDynStockCode]!
+                                                                  .priceChange
+                                                                  .regularMarketChange! >
+                                                              0
+                                                      ? AccentColors.green1
+                                                      : AccentColors.red1),
                                             ),
-                                          ),
+                                            Text(
+                                              '(${state.allTickerData.data[currentDynStockCode]?.priceChange.regularMarketChangePercent != null && state.allTickerData.data[currentDynStockCode]!.priceChange.regularMarketChangePercent! > 0 ? '+' : ''}${state.allTickerData.data[currentDynStockCode]!.priceChange.regularMarketChangePercent != null ? state.allTickerData.data[currentDynStockCode]!.priceChange.regularMarketChangePercent!.toStringAsFixed(2) : ''} %)',
+                                              style: GoogleFonts.lusitana(
+                                                  fontSize: 15,
+                                                  color: state
+                                                                  .allTickerData
+                                                                  .data[
+                                                                      currentDynStockCode]
+                                                                  ?.priceChange
+                                                                  .regularMarketChangePercent !=
+                                                              null &&
+                                                          state
+                                                                  .allTickerData
+                                                                  .data[
+                                                                      currentDynStockCode]!
+                                                                  .priceChange
+                                                                  .regularMarketChangePercent! >
+                                                              0
+                                                      ? AccentColors.green1
+                                                      : AccentColors.red1),
+                                            )
+                                          ]),
                                         )
-                                      ]),
-                                      Container(
-                                        margin:
-                                            EdgeInsets.fromLTRB(10, 0, 10, 0),
-                                        child: Column(children: [
-                                          Text(
-                                            (state
-                                                                .allTickerData
-                                                                .data[
-                                                                    currentDynStockCode]
-                                                                ?.priceChange
-                                                                .regularMarketChange !=
-                                                            null &&
-                                                        state
-                                                                .allTickerData
-                                                                .data[
-                                                                    currentDynStockCode]!
-                                                                .priceChange
-                                                                .regularMarketChange! >
-                                                            0
-                                                    ? '+'
-                                                    : '') +
-                                                (state
-                                                            .allTickerData
-                                                            .data[
-                                                                currentDynStockCode]
-                                                            ?.priceChange
-                                                            .regularMarketChange !=
-                                                        null
-                                                    ? state
-                                                        .allTickerData
-                                                        .data[
-                                                            currentDynStockCode]!
-                                                        .priceChange
-                                                        .regularMarketChange!
-                                                        .toStringAsFixed(2)
-                                                    : ''),
-                                            style: GoogleFonts.lusitana(
-                                                fontSize: 17,
-                                                color: state
-                                                                .allTickerData
-                                                                .data[
-                                                                    currentDynStockCode]
-                                                                ?.priceChange
-                                                                .regularMarketChange !=
-                                                            null &&
-                                                        state
-                                                                .allTickerData
-                                                                .data[
-                                                                    currentDynStockCode]!
-                                                                .priceChange
-                                                                .regularMarketChange! >
-                                                            0
-                                                    ? AccentColors.green1
-                                                    : AccentColors.red1),
-                                          ),
-                                          Text(
-                                            '(${state.allTickerData.data[currentDynStockCode]?.priceChange.regularMarketChangePercent != null && state.allTickerData.data[currentDynStockCode]!.priceChange.regularMarketChangePercent! > 0 ? '+' : ''}${state.allTickerData.data[currentDynStockCode]!.priceChange.regularMarketChangePercent != null ? state.allTickerData.data[currentDynStockCode]!.priceChange.regularMarketChangePercent!.toStringAsFixed(2) : ''} %)',
-                                            style: GoogleFonts.lusitana(
-                                                fontSize: 15,
-                                                color: state
-                                                                .allTickerData
-                                                                .data[
-                                                                    currentDynStockCode]
-                                                                ?.priceChange
-                                                                .regularMarketChangePercent !=
-                                                            null &&
-                                                        state
-                                                                .allTickerData
-                                                                .data[
-                                                                    currentDynStockCode]!
-                                                                .priceChange
-                                                                .regularMarketChangePercent! >
-                                                            0
-                                                    ? AccentColors.green1
-                                                    : AccentColors.red1),
-                                          )
-                                        ]),
-                                      )
-                                    ]))
-                              ]))),
+                                      ]))
+                                ])))
+                      ]),
                     Container(
                       margin: EdgeInsets.fromLTRB(20, 10, 20, 0),
                       width: screenSize.width,

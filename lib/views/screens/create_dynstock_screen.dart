@@ -148,7 +148,7 @@ class _CreateDynStockScreenState extends State<CreateDynStockScreen>
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(
             ToastMessageHandler.showErrorMessageSnackBar(
-                'Error while creating DynStock'));
+                '${appStore.state.allDynStocks.error.message}'));
       });
       setState(() {
         errorMessageShown = true;
@@ -160,7 +160,7 @@ class _CreateDynStockScreenState extends State<CreateDynStockScreen>
         WidgetsBinding.instance.addPostFrameCallback((_) {
           ScaffoldMessenger.of(context).showSnackBar(
               ToastMessageHandler.showInfoMessageSnackBar(
-                  'Creating DynStock.....'));
+                  '${appStore.state.allDynStocks.error.message}'));
         });
         setState(() {
           creatingDynStock = true;

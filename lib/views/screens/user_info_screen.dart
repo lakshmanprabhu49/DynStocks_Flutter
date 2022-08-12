@@ -208,7 +208,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> with RouteAware {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(
             ToastMessageHandler.showErrorMessageSnackBar(
-                'Error while fetching user info'));
+                '${appStore.state.userInfo.error.message}'));
       });
       setState(() {
         errorMessageShown = true;
@@ -219,7 +219,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> with RouteAware {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(
             ToastMessageHandler.showErrorMessageSnackBar(
-                'Error while logging out'));
+                '${appStore.state.authState.error.message}'));
       });
       setState(() {
         errorMessageShown = true;
@@ -233,7 +233,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> with RouteAware {
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 ScaffoldMessenger.of(context).showSnackBar(
                     ToastMessageHandler.showErrorMessageSnackBar(
-                        'Error while fetching user info'));
+                        '${state.userInfo.error.message}'));
               });
               setState(() {
                 errorMessageShown = true;
@@ -244,7 +244,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> with RouteAware {
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 ScaffoldMessenger.of(context).showSnackBar(
                     ToastMessageHandler.showErrorMessageSnackBar(
-                        'Error while logging out'));
+                        '${state.authState.error.message}'));
               });
               setState(() {
                 errorMessageShown = true;

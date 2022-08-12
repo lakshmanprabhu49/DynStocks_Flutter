@@ -87,13 +87,21 @@ class _EnterLocalUserCredsScreenState extends State<EnterLocalUserCredsScreen>
 
   @override
   Widget build(BuildContext context) {
-    if ((appStore.state.kotakStockAPI.loginFailed ||
-            appStore.state.authState.loginFailed) &&
-        !errorMessageShown) {
+    if ((appStore.state.kotakStockAPI.loginFailed) && !errorMessageShown) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(
             ToastMessageHandler.showErrorMessageSnackBar(
-                'Error while logging in'));
+                '${appStore.state.kotakStockAPI.error.message}'));
+      });
+      setState(() {
+        errorMessageShown = true;
+      });
+    }
+    if ((appStore.state.authState.loginFailed) && !errorMessageShown) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            ToastMessageHandler.showErrorMessageSnackBar(
+                '${appStore.state.authState.error.message}'));
       });
       setState(() {
         errorMessageShown = true;
@@ -102,13 +110,21 @@ class _EnterLocalUserCredsScreenState extends State<EnterLocalUserCredsScreen>
     return Scaffold(
         body: StoreConnector<AppState, AppState>(
             onDidChange: (previousState, state) {
-              if ((state.kotakStockAPI.loginFailed ||
-                      appStore.state.authState.loginFailed) &&
-                  !errorMessageShown) {
+              if ((state.kotakStockAPI.loginFailed) && !errorMessageShown) {
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   ScaffoldMessenger.of(context).showSnackBar(
                       ToastMessageHandler.showErrorMessageSnackBar(
-                          'Please enter a valid access code'));
+                          '${state.kotakStockAPI.error.message}'));
+                });
+                setState(() {
+                  errorMessageShown = true;
+                });
+              }
+              if ((state.authState.loginFailed) && !errorMessageShown) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                      ToastMessageHandler.showErrorMessageSnackBar(
+                          '${state.authState.error.message}'));
                 });
                 setState(() {
                   errorMessageShown = true;
@@ -144,7 +160,7 @@ class _EnterLocalUserCredsScreenState extends State<EnterLocalUserCredsScreen>
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   ScaffoldMessenger.of(context).showSnackBar(
                       ToastMessageHandler.showErrorMessageSnackBar(
-                          'Please enter a valid access code'));
+                          '${state.kotakStockAPI.error.message}'));
                 });
                 setState(() {
                   errorMessageShown = true;

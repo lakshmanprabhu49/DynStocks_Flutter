@@ -49,11 +49,9 @@ class _ViewChartForSpecificDynStockScreenState
   List<String> stockTimePeriod =
       List.from(['1d', '1w', '1m', '3m', '6m', '1y']);
 
-  List<FlSpot> actualStockChartPoints = [];
   List<FlSpot> dynStockChartPoints = [];
   double netReturnsForDynStock = 0.0;
   bool isLoaded = false;
-  List<LineChartBarData> lineChartsBarData = [];
   @override
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
@@ -118,54 +116,6 @@ class _ViewChartForSpecificDynStockScreenState
 
   String userId = appStore.state.userId;
 
-  Future<void> parseDataForActualStockPriceChart() async {
-    String yFinStockCode =
-        appStore.state.allDynStocks.data.firstWhere((element) {
-      return element.stockCode == currentDynStockCode;
-    }).yFinStockCode;
-    StockHistory hist = yFin.initStockHistory(ticker: yFinStockCode);
-    StockRange period = StockRange.oneDay;
-    StockInterval interval = StockInterval.thirtyMinute;
-    switch (currentStockTimePeriod) {
-      case '1d':
-        period = StockRange.oneDay;
-        interval = StockInterval.thirtyMinute;
-        break;
-      case '1w':
-        period = StockRange.fiveDay;
-        interval = StockInterval.thirtyMinute;
-        break;
-      case '1m':
-        period = StockRange.oneMonth;
-        interval = StockInterval.thirtyMinute;
-        break;
-      case '3m':
-        period = StockRange.threeMonth;
-        interval = StockInterval.sixtyMinute;
-        break;
-      case '6m':
-        period = StockRange.sixMonth;
-        interval = StockInterval.sixtyMinute;
-        break;
-      case '1y':
-        period = StockRange.oneYear;
-        interval = StockInterval.oneDay;
-        break;
-    }
-    StockChart quotes = await yFin.getChartQuotes(
-        stockHistory: hist, interval: interval, period: period);
-    if (quotes.chartQuotes != null) {
-      setState(() {
-        actualStockChartPoints = quotes.chartQuotes!.timestamp!.mapIndexed(
-          (index, element) {
-            return FlSpot(element.toDouble(),
-                quotes.chartQuotes!.high![index].toDouble());
-          },
-        ).toList();
-      });
-    }
-  }
-
   Future<void> parseDataForDynStockPriceChart() async {
     double netReturns = 0.0;
 
@@ -174,20 +124,77 @@ class _ViewChartForSpecificDynStockScreenState
         .transactions
         .mapIndexed((index, transaction) {
       int multiplier = transaction.type == 'SELL' ? 1 : -1;
-      print(transaction.amount);
-      netReturns += transaction.amount * multiplier;
+      DateTime now = DateTime.now();
+      now = now.subtract(Duration(
+          hours: now.hour,
+          minutes: now.minute,
+          seconds: now.second,
+          milliseconds: now.millisecond,
+          microseconds: now.microsecond));
+      DateTime transactionTime =
+          DateTime.fromMillisecondsSinceEpoch(transaction.transactionTime.date);
+      transactionTime = transactionTime.subtract(Duration(
+          hours: transactionTime.hour,
+          minutes: transactionTime.minute,
+          seconds: transactionTime.second,
+          milliseconds: transactionTime.millisecond,
+          microseconds: transactionTime.microsecond));
+      switch (currentStockTimePeriod) {
+        case '1d':
+          if (now.compareTo(transactionTime.add(Duration(days: 0))) <= 0) {
+            netReturns += transaction.amount * multiplier;
+          }
+          break;
+        case '1w':
+          if (now.compareTo(transactionTime.add(Duration(days: 6))) <= 0) {
+            netReturns += transaction.amount * multiplier;
+          }
+          break;
+        case '1m':
+          if (now.compareTo(transactionTime.add(Duration(days: 30))) <= 0) {
+            netReturns += transaction.amount * multiplier;
+          }
+          break;
+        case '3m':
+          if (now.compareTo(transactionTime.add(Duration(days: 90))) <= 0) {
+            netReturns += transaction.amount * multiplier;
+          }
+          break;
+        case '6m':
+          if (now.compareTo(transactionTime.add(Duration(days: 180))) <= 0) {
+            netReturns += transaction.amount * multiplier;
+          }
+          break;
+        case '1y':
+          if (now.compareTo(transactionTime.add(Duration(days: 365))) <= 0) {
+            netReturns += transaction.amount * multiplier;
+          }
+          break;
+      }
       return FlSpot(
         transaction.transactionTime.date.toDouble(),
         transaction.stockPrice,
       );
     }).toList();
     DateTime now = DateTime.now();
+    now = now.subtract(Duration(
+        hours: now.hour,
+        minutes: now.minute,
+        seconds: now.second,
+        milliseconds: now.millisecond,
+        microseconds: now.microsecond));
     switch (currentStockTimePeriod) {
       case '1d':
         chartPoints = chartPoints.whereIndexed((index, element) {
           DateTime timeOfTransaction =
               DateTime.fromMillisecondsSinceEpoch(element.x.toInt());
-          return now.subtract(Duration(days: 1)).compareTo(timeOfTransaction) <=
+          timeOfTransaction = timeOfTransaction.subtract(Duration(
+              hours: timeOfTransaction.hour,
+              minutes: timeOfTransaction.minute,
+              seconds: timeOfTransaction.second,
+              milliseconds: timeOfTransaction.millisecond,
+              microseconds: timeOfTransaction.microsecond));
+          return now.subtract(Duration(days: 0)).compareTo(timeOfTransaction) <=
               0;
         }).toList();
         break;
@@ -195,7 +202,13 @@ class _ViewChartForSpecificDynStockScreenState
         chartPoints = chartPoints.whereIndexed((index, element) {
           DateTime timeOfTransaction =
               DateTime.fromMillisecondsSinceEpoch(element.x.toInt());
-          return now.subtract(Duration(days: 7)).compareTo(timeOfTransaction) <=
+          timeOfTransaction = timeOfTransaction.subtract(Duration(
+              hours: timeOfTransaction.hour,
+              minutes: timeOfTransaction.minute,
+              seconds: timeOfTransaction.second,
+              milliseconds: timeOfTransaction.millisecond,
+              microseconds: timeOfTransaction.microsecond));
+          return now.subtract(Duration(days: 6)).compareTo(timeOfTransaction) <=
               0;
         }).toList();
         break;
@@ -203,8 +216,14 @@ class _ViewChartForSpecificDynStockScreenState
         chartPoints = chartPoints.whereIndexed((index, element) {
           DateTime timeOfTransaction =
               DateTime.fromMillisecondsSinceEpoch(element.x.toInt());
+          timeOfTransaction = timeOfTransaction.subtract(Duration(
+              hours: timeOfTransaction.hour,
+              minutes: timeOfTransaction.minute,
+              seconds: timeOfTransaction.second,
+              milliseconds: timeOfTransaction.millisecond,
+              microseconds: timeOfTransaction.microsecond));
           return now
-                  .subtract(Duration(days: 31))
+                  .subtract(Duration(days: 30))
                   .compareTo(timeOfTransaction) <=
               0;
         }).toList();
@@ -213,8 +232,14 @@ class _ViewChartForSpecificDynStockScreenState
         chartPoints = chartPoints.whereIndexed((index, element) {
           DateTime timeOfTransaction =
               DateTime.fromMillisecondsSinceEpoch(element.x.toInt());
+          timeOfTransaction = timeOfTransaction.subtract(Duration(
+              hours: timeOfTransaction.hour,
+              minutes: timeOfTransaction.minute,
+              seconds: timeOfTransaction.second,
+              milliseconds: timeOfTransaction.millisecond,
+              microseconds: timeOfTransaction.microsecond));
           return now
-                  .subtract(Duration(days: 93))
+                  .subtract(Duration(days: 90))
                   .compareTo(timeOfTransaction) <=
               0;
         }).toList();
@@ -223,8 +248,14 @@ class _ViewChartForSpecificDynStockScreenState
         chartPoints = chartPoints.whereIndexed((index, element) {
           DateTime timeOfTransaction =
               DateTime.fromMillisecondsSinceEpoch(element.x.toInt());
+          timeOfTransaction = timeOfTransaction.subtract(Duration(
+              hours: timeOfTransaction.hour,
+              minutes: timeOfTransaction.minute,
+              seconds: timeOfTransaction.second,
+              milliseconds: timeOfTransaction.millisecond,
+              microseconds: timeOfTransaction.microsecond));
           return now
-                  .subtract(Duration(days: 186))
+                  .subtract(Duration(days: 180))
                   .compareTo(timeOfTransaction) <=
               0;
         }).toList();
@@ -233,6 +264,12 @@ class _ViewChartForSpecificDynStockScreenState
         chartPoints = chartPoints.whereIndexed((index, element) {
           DateTime timeOfTransaction =
               DateTime.fromMillisecondsSinceEpoch(element.x.toInt());
+          timeOfTransaction = timeOfTransaction.subtract(Duration(
+              hours: timeOfTransaction.hour,
+              minutes: timeOfTransaction.minute,
+              seconds: timeOfTransaction.second,
+              milliseconds: timeOfTransaction.millisecond,
+              microseconds: timeOfTransaction.microsecond));
           return now
                   .subtract(Duration(days: 365))
                   .compareTo(timeOfTransaction) <=
@@ -246,127 +283,10 @@ class _ViewChartForSpecificDynStockScreenState
     });
   }
 
-  Future<void> createLineChartBarData() async {
-    String yFinStockCode =
-        appStore.state.allDynStocks.data.firstWhere((element) {
-      return element.stockCode == currentDynStockCode;
-    }).yFinStockCode;
-    double netReturns = 0.0;
-
-    // We get all the stock chart data for the stock from yFin API
-    StockHistory hist = yFin.initStockHistory(ticker: yFinStockCode);
-    StockRange period = StockRange.oneDay;
-    StockInterval interval = StockInterval.thirtyMinute;
-    switch (currentStockTimePeriod) {
-      case '1d':
-        period = StockRange.oneDay;
-        interval = StockInterval.thirtyMinute;
-        break;
-      case '1w':
-        period = StockRange.fiveDay;
-        interval = StockInterval.thirtyMinute;
-        break;
-      case '1m':
-        period = StockRange.oneMonth;
-        interval = StockInterval.thirtyMinute;
-        break;
-      case '3m':
-        period = StockRange.threeMonth;
-        interval = StockInterval.sixtyMinute;
-        break;
-      case '6m':
-        period = StockRange.sixMonth;
-        interval = StockInterval.sixtyMinute;
-        break;
-      case '1y':
-        period = StockRange.oneYear;
-        interval = StockInterval.oneDay;
-        break;
-    }
-    StockChart quotes = await yFin.getChartQuotes(
-        stockHistory: hist, interval: interval, period: period);
-    if (quotes.chartQuotes != null) {
-      List<num> stockPricesTimeStamp =
-          quotes.chartQuotes!.timestamp as List<num>;
-      List<num> stockPrices = quotes.chartQuotes!.close as List<num>;
-      // Once data is obtained , we then remove all the points from the line graph which are unnecessary
-      List<LineChartBarData> lineCharts = [];
-      List<Transaction> transactionsForDynStock = appStore
-          .state.allDynStocks.data
-          .firstWhere((dynStock) => dynStock.stockCode == currentDynStockCode)
-          .transactions;
-
-      Transaction? firstBuyTransaction = transactionsForDynStock
-          .firstWhere((transaction) => transaction.type == 'BUY');
-      if (firstBuyTransaction != null) {
-        int firstBuyTransactionIndex = transactionsForDynStock.indexWhere(
-            (element) =>
-                element.transactionId.uuid ==
-                firstBuyTransaction.dynStockId.uuid);
-        int totalTransactionsLength = transactionsForDynStock.length;
-        int transactionsIteratorIndex = firstBuyTransactionIndex;
-        int stockPriceIteratorIndex = 0;
-        int stockPriceLength = stockPrices.length;
-        while (transactionsIteratorIndex + 1 < totalTransactionsLength &&
-            stockPriceIteratorIndex < stockPriceLength) {
-          double currentBuyPrice =
-              transactionsForDynStock[transactionsIteratorIndex].stockPrice;
-          double currentSellPrice =
-              transactionsForDynStock[transactionsIteratorIndex + 1].stockPrice;
-          List<FlSpot> spots = [];
-
-          while (double.parse(stockPrices[stockPriceIteratorIndex]
-                      .toStringAsFixed(2)) >=
-                  currentBuyPrice &&
-              double.parse(stockPrices[stockPriceIteratorIndex]
-                      .toStringAsFixed(2)) <=
-                  currentSellPrice &&
-              stockPriceIteratorIndex < stockPriceLength) {
-            // From currentBuyPrice to currentSellPrice within the time period, add all the prices to the line graph
-            DateTime stockTime = DateTime.fromMillisecondsSinceEpoch(
-                stockPricesTimeStamp[stockPriceIteratorIndex].toInt());
-            DateTime buyTransactionTime = DateTime.fromMillisecondsSinceEpoch(
-                transactionsForDynStock[transactionsIteratorIndex]
-                    .transactionTime
-                    .date);
-            DateTime sellTransactionTime = DateTime.fromMillisecondsSinceEpoch(
-                transactionsForDynStock[transactionsIteratorIndex + 1]
-                    .transactionTime
-                    .date);
-            if (stockTime.compareTo(buyTransactionTime) >= 0 &&
-                stockTime.compareTo(sellTransactionTime) <= 0) {
-              spots.add(FlSpot(
-                  stockPricesTimeStamp[stockPriceIteratorIndex].toDouble(),
-                  stockPrices[stockPriceIteratorIndex]
-                      .toDouble())); // Need to change x coordinate
-              stockPriceIteratorIndex++;
-            } else if (stockTime.compareTo(sellTransactionTime) > 0) {
-              spots.add(FlSpot(
-                  stockPricesTimeStamp[stockPriceIteratorIndex].toDouble(),
-                  stockPrices[stockPriceIteratorIndex]
-                      .toDouble())); // Need to change x coordinate
-              lineCharts.add(LineChartBarData(
-                spots: spots,
-                isCurved: false,
-                color: Colors.blue,
-              ));
-              break;
-            }
-          }
-          transactionsIteratorIndex += 2;
-        }
-        setState(() {
-          lineChartsBarData = lineCharts;
-        });
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     Size screenSize = MediaQuery.of(context).size;
     if (!isLoaded) {
-      parseDataForActualStockPriceChart();
       parseDataForDynStockPriceChart();
       setState(() {
         isLoaded = true;
@@ -496,6 +416,28 @@ class _ViewChartForSpecificDynStockScreenState
                               enabled: true,
                               handleBuiltInTouches: true,
                               touchTooltipData: LineTouchTooltipData(
+                                  getTooltipItems: ((touchedSpots) {
+                                    return touchedSpots.map((touchedSpot) {
+                                      DateTime transactionTime =
+                                          DateTime.fromMillisecondsSinceEpoch(
+                                              touchedSpot.x.round());
+                                      return LineTooltipItem(
+                                          '${touchedSpot.y}\n',
+                                          GoogleFonts.daysOne(
+                                            color: AccentColors.blue1,
+                                            fontSize: 15,
+                                          ),
+                                          children: [
+                                            TextSpan(
+                                                style: GoogleFonts.daysOne(
+                                                  color: AccentColors.yellow1,
+                                                  fontSize: 10,
+                                                ),
+                                                text:
+                                                    '${transactionTime.hour}:${transactionTime.minute}:${transactionTime.second} ${transactionTime.day}/${transactionTime.month}/${transactionTime.year}')
+                                          ]);
+                                    }).toList();
+                                  }),
                                   tooltipBgColor: Colors.white)),
                           gridData: FlGridData(show: false),
                           borderData: FlBorderData(
@@ -506,21 +448,14 @@ class _ViewChartForSpecificDynStockScreenState
                                 left: BorderSide(color: Colors.transparent),
                                 right: BorderSide(color: Colors.transparent),
                               )),
-                          lineBarsData: lineChartsBarData,
-                          // [
-                          // LineChartBarData(
-                          //     dotData: FlDotData(show: false),
-                          //     spots: actualStockChartPoints,
-                          //     isCurved: false,
-                          //     barWidth: 5,
-                          //     color: Colors.green),
-                          // LineChartBarData(
-                          //     dotData: FlDotData(show: true),
-                          //     spots: dynStockChartPoints,
-                          //     isCurved: false,
-                          //     barWidth: 5,
-                          //     color: Colors.blue),
-                          // ]
+                          lineBarsData: [
+                            LineChartBarData(
+                                dotData: FlDotData(show: true),
+                                spots: dynStockChartPoints,
+                                isCurved: false,
+                                barWidth: 5,
+                                color: Colors.blue),
+                          ],
                           titlesData: FlTitlesData(
                               rightTitles: AxisTitles(
                                   sideTitles: SideTitles(
@@ -552,10 +487,10 @@ class _ViewChartForSpecificDynStockScreenState
                                           '${time.hour}:${time.minute}';
                                       break;
                                     case '1w':
-                                      timeString = '${time.day} ${time.hour}';
+                                      timeString = '${time.month}-${time.day}';
                                       break;
                                     case '1m':
-                                      timeString = '${time.day} ${time.hour}';
+                                      timeString = '${time.month}-${time.day}';
                                       break;
                                     case '3m':
                                       timeString = '${time.month}-${time.day}';
@@ -567,7 +502,14 @@ class _ViewChartForSpecificDynStockScreenState
                                       timeString = '${time.month} ${time.day}';
                                       break;
                                   }
-                                  return Container(child: Text(timeString));
+                                  return Container(
+                                      child: Text(
+                                    timeString,
+                                    style: GoogleFonts.lusitana(
+                                      color: Colors.white,
+                                      fontSize: 15,
+                                    ),
+                                  ));
                                 },
                               ))))),
                     ),

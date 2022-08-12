@@ -134,7 +134,7 @@ class _ViewTransactionsScreenState extends State<ViewTransactionsScreen>
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(
             ToastMessageHandler.showErrorMessageSnackBar(
-                'Error while fetching list of transactions'));
+                '${appStore.state.allTransactions.error.message}'));
       });
       setState(() {
         errorMessageShown = true;
@@ -256,7 +256,7 @@ class _ViewTransactionsScreenState extends State<ViewTransactionsScreen>
                         WidgetsBinding.instance.addPostFrameCallback((_) {
                           ScaffoldMessenger.of(context).showSnackBar(
                               ToastMessageHandler.showErrorMessageSnackBar(
-                                  'Error while fetching list of transactions'));
+                                  '${state.error.message}'));
                         });
                         setState(() {
                           errorMessageShown = true;

@@ -339,7 +339,7 @@ class _EventsTodayScreenState extends State<EventsTodayScreen> with RouteAware {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(
             ToastMessageHandler.showErrorMessageSnackBar(
-                'Error while loading dynstocks'));
+                '${appStore.state.allDynStocks.error.message}'));
       });
       setState(() {
         errorMessageShown = true;
@@ -355,7 +355,7 @@ class _EventsTodayScreenState extends State<EventsTodayScreen> with RouteAware {
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 ScaffoldMessenger.of(context).showSnackBar(
                     ToastMessageHandler.showErrorMessageSnackBar(
-                        'Error while loading dynstocks'));
+                        '${state.allDynStocks.error.message}'));
               });
               setState(() {
                 errorMessageShown = true;

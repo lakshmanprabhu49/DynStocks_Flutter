@@ -104,16 +104,16 @@ class _ViewDynStocksListScreenState extends State<ViewDynStocksListScreen>
   @override
   Widget build(BuildContext context) {
     Size screenSize = MediaQuery.of(context).size;
-    // if (appStore.state.allDynStocks.loadFailed && !errorMessageShown) {
-    //   WidgetsBinding.instance.addPostFrameCallback((_) {
-    //     ScaffoldMessenger.of(context).showSnackBar(
-    //         ToastMessageHandler.showErrorMessageSnackBar(
-    //             'Error while fetching today\'s transactions'));
-    //   });
-    //   setState(() {
-    //     errorMessageShown = true;
-    //   });
-    // }
+    if (appStore.state.allDynStocks.loadFailed && !errorMessageShown) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            ToastMessageHandler.showErrorMessageSnackBar(
+                '${appStore.state.allDynStocks.error.message}'));
+      });
+      setState(() {
+        errorMessageShown = true;
+      });
+    }
     return Scaffold(
       resizeToAvoidBottomInset: false,
       body: Container(
@@ -230,7 +230,7 @@ class _ViewDynStocksListScreenState extends State<ViewDynStocksListScreen>
                             WidgetsBinding.instance.addPostFrameCallback((_) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                   ToastMessageHandler.showErrorMessageSnackBar(
-                                      'Error while fetching today\'s transactions'));
+                                      '${state.error.message}'));
                             });
                             setState(() {
                               errorMessageShown = true;
