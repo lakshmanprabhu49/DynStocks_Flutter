@@ -47,7 +47,7 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
   String currentBTP = '0.0';
   String currentSTP = '0.0';
   bool deleteButtonDisabled = true;
-
+  EChoice stallTransactions = EChoice.No;
   bool shouldLoadInitialValues = true;
   bool errorMessageShown = false;
   _ViewSpecificDynStockScreenState(
@@ -126,7 +126,7 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
     currentSTP = currentDSTPUnit == EDSTPUnit.Price
         ? dynStock.STPr.toString()
         : dynStock.STPe.toString();
-
+    stallTransactions = dynStock.stallTransactions ? EChoice.Yes : EChoice.No;
     DateTime lastTransactionTime =
         DateTime.fromMillisecondsSinceEpoch(dynStock.lastTransactionTime!.date);
     DateTime now = DateTime.now();
@@ -588,6 +588,50 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                                           })))),
                             ])),
                         Container(
+                            margin: EdgeInsets.fromLTRB(5, 10, 5, 0),
+                            padding: EdgeInsets.fromLTRB(10, 5, 5, 5),
+                            decoration: BoxDecoration(color: Colors.white),
+                            child: Column(children: [
+                              Row(children: [
+                                Text(
+                                  'Stall Transactions',
+                                  textAlign: TextAlign.left,
+                                  style: GoogleFonts.lusitana(
+                                      fontSize: 23, color: PaletteColors.blue2),
+                                )
+                              ]),
+                              Container(
+                                  margin: EdgeInsets.fromLTRB(0, 0, 0, 10),
+                                  decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(10),
+                                      color: PaletteColors.blue3),
+                                  padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
+                                  child: DropdownButton(
+                                      style: GoogleFonts.overlock(
+                                          color: PaletteColors.purple1,
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold),
+                                      isExpanded: true,
+                                      alignment: AlignmentDirectional.center,
+                                      dropdownColor: PaletteColors.blue3,
+                                      value: stallTransactions.name.toString(),
+                                      items: EChoice.values.map((e) {
+                                        return DropdownMenuItem<String>(
+                                            value: e.name.toString(),
+                                            child: Text(
+                                              e.name,
+                                              textAlign: TextAlign.center,
+                                            ));
+                                      }).toList(),
+                                      onChanged: (newValue) {
+                                        setState(() {
+                                          stallTransactions = EChoice.values
+                                              .firstWhere((element) =>
+                                                  element.name == newValue);
+                                        });
+                                      })),
+                            ])),
+                        Container(
                           margin: EdgeInsets.fromLTRB(0, 15, 0, 0),
                           child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -675,6 +719,11 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                                                         ? double.parse(
                                                             currentSTP)
                                                         : 0.0,
+                                                    stallTransactions:
+                                                        stallTransactions ==
+                                                                EChoice.Yes
+                                                            ? true
+                                                            : false,
                                                   )));
                                           setState(() {
                                             errorMessageShown = false;
@@ -760,20 +809,38 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                                 flex: 2,
                                 child: Container(
                                     margin: EdgeInsets.fromLTRB(0, 0, 0, 0),
-                                    child: Text(
-                                      currentDynStockCode,
-                                      style: GoogleFonts.outfit(
-                                        fontSize: 30 /
-                                            int.parse((1 +
-                                                    (currentDynStockCode
-                                                                .length /
-                                                            10)
-                                                        .toInt())
-                                                .toString()),
-                                        color: PaletteColors.blue2,
-                                        fontWeight: FontWeight.bold,
+                                    child: Column(children: [
+                                      Text(
+                                        currentDynStockCode,
+                                        style: GoogleFonts.outfit(
+                                          fontSize: 30 /
+                                              int.parse((1 +
+                                                      (currentDynStockCode
+                                                                  .length /
+                                                              10)
+                                                          .toInt())
+                                                  .toString()),
+                                          color: PaletteColors.blue2,
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
-                                    ))),
+                                      if (currentDynStock.stallTransactions)
+                                        (Container(
+                                            margin: EdgeInsets.fromLTRB(
+                                                10, 0, 0, 0),
+                                            padding: EdgeInsets.fromLTRB(
+                                                10, 5, 10, 5),
+                                            decoration: BoxDecoration(
+                                                color: AccentColors.red2),
+                                            child: Text(
+                                              'Stalled',
+                                              style: GoogleFonts.outfit(
+                                                fontSize: 10,
+                                                color: AccentColors.red1,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            )))
+                                    ]))),
                             Flexible(
                                 flex: 1,
                                 child: Container(

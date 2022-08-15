@@ -14,25 +14,3 @@ class GetUserInfoFailAction {
   final dynamic error;
   GetUserInfoFailAction({required this.error});
 }
-
-// class CreateUserInfoAction {
-//   String userId;
-//   String dynStockId;
-//   String instrumentToken;
-//   UserInfoBody body;
-//   CreateUserInfoAction(
-//       {required this.userId,
-//       required this.instrumentToken,
-//       required this.dynStockId,
-//       required this.body});
-// }
-
-// class CreateUserInfoSuccessAction {
-//   final UserInfo transaction;
-//   CreateUserInfoSuccessAction({required this.transaction});
-// }
-
-// class CreateUserInfoFailAction {
-//   final dynamic error;
-//   CreateUserInfoFailAction({required this.error});
-// }

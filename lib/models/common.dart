@@ -30,3 +30,5 @@ enum EPositions { TODAYS, OPEN, STOCKS }
 enum EStockType { EQ, BE, BL, BT, BZ, GZ, IL }
 
 enum EExchange { NSE, BSE }
+
+enum EChoice { Yes, No }

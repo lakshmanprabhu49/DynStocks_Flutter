@@ -144,7 +144,8 @@ void tickerDataMiddleWare(
             DateTime.parse(formattedsecondNextDayOfLastTransactionTime);
         // SELL Logic
         if (dynStock.lastTransactionType == 'BUY' &&
-            dynStock.stocksAvailableForTrade > 0) {
+            dynStock.stocksAvailableForTrade > 0 &&
+            !(dynStock.stallTransactions)) {
           if ((now.compareTo(secondNextDayOfLastTransactionTime) >= 0 &&
                   dynStock.stockType == EStockType.BE.name) ||
               dynStock.stockType != EStockType.BE.name) {
@@ -188,7 +189,8 @@ void tickerDataMiddleWare(
         }
         // BUY Logic
         if (dynStock.lastTransactionType == 'SELL' &&
-            dynStock.stocksAvailableForTrade == 0) {
+            dynStock.stocksAvailableForTrade == 0 &&
+            !(dynStock.stallTransactions)) {
           switch (dynStock.DSTPUnit) {
             case 'Price':
               if (response.price.currentPrice != null &&

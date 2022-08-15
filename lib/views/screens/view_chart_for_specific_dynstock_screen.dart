@@ -51,6 +51,7 @@ class _ViewChartForSpecificDynStockScreenState
 
   List<FlSpot> dynStockChartPoints = [];
   double netReturnsForDynStock = 0.0;
+  double netCAGR = 0.0;
   bool isLoaded = false;
   @override
   void initState() {
@@ -118,7 +119,7 @@ class _ViewChartForSpecificDynStockScreenState
 
   Future<void> parseDataForDynStockPriceChart() async {
     double netReturns = 0.0;
-
+    double compoundingPeriod = 365;
     List<FlSpot> chartPoints = appStore.state.allDynStocks.data
         .firstWhere((dynStock) => dynStock.stockCode == currentDynStockCode)
         .transactions
@@ -143,31 +144,37 @@ class _ViewChartForSpecificDynStockScreenState
         case '1d':
           if (now.compareTo(transactionTime.add(Duration(days: 0))) <= 0) {
             netReturns += transaction.amount * multiplier;
+            compoundingPeriod = 365;
           }
           break;
         case '1w':
           if (now.compareTo(transactionTime.add(Duration(days: 6))) <= 0) {
             netReturns += transaction.amount * multiplier;
+            compoundingPeriod = 52;
           }
           break;
         case '1m':
           if (now.compareTo(transactionTime.add(Duration(days: 30))) <= 0) {
             netReturns += transaction.amount * multiplier;
+            compoundingPeriod = 12;
           }
           break;
         case '3m':
           if (now.compareTo(transactionTime.add(Duration(days: 90))) <= 0) {
             netReturns += transaction.amount * multiplier;
+            compoundingPeriod = 4;
           }
           break;
         case '6m':
           if (now.compareTo(transactionTime.add(Duration(days: 180))) <= 0) {
             netReturns += transaction.amount * multiplier;
+            compoundingPeriod = 2;
           }
           break;
         case '1y':
           if (now.compareTo(transactionTime.add(Duration(days: 365))) <= 0) {
             netReturns += transaction.amount * multiplier;
+            compoundingPeriod = 1;
           }
           break;
       }
@@ -177,6 +184,14 @@ class _ViewChartForSpecificDynStockScreenState
       );
     }).toList();
     DateTime now = DateTime.now();
+    double amountInvested = appStore.state.allDynStocks.data
+        .firstWhere((dynStock) => dynStock.stockCode == currentDynStockCode)
+        .transactions[0]
+        .amount;
+    double cagr = pow((netReturns / amountInvested) as num,
+            (1 / (1 / compoundingPeriod) as num))
+        .toDouble();
+    cagr = (cagr - 1) * 100;
     now = now.subtract(Duration(
         hours: now.hour,
         minutes: now.minute,
@@ -280,6 +295,7 @@ class _ViewChartForSpecificDynStockScreenState
     setState(() {
       dynStockChartPoints = chartPoints;
       netReturnsForDynStock = netReturns;
+      netCAGR = cagr;
     });
   }
 
@@ -513,34 +529,66 @@ class _ViewChartForSpecificDynStockScreenState
                                 },
                               ))))),
                     ),
-                    Container(
-                      child: Container(
-                          height: screenSize.height * 0.1,
-                          padding: EdgeInsets.fromLTRB(20, 10, 20, 10),
-                          decoration: BoxDecoration(
-                              color: PaletteColors.blue3,
-                              borderRadius: BorderRadius.circular(15)),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                netReturnsForDynStock.toStringAsFixed(2),
-                                style: GoogleFonts.daysOne(
-                                  color: PaletteColors.blue2,
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Text(
-                                'Net Returns',
-                                style: GoogleFonts.outfit(
-                                  color: PaletteColors.blue4,
-                                  fontSize: 15,
-                                ),
-                              )
-                            ],
-                          )),
-                    ),
+                    Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          Container(
+                            child: Container(
+                                height: screenSize.height * 0.1,
+                                padding: EdgeInsets.fromLTRB(20, 10, 20, 10),
+                                decoration: BoxDecoration(
+                                    color: PaletteColors.blue3,
+                                    borderRadius: BorderRadius.circular(15)),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      netReturnsForDynStock.toStringAsFixed(2),
+                                      style: GoogleFonts.daysOne(
+                                        color: PaletteColors.blue2,
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    Text(
+                                      'Net Returns',
+                                      style: GoogleFonts.outfit(
+                                        color: PaletteColors.blue4,
+                                        fontSize: 15,
+                                      ),
+                                    )
+                                  ],
+                                )),
+                          ),
+                          Container(
+                            child: Container(
+                                height: screenSize.height * 0.1,
+                                padding: EdgeInsets.fromLTRB(20, 10, 20, 10),
+                                decoration: BoxDecoration(
+                                    color: PaletteColors.blue3,
+                                    borderRadius: BorderRadius.circular(15)),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      netCAGR.toStringAsFixed(2),
+                                      style: GoogleFonts.daysOne(
+                                        color: PaletteColors.blue2,
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    Text(
+                                      'CAGR',
+                                      style: GoogleFonts.outfit(
+                                        color: PaletteColors.blue4,
+                                        fontSize: 15,
+                                      ),
+                                    )
+                                  ],
+                                )),
+                          )
+                        ]),
                   ],
                 ));
           }),

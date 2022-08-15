@@ -28,6 +28,7 @@ class DynStock {
     this.STPr = 0.0,
     this.BTPe = 0.0,
     this.STPe = 0.0,
+    this.stallTransactions = false,
     this.transactions = const [],
   });
 
@@ -45,6 +46,7 @@ class DynStock {
   String lastTransactionType;
   TransactionTime? lastTransactionTime;
   int stocksAvailableForTrade;
+  bool stallTransactions;
   double BTPr;
   double STPr;
   double BTPe;
@@ -71,6 +73,7 @@ class DynStock {
         STPr: json["STPr"],
         STPe: json["STPe"],
         noOfStocks: json["noOfStocks"],
+        stallTransactions: json["stallTransactions"],
         transactions: List<Transaction>.from(
             json["transactions"].map((x) => Transaction.fromJson(x))),
       );
@@ -94,6 +97,7 @@ class DynStock {
         "STPr": STPr,
         "STPe": STPe,
         "noOfStocks": noOfStocks,
+        "stallTransactions": stallTransactions,
         "transactions": List<dynamic>.from(transactions.map((x) => x.toJson())),
       };
 }
@@ -128,6 +132,7 @@ class DynStockBody {
     this.STPr = 0.0,
     this.BTPe = 0.0,
     this.STPe = 0.0,
+    this.stallTransactions = false,
     this.transactionForCreateDynStock = null,
   });
 
@@ -143,6 +148,7 @@ class DynStockBody {
   double STPr;
   double BTPe;
   double STPe;
+  bool stallTransactions;
   TransactionBody? transactionForCreateDynStock;
 
   factory DynStockBody.fromJson(Map<String, dynamic> json) => DynStockBody(
@@ -158,6 +164,7 @@ class DynStockBody {
         STPr: json["STPr"],
         STPe: json["STPe"],
         noOfStocks: json["noOfStocks"],
+        stallTransactions: json["stallTransactions"],
         transactionForCreateDynStock:
             TransactionBody.fromJson(json["transactionForCreateDynStock"]),
       );
@@ -175,6 +182,7 @@ class DynStockBody {
         "STPr": STPr,
         "STPe": STPe,
         "noOfStocks": noOfStocks,
+        "stallTransactions": stallTransactions,
         "transactionForCreateDynStock": transactionForCreateDynStock?.toJson(),
       };
 }
