@@ -161,20 +161,8 @@ void tickerDataMiddleWare(
             switch (dynStock.DSTPUnit) {
               case 'Price':
                 if (response.price.currentPrice != null &&
-                        (response.price.currentPrice! <=
-                                response.currentLocalMaximumPrice -
-                                    dynStock.STPr &&
-                            (dynStock.lastTradedPrice <
-                                response.price.currentPrice!)) ||
-                    (dynStock.lastTradedPrice <
-                            response.currentLocalMaximumPrice &&
-                        (response.currentLocalMaximumPrice -
-                                response.price.currentPrice!) >=
-                            2 &&
-                        ((dynStock.lastTradedPrice -
-                                    response.price.currentPrice!)
-                                .abs() <=
-                            1))) {
+                    (response.price.currentPrice! <=
+                        response.currentLocalMaximumPrice - dynStock.STPr)) {
                   store.dispatch(CreateTransactionAction(
                       userId: appStore.state.userId,
                       instrumentToken: dynStock.instrumentToken,
@@ -189,22 +177,10 @@ void tickerDataMiddleWare(
                 break;
               case 'Percentage':
                 if (response.price.currentPrice != null &&
-                        (response.price.currentPrice! <=
-                                double.parse(
-                                    ((response.currentLocalMaximumPrice) *
-                                            (1 - (dynStock.STPe / 100)))
-                                        .toStringAsFixed(2)) &&
-                            (dynStock.lastTradedPrice <
-                                response.price.currentPrice!)) ||
-                    (dynStock.lastTradedPrice <
-                            response.currentLocalMaximumPrice &&
-                        (response.currentLocalMaximumPrice -
-                                response.price.currentPrice!) >=
-                            2 &&
-                        ((dynStock.lastTradedPrice -
-                                    response.price.currentPrice!)
-                                .abs() <=
-                            1))) {
+                    (response.price.currentPrice! <=
+                        double.parse(((response.currentLocalMaximumPrice) *
+                                (1 - (dynStock.STPe / 100)))
+                            .toStringAsFixed(2)))) {
                   store.dispatch(CreateTransactionAction(
                       userId: appStore.state.userId,
                       instrumentToken: dynStock.instrumentToken,
@@ -227,19 +203,8 @@ void tickerDataMiddleWare(
           switch (dynStock.DSTPUnit) {
             case 'Price':
               if (response.price.currentPrice != null &&
-                      (response.price.currentPrice! >=
-                              response.currentLocalMinimumPrice +
-                                  dynStock.BTPr &&
-                          (dynStock.lastTradedPrice >
-                              response.price.currentPrice!)) ||
-                  (dynStock.lastTradedPrice >
-                          response.currentLocalMinimumPrice &&
-                      (response.price.currentPrice! -
-                              response.currentLocalMinimumPrice) >=
-                          2 &&
-                      ((dynStock.lastTradedPrice - response.price.currentPrice!)
-                              .abs() <=
-                          1))) {
+                  (response.price.currentPrice! >=
+                      response.currentLocalMinimumPrice + dynStock.BTPr)) {
                 store.dispatch(CreateTransactionAction(
                     userId: appStore.state.userId,
                     instrumentToken: dynStock.instrumentToken,
@@ -254,21 +219,10 @@ void tickerDataMiddleWare(
               break;
             case 'Percentage':
               if (response.price.currentPrice != null &&
-                      (response.price.currentPrice! >=
-                              double.parse(
-                                  ((response.currentLocalMinimumPrice) *
-                                          (1 + (dynStock.BTPe / 100)))
-                                      .toStringAsFixed(2)) &&
-                          (dynStock.lastTradedPrice <
-                              response.price.currentPrice!)) ||
-                  (dynStock.lastTradedPrice >
-                          response.currentLocalMinimumPrice &&
-                      (response.price.currentPrice! -
-                              response.currentLocalMinimumPrice) >=
-                          2 &&
-                      ((dynStock.lastTradedPrice - response.price.currentPrice!)
-                              .abs() <=
-                          1))) {
+                  (response.price.currentPrice! >=
+                      double.parse(((response.currentLocalMinimumPrice) *
+                              (1 + (dynStock.BTPe / 100)))
+                          .toStringAsFixed(2)))) {
                 store.dispatch(CreateTransactionAction(
                     userId: appStore.state.userId,
                     instrumentToken: dynStock.instrumentToken,
