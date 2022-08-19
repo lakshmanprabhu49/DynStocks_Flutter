@@ -21,10 +21,12 @@ class TickerDataService {
     hist ??= yFin.initStockHistory(
       ticker: ticker,
     );
-    chart ??= await yFin.getChartQuotes(
-        stockHistory: hist,
-        interval: StockInterval.fifteenMinute,
-        period: StockRange.fiveDay);
+    if (chart == null || fetchChartHistory) {
+      chart = await yFin.getChartQuotes(
+          stockHistory: hist,
+          interval: StockInterval.fifteenMinute,
+          period: StockRange.fiveDay);
+    }
     return TickerData(
         stockInfo: info,
         price: price,

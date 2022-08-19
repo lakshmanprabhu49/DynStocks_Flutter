@@ -60,9 +60,15 @@ double findLocalMinimaFromPreviousData(StockChart? chart) {
 void tickerDataMiddleWare(
     Store<AppState> store, dynamic action, NextDispatcher next) async {
   if (action is GetAllTickerDataAction) {
+    DateTime now = DateTime.now();
+    bool fetchChartHistory = false;
+    if (now.minute < 1 && now.second < 20) {
+      fetchChartHistory = true;
+    }
     store.state.allDynStocks.data.forEachIndexed((index, dynStock) async {
       TickerDataService()
           .getTickerData(dynStock.yFinStockCode,
+              fetchChartHistory: fetchChartHistory,
               currentLocalMaximumPrice: store.state.allTickerData
                       .data[dynStock.stockCode]?.currentLocalMaximumPrice ??
                   double.negativeInfinity,
@@ -70,6 +76,13 @@ void tickerDataMiddleWare(
                       .data[dynStock.stockCode]?.currentLocalMinimumPrice ??
                   double.infinity)
           .then((response) {
+        DateTime now = DateTime.now();
+        DateFormat formatter = DateFormat('yyyy-MM-dd');
+        String formattedNow = formatter.format(now);
+        now = DateTime.parse(formattedNow);
+        DateTime lastTransactionTime = DateTime.fromMillisecondsSinceEpoch(
+            dynStock.lastTransactionTime!.date);
+
         Map<String, TickerData> map = Map.from(store.state.allTickerData.data);
         map[dynStock.stockCode] = response;
         if (dynStock.lastTransactionType == 'BUY') {
@@ -88,6 +101,7 @@ void tickerDataMiddleWare(
                 possibleLocalMaximaFromYesterday);
             response.currentLocalMinimumPrice =
                 response.currentLocalMaximumPrice;
+            ;
           } else {
             // App is running, so no need to compare with previous day's local maxima
             response.currentLocalMaximumPrice = max(
@@ -113,6 +127,7 @@ void tickerDataMiddleWare(
                 possibleLocalMinimaFromYesterday);
             response.currentLocalMaximumPrice =
                 response.currentLocalMinimumPrice;
+            ;
           } else {
             // App is running, so no need to compare with previous day's local minima
             response.currentLocalMinimumPrice = min(
@@ -124,13 +139,6 @@ void tickerDataMiddleWare(
           }
         }
 
-        DateTime now = DateTime.now();
-        DateFormat formatter = DateFormat('yyyy-MM-dd');
-        String formattedNow = formatter.format(now);
-        now = DateTime.parse(formattedNow);
-
-        DateTime lastTransactionTime = DateTime.fromMillisecondsSinceEpoch(
-            dynStock.lastTransactionTime!.date);
         lastTransactionTime = lastTransactionTime.subtract(Duration(
             hours: lastTransactionTime.hour,
             minutes: lastTransactionTime.minute,
@@ -142,6 +150,7 @@ void tickerDataMiddleWare(
             formatter.format(secondNextDayOfLastTransactionTime);
         lastTransactionTime =
             DateTime.parse(formattedsecondNextDayOfLastTransactionTime);
+
         // SELL Logic
         if (dynStock.lastTransactionType == 'BUY' &&
             dynStock.stocksAvailableForTrade > 0 &&
@@ -152,8 +161,20 @@ void tickerDataMiddleWare(
             switch (dynStock.DSTPUnit) {
               case 'Price':
                 if (response.price.currentPrice != null &&
-                    response.price.currentPrice! <=
-                        response.currentLocalMaximumPrice - dynStock.STPr) {
+                        (response.price.currentPrice! <=
+                                response.currentLocalMaximumPrice -
+                                    dynStock.STPr &&
+                            (dynStock.lastTradedPrice <
+                                response.price.currentPrice!)) ||
+                    (dynStock.lastTradedPrice <
+                            response.currentLocalMaximumPrice &&
+                        (response.currentLocalMaximumPrice -
+                                response.price.currentPrice!) >=
+                            2 &&
+                        ((dynStock.lastTradedPrice -
+                                    response.price.currentPrice!)
+                                .abs() <=
+                            1))) {
                   store.dispatch(CreateTransactionAction(
                       userId: appStore.state.userId,
                       instrumentToken: dynStock.instrumentToken,
@@ -168,10 +189,22 @@ void tickerDataMiddleWare(
                 break;
               case 'Percentage':
                 if (response.price.currentPrice != null &&
-                    response.price.currentPrice! <=
-                        double.parse(((response.currentLocalMaximumPrice) *
-                                (1 - (dynStock.STPe / 100)))
-                            .toStringAsFixed(2))) {
+                        (response.price.currentPrice! <=
+                                double.parse(
+                                    ((response.currentLocalMaximumPrice) *
+                                            (1 - (dynStock.STPe / 100)))
+                                        .toStringAsFixed(2)) &&
+                            (dynStock.lastTradedPrice <
+                                response.price.currentPrice!)) ||
+                    (dynStock.lastTradedPrice <
+                            response.currentLocalMaximumPrice &&
+                        (response.currentLocalMaximumPrice -
+                                response.price.currentPrice!) >=
+                            2 &&
+                        ((dynStock.lastTradedPrice -
+                                    response.price.currentPrice!)
+                                .abs() <=
+                            1))) {
                   store.dispatch(CreateTransactionAction(
                       userId: appStore.state.userId,
                       instrumentToken: dynStock.instrumentToken,
@@ -194,8 +227,19 @@ void tickerDataMiddleWare(
           switch (dynStock.DSTPUnit) {
             case 'Price':
               if (response.price.currentPrice != null &&
-                  response.price.currentPrice! >=
-                      response.currentLocalMinimumPrice + dynStock.BTPr) {
+                      (response.price.currentPrice! >=
+                              response.currentLocalMinimumPrice +
+                                  dynStock.BTPr &&
+                          (dynStock.lastTradedPrice >
+                              response.price.currentPrice!)) ||
+                  (dynStock.lastTradedPrice >
+                          response.currentLocalMinimumPrice &&
+                      (response.price.currentPrice! -
+                              response.currentLocalMinimumPrice) >=
+                          2 &&
+                      ((dynStock.lastTradedPrice - response.price.currentPrice!)
+                              .abs() <=
+                          1))) {
                 store.dispatch(CreateTransactionAction(
                     userId: appStore.state.userId,
                     instrumentToken: dynStock.instrumentToken,
@@ -210,10 +254,21 @@ void tickerDataMiddleWare(
               break;
             case 'Percentage':
               if (response.price.currentPrice != null &&
-                  response.price.currentPrice! >=
-                      double.parse(((response.currentLocalMinimumPrice) *
-                              (1 + (dynStock.BTPe / 100)))
-                          .toStringAsFixed(2))) {
+                      (response.price.currentPrice! >=
+                              double.parse(
+                                  ((response.currentLocalMinimumPrice) *
+                                          (1 + (dynStock.BTPe / 100)))
+                                      .toStringAsFixed(2)) &&
+                          (dynStock.lastTradedPrice <
+                              response.price.currentPrice!)) ||
+                  (dynStock.lastTradedPrice >
+                          response.currentLocalMinimumPrice &&
+                      (response.price.currentPrice! -
+                              response.currentLocalMinimumPrice) >=
+                          2 &&
+                      ((dynStock.lastTradedPrice - response.price.currentPrice!)
+                              .abs() <=
+                          1))) {
                 store.dispatch(CreateTransactionAction(
                     userId: appStore.state.userId,
                     instrumentToken: dynStock.instrumentToken,
