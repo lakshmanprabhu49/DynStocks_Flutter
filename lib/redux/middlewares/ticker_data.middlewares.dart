@@ -65,6 +65,9 @@ void tickerDataMiddleWare(
     if (now.minute < 1 && now.second < 20) {
       fetchChartHistory = true;
     }
+    bool orderPlaced = false;
+    String orderType = '';
+    double tolerance = 1.0;
     store.state.allDynStocks.data.forEachIndexed((index, dynStock) async {
       TickerDataService()
           .getTickerData(dynStock.yFinStockCode,
@@ -93,10 +96,22 @@ void tickerDataMiddleWare(
                 findLocalMaximaFromPreviousData(response.chart);
             possibleLocalMaximaFromYesterday = double.parse(
                 possibleLocalMaximaFromYesterday.toStringAsFixed(2));
+            double lastTradedPriceCorrected = dynStock.lastTradedPrice;
+            if (dynStock.DSTPUnit == EDSTPUnit.Price.name) {
+              // Add the STPr value for localMaxima computation
+              lastTradedPriceCorrected =
+                  dynStock.lastTradedPrice + dynStock.STPr;
+            } else {
+              // Add the STPe value for localMaxima computation
+              lastTradedPriceCorrected =
+                  dynStock.lastTradedPrice * (1 + (dynStock.STPe / 100.00));
+            }
+            // Define a tolerance amount so that the trade doesn't repeatedly happen at the same time
+            lastTradedPriceCorrected = lastTradedPriceCorrected - tolerance;
             response.currentLocalMaximumPrice = max(
                 max(
                     max(response.currentLocalMaximumPrice,
-                        dynStock.lastTradedPrice),
+                        lastTradedPriceCorrected),
                     response.price.currentPrice ?? double.negativeInfinity),
                 possibleLocalMaximaFromYesterday);
             response.currentLocalMinimumPrice =
@@ -104,9 +119,19 @@ void tickerDataMiddleWare(
             ;
           } else {
             // App is running, so no need to compare with previous day's local maxima
+            double lastTradedPriceCorrected = dynStock.lastTradedPrice;
+            if (dynStock.DSTPUnit == EDSTPUnit.Price.name) {
+              lastTradedPriceCorrected =
+                  dynStock.lastTradedPrice + dynStock.STPr;
+            } else {
+              lastTradedPriceCorrected =
+                  dynStock.lastTradedPrice * (1 + (dynStock.STPe / 100.00));
+            }
+            // Define a tolerance amount so that the trade doesn't repeatedly happen at the same time
+            lastTradedPriceCorrected = lastTradedPriceCorrected - tolerance;
             response.currentLocalMaximumPrice = max(
                 max(response.currentLocalMaximumPrice,
-                    dynStock.lastTradedPrice),
+                    lastTradedPriceCorrected),
                 response.price.currentPrice ?? double.negativeInfinity);
             response.currentLocalMinimumPrice =
                 response.currentLocalMaximumPrice;
@@ -119,10 +144,22 @@ void tickerDataMiddleWare(
                 findLocalMinimaFromPreviousData(response.chart);
             possibleLocalMinimaFromYesterday = double.parse(
                 (possibleLocalMinimaFromYesterday).toStringAsFixed(2));
+            double lastTradedPriceCorrected = dynStock.lastTradedPrice;
+            if (dynStock.DSTPUnit == EDSTPUnit.Price.name) {
+              // Subtract the BTPr value
+              lastTradedPriceCorrected =
+                  dynStock.lastTradedPrice - dynStock.BTPr;
+            } else {
+              // Subtract the BTPe value
+              lastTradedPriceCorrected =
+                  dynStock.lastTradedPrice * (1 - (dynStock.BTPe / 100.00));
+            }
+            // Define a tolerance amount so that the trade doesn't repeatedly happen at the same time
+            lastTradedPriceCorrected = lastTradedPriceCorrected + tolerance;
             response.currentLocalMinimumPrice = min(
                 min(
                     min(response.currentLocalMinimumPrice,
-                        dynStock.lastTradedPrice),
+                        lastTradedPriceCorrected),
                     response.price.currentPrice ?? double.infinity),
                 possibleLocalMinimaFromYesterday);
             response.currentLocalMaximumPrice =
@@ -130,9 +167,19 @@ void tickerDataMiddleWare(
             ;
           } else {
             // App is running, so no need to compare with previous day's local minima
+            double lastTradedPriceCorrected = dynStock.lastTradedPrice;
+            if (dynStock.DSTPUnit == EDSTPUnit.Price.name) {
+              lastTradedPriceCorrected =
+                  dynStock.lastTradedPrice - dynStock.BTPr;
+            } else {
+              lastTradedPriceCorrected =
+                  dynStock.lastTradedPrice * (1 - (dynStock.BTPe / 100.00));
+            }
+            // Define a tolerance amount so that the trade doesn't repeatedly happen at the same time
+            lastTradedPriceCorrected = lastTradedPriceCorrected + tolerance;
             response.currentLocalMinimumPrice = min(
                 min(response.currentLocalMinimumPrice,
-                    dynStock.lastTradedPrice),
+                    lastTradedPriceCorrected),
                 response.price.currentPrice ?? double.infinity);
             response.currentLocalMaximumPrice =
                 response.currentLocalMinimumPrice;
@@ -163,6 +210,8 @@ void tickerDataMiddleWare(
                 if (response.price.currentPrice != null &&
                     (response.price.currentPrice! <=
                         response.currentLocalMaximumPrice - dynStock.STPr)) {
+                  orderPlaced = true;
+                  orderType = 'SELL';
                   store.dispatch(CreateTransactionAction(
                       userId: appStore.state.userId,
                       instrumentToken: dynStock.instrumentToken,
@@ -181,6 +230,8 @@ void tickerDataMiddleWare(
                         double.parse(((response.currentLocalMaximumPrice) *
                                 (1 - (dynStock.STPe / 100)))
                             .toStringAsFixed(2)))) {
+                  orderPlaced = true;
+                  orderType = 'SELL';
                   store.dispatch(CreateTransactionAction(
                       userId: appStore.state.userId,
                       instrumentToken: dynStock.instrumentToken,
@@ -205,6 +256,8 @@ void tickerDataMiddleWare(
               if (response.price.currentPrice != null &&
                   (response.price.currentPrice! >=
                       response.currentLocalMinimumPrice + dynStock.BTPr)) {
+                orderPlaced = true;
+                orderType = 'BUY';
                 store.dispatch(CreateTransactionAction(
                     userId: appStore.state.userId,
                     instrumentToken: dynStock.instrumentToken,
@@ -223,6 +276,8 @@ void tickerDataMiddleWare(
                       double.parse(((response.currentLocalMinimumPrice) *
                               (1 + (dynStock.BTPe / 100)))
                           .toStringAsFixed(2)))) {
+                orderPlaced = true;
+                orderType = 'BUY';
                 store.dispatch(CreateTransactionAction(
                     userId: appStore.state.userId,
                     instrumentToken: dynStock.instrumentToken,
@@ -234,6 +289,18 @@ void tickerDataMiddleWare(
                         stockCode: dynStock.stockCode,
                         stockPrice: response.price.currentPrice!)));
               }
+              break;
+          }
+        }
+        if (orderPlaced) {
+          switch (orderType) {
+            case 'BUY':
+              map[dynStock.stockCode]?.currentLocalMaximumPrice =
+                  response.price.currentPrice!;
+              break;
+            case 'SELL':
+              map[dynStock.stockCode]?.currentLocalMinimumPrice =
+                  response.price.currentPrice!;
               break;
           }
         }
