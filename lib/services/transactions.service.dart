@@ -9,13 +9,22 @@ import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class TransactionsService {
-  Future<List<Transaction>> getTransactionsForDate(String userId,
-      {String date = ''}) async {
+  Future<TransactionsResponse> getTransactionsForDate(String userId,
+      {String date = '',
+      int limit = 0,
+      int offset = 0,
+      String sortCriterion = 'TransactionTime',
+      sortDirection = 'DESC',
+      String dynStockId = ''}) async {
     Uri url = Uri.parse(
-        '${dotenv.env["DYNSTOCKS_API_ENDPOINT_PROD"]}/$userId/transactions?accessCode=${appStore.state.accessCode}');
+        '${dotenv.env["DYNSTOCKS_API_ENDPOINT_LOCAL"]}/$userId/transactions?accessCode=${appStore.state.accessCode}&limit=$limit&offset=$offset&sortCriterion=$sortCriterion&sortDirection=$sortDirection');
     if (date.isNotEmpty) {
       url = Uri.parse(
-          '${dotenv.env["DYNSTOCKS_API_ENDPOINT_PROD"]}/$userId/transactions?accessCode=${appStore.state.accessCode}&&date=$date');
+          '${dotenv.env["DYNSTOCKS_API_ENDPOINT_LOCAL"]}/$userId/transactions?accessCode=${appStore.state.accessCode}&date=$date&limit=$limit&offset=$offset&sortCriterion=$sortCriterion&sortDirection=$sortDirection');
+    }
+    if (dynStockId.isNotEmpty) {
+      url = Uri.parse(
+          '${dotenv.env["DYNSTOCKS_API_ENDPOINT_LOCAL"]}/$userId/dynStocks/$dynStockId/transactions?accessCode=${appStore.state.accessCode}&limit=$limit&offset=$offset&sortCriterion=$sortCriterion&sortDirection=$sortDirection');
     }
     var client = http.Client();
     var response = await client.get(url, headers: {
@@ -26,7 +35,7 @@ class TransactionsService {
 
     String res = response.body;
     if (response.statusCode < 400) {
-      return transactionsFromJson(res);
+      return transactionsResponseFromJson(res);
     } else {
       throw Exception(ErrorClass.fromJson(jsonDecode(res)).message);
     }
@@ -35,7 +44,7 @@ class TransactionsService {
   Future<Transaction> createTransaction(
       String userId, String dynStockId, TransactionBody body) async {
     Uri url = Uri.parse(
-        '${dotenv.env["DYNSTOCKS_API_ENDPOINT_PROD"]}/$userId/dynStocks/$dynStockId/transactions?accessCode=${appStore.state.accessCode}');
+        '${dotenv.env["DYNSTOCKS_API_ENDPOINT_LOCAL"]}/$userId/dynStocks/$dynStockId/transactions?accessCode=${appStore.state.accessCode}');
     var client = http.Client();
     var response = await client.post(url, body: jsonEncode(body), headers: {
       HttpHeaders.authorizationHeader:

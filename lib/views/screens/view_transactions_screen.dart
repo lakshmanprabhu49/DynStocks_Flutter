@@ -45,6 +45,8 @@ class _ViewTransactionsScreenState extends State<ViewTransactionsScreen>
   ESortDirection currentSortDirection = ESortDirection.DESC;
   bool errorMessageShown = false;
   String customStockCode;
+  int limit = 50;
+  int offset = 0;
   @override
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
@@ -63,6 +65,7 @@ class _ViewTransactionsScreenState extends State<ViewTransactionsScreen>
         });
       }
       setState(() {
+        limit = customStockCode.isNotEmpty ? 50 : 0;
         currentStocksCustomInput = customStockCode;
       });
     }
@@ -107,8 +110,13 @@ class _ViewTransactionsScreenState extends State<ViewTransactionsScreen>
   @override
   void didPush() {
     super.didPush();
-    StoreProvider.of<AppState>(context)
-        .dispatch(GetAllTransactionsAction(userId: userId, date: ''));
+    StoreProvider.of<AppState>(context).dispatch(GetAllTransactionsAction(
+        userId: userId,
+        date: '',
+        limit: limit,
+        offset: offset,
+        dynStockId: dynStockId,
+        sortDirection: ESortDirection.DESC.name));
     setState(() {
       errorMessageShown = false;
     });
@@ -129,6 +137,16 @@ class _ViewTransactionsScreenState extends State<ViewTransactionsScreen>
 
   @override
   Widget build(BuildContext context) {
+    if (dynStockId.isEmpty && customStockCode.isNotEmpty) {
+      setState(() {
+        dynStockId = appStore.state.allDynStocks.data
+            .firstWhere((element) {
+              return element.stockCode == customStockCode;
+            })
+            .dynStockId
+            .uuid;
+      });
+    }
     Size screenSize = MediaQuery.of(context).size;
     if (appStore.state.allTransactions.loadFailed && !errorMessageShown) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -142,272 +160,320 @@ class _ViewTransactionsScreenState extends State<ViewTransactionsScreen>
     }
     return Scaffold(
         resizeToAvoidBottomInset: false,
-        body: Container(
-            width: screenSize.width,
-            height: screenSize.height,
-            decoration: BoxDecoration(color: Colors.white),
-            child: Column(children: [
-              Container(
-                  decoration: BoxDecoration(
-                      color: PaletteColors.blue2,
-                      borderRadius: BorderRadius.only(
-                        bottomLeft: Radius.circular(75),
-                        bottomRight: Radius.circular(75),
-                      )),
-                  child: Container(
-                      margin: EdgeInsets.fromLTRB(0, 20, 0, 0),
-                      child: Column(children: [
-                        Row(
-                          children: [
-                            Flexible(
-                                flex: 1,
-                                child: Container(
-                                    margin: EdgeInsets.fromLTRB(10, 0, 0, 0),
-                                    child: ButtonTheme(
-                                        height: 25,
-                                        minWidth: 25,
-                                        child: TextButton(
-                                          style: ButtonStyle(
-                                              foregroundColor:
-                                                  MaterialStateProperty.all(
-                                                      Colors.transparent),
-                                              backgroundColor:
-                                                  MaterialStateProperty.all(
-                                                      Colors.transparent)),
-                                          child: Icon(
-                                            Icons.arrow_back,
-                                            size: 20,
-                                            color: Colors.white,
-                                          ),
-                                          onPressed: () {
-                                            Navigator.pop(context);
-                                          },
-                                        )))),
-                            Flexible(
-                                flex: 3,
-                                child: Container(
-                                  margin: EdgeInsets.fromLTRB(10, 0, 0, 0),
-                                  child: Text(
-                                      customStockCode.isEmpty
-                                          ? 'View all Transactions'
-                                          : 'Transactions - ${customStockCode}',
-                                      style: GoogleFonts.overlock(
-                                          color: Colors.white,
-                                          fontSize: 30,
-                                          fontWeight: FontWeight.bold)),
-                                ))
-                          ],
-                        ),
-                        Container(
-                            margin: EdgeInsets.fromLTRB(0, 0, 0, 30),
-                            child: TransactionsFilterCriterion(
-                              screenSize: screenSize,
-                              stocksFilterCallback: (String newStocksFilter) {
-                                setState(() {
-                                  currentStocksFilterCriterion =
-                                      EStocksFilterCriterion.values.firstWhere(
-                                          (e) =>
-                                              e.toString() == newStocksFilter);
-                                  currentStocksCustomInput =
-                                      newStocksFilter.contains('All')
-                                          ? ''
-                                          : currentStocksCustomInput;
-                                });
-                              },
-                              daysFilterCallback: (String newDaysFilter) {
-                                setState(() {
-                                  currentDaysFilterCriterion =
-                                      EDaysFilterCriterion.values.firstWhere(
-                                          (e) => e.toString() == newDaysFilter);
-                                });
-                              },
-                              stocksFilterCustomInputCallback:
-                                  (String newCustomStockInput) {
-                                setState(() {
-                                  currentStocksCustomInput =
-                                      newCustomStockInput;
-                                });
-                              },
-                              customStockCode: customStockCode,
+        body: StoreConnector<AppState, AppState>(
+            onDidChange: (previousState, state) {
+              if (state.allTransactions.loadFailed && !errorMessageShown) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                      ToastMessageHandler.showErrorMessageSnackBar(
+                          '${state.allTransactions.error.message}'));
+                });
+                setState(() {
+                  errorMessageShown = true;
+                });
+              }
+            },
+            converter: ((store) => store.state),
+            builder: (context, allTransactionsState) {
+              return Container(
+                  width: screenSize.width,
+                  height: screenSize.height,
+                  decoration: BoxDecoration(color: Colors.white),
+                  child: Column(children: [
+                    Container(
+                        decoration: BoxDecoration(
+                            color: PaletteColors.blue2,
+                            borderRadius: BorderRadius.only(
+                              bottomLeft: Radius.circular(75),
+                              bottomRight: Radius.circular(75),
                             )),
-                      ]))),
-              Container(
-                  margin: EdgeInsets.fromLTRB(10, 10, 10, 10),
-                  child: TransactionsSortCriterion(
-                    screenSize: screenSize,
-                    sortCriterionCallback: (String newValue) {
-                      setState(() {
-                        currentSortCriterion = ESortCriterion.values.firstWhere(
-                            (element) => element.toString() == newValue);
-                      });
-                    },
-                    sortDirectionCallback: (String newValue) {
-                      setState(() {
-                        currentSortDirection = ESortDirection.values.firstWhere(
-                            (element) => element.toString() == newValue);
-                      });
-                    },
-                  )),
-              Container(
-                  margin: EdgeInsets.fromLTRB(10, 0, 10, 0),
-                  child: StoreConnector<AppState, TransactionsState>(
-                    onDidChange: (previousState, state) {
-                      if (state.loadFailed && !errorMessageShown) {
-                        WidgetsBinding.instance.addPostFrameCallback((_) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                              ToastMessageHandler.showErrorMessageSnackBar(
-                                  '${state.error.message}'));
-                        });
-                        setState(() {
-                          errorMessageShown = true;
-                        });
-                      }
-                    },
-                    converter: ((store) => store.state.allTransactions),
-                    builder: (context, allTransactionsState) {
-                      if (allTransactionsState.loadFailed) {
-                        return Text(
-                          allTransactionsState.error.toString(),
-                          style: GoogleFonts.lusitana(
-                              color: AccentColors.blue1,
-                              fontSize: 30,
-                              fontWeight: FontWeight.bold),
-                          textAlign: TextAlign.center,
-                        );
-                      } else if (allTransactionsState.loading) {
-                        return Text(
-                          'Loading list of transactions ...',
-                          style: GoogleFonts.lusitana(
-                              color: AccentColors.blue1,
-                              fontSize: 30,
-                              fontWeight: FontWeight.bold),
-                          textAlign: TextAlign.center,
-                        );
-                      } else if (allTransactionsState.loaded &&
-                          !allTransactionsState.loading) {
-                        List<Transaction> sortedTransactions =
-                            List.from(allTransactionsState.data);
-                        sortedTransactions = sortedTransactions
-                            .where((element) => element.stockCode
-                                .toLowerCase()
-                                .contains(
-                                    currentStocksCustomInput.toLowerCase()))
-                            .toList();
-                        if (sortedTransactions.isEmpty) {
-                          if (currentStocksCustomInput.isNotEmpty) {
-                            return Container(
-                                child: Text(
-                              'No transactions match your search criteria',
-                              style: GoogleFonts.lusitana(
-                                  color: AccentColors.blue1,
-                                  fontSize: 30,
-                                  fontWeight: FontWeight.bold),
-                              textAlign: TextAlign.center,
-                            ));
-                          } else if (currentDaysFilterCriterion ==
-                              EDaysFilterCriterion.Today) {
-                            return Container(
-                                child: Text(
-                              'No transactions were made today',
-                              style: GoogleFonts.lusitana(
-                                  color: AccentColors.blue1,
-                                  fontSize: 30,
-                                  fontWeight: FontWeight.bold),
-                              textAlign: TextAlign.center,
-                            ));
-                          } else {
-                            return Container(
-                                child: Text(
-                              'There are no transactions made in total',
-                              style: GoogleFonts.lusitana(
-                                  color: AccentColors.blue1,
-                                  fontSize: 30,
-                                  fontWeight: FontWeight.bold),
-                              textAlign: TextAlign.center,
-                            ));
-                          }
-                        }
-                        switch (currentSortCriterion) {
-                          case ESortCriterion.TransactionTime:
-                            sortedTransactions
-                                .sort((Transaction a, Transaction b) {
-                              Transaction first = a;
-                              Transaction second = b;
-                              if (currentSortDirection == ESortDirection.DESC) {
-                                first = b;
-                                second = a;
-                              }
-                              return first.transactionTime.date -
-                                  second.transactionTime.date;
-                            });
-                            break;
-                          case ESortCriterion.StockCode:
-                            sortedTransactions
-                                .sort((Transaction a, Transaction b) {
-                              Transaction first = a;
-                              Transaction second = b;
-                              if (currentSortDirection == ESortDirection.DESC) {
-                                first = b;
-                                second = a;
-                              }
-                              return first.stockCode
-                                  .compareTo(second.stockCode);
-                            });
-                            break;
-                          case ESortCriterion.TransactionType:
-                            sortedTransactions
-                                .sort((Transaction a, Transaction b) {
-                              Transaction first = a;
-                              Transaction second = b;
-                              if (currentSortDirection == ESortDirection.DESC) {
-                                first = b;
-                                second = a;
-                              }
-                              return first.type.compareTo(second.type);
-                            });
-                            break;
-                          case ESortCriterion.ReturnAmount:
-                            sortedTransactions
-                                .sort((Transaction a, Transaction b) {
-                              Transaction first = a;
-                              Transaction second = b;
-                              if (currentSortDirection == ESortDirection.DESC) {
-                                first = b;
-                                second = a;
-                              }
-                              return (first.amount - second.amount).toInt();
-                            });
-                            break;
-                        }
-                        return Column(children: [
-                          Text(
-                              'No of transactions: ${sortedTransactions.length}',
-                              style: GoogleFonts.actor(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: PaletteColors.purple1)),
-                          Container(
-                              height: (currentStocksFilterCriterion ==
-                                      EStocksFilterCriterion.All
-                                  ? screenSize.height * 0.5
-                                  : screenSize.height * 0.4),
-                              child: (ListView.builder(
-                                  itemCount: sortedTransactions.length,
-                                  itemBuilder:
-                                      (BuildContext context, int index) {
-                                    return Container(
+                        child: Container(
+                            margin: EdgeInsets.fromLTRB(0, 20, 0, 0),
+                            child: Column(children: [
+                              Row(
+                                children: [
+                                  Flexible(
+                                      flex: 1,
+                                      child: Container(
+                                          margin:
+                                              EdgeInsets.fromLTRB(10, 0, 0, 0),
+                                          child: ButtonTheme(
+                                              height: 25,
+                                              minWidth: 25,
+                                              child: TextButton(
+                                                style: ButtonStyle(
+                                                    foregroundColor:
+                                                        MaterialStateProperty
+                                                            .all(Colors
+                                                                .transparent),
+                                                    backgroundColor:
+                                                        MaterialStateProperty
+                                                            .all(Colors
+                                                                .transparent)),
+                                                child: Icon(
+                                                  Icons.arrow_back,
+                                                  size: 20,
+                                                  color: Colors.white,
+                                                ),
+                                                onPressed: () {
+                                                  Navigator.pop(context);
+                                                },
+                                              )))),
+                                  Flexible(
+                                      flex: 3,
+                                      child: Container(
                                         margin:
-                                            EdgeInsets.fromLTRB(0, 15, 0, 15),
-                                        child: TransactionsListItem(
-                                            screenSize: screenSize,
-                                            transaction:
-                                                sortedTransactions[index]));
-                                  })))
-                        ]);
-                      }
-                      return Text('Store is empty: $userId');
-                    },
-                  ))
-            ])));
+                                            EdgeInsets.fromLTRB(10, 0, 0, 0),
+                                        child: Text(
+                                            customStockCode.isEmpty
+                                                ? 'View all Transactions'
+                                                : 'Transactions - ${customStockCode}',
+                                            style: GoogleFonts.overlock(
+                                                color: Colors.white,
+                                                fontSize: 30,
+                                                fontWeight: FontWeight.bold)),
+                                      ))
+                                ],
+                              ),
+                              Container(
+                                  margin: EdgeInsets.fromLTRB(0, 0, 0, 30),
+                                  child: TransactionsFilterCriterion(
+                                    screenSize: screenSize,
+                                    stocksFilterCallback:
+                                        (String newStocksFilter) {
+                                      setState(() {
+                                        currentStocksFilterCriterion =
+                                            EStocksFilterCriterion.values
+                                                .firstWhere((e) =>
+                                                    e.toString() ==
+                                                    newStocksFilter);
+                                        currentStocksCustomInput =
+                                            newStocksFilter.contains('All')
+                                                ? ''
+                                                : currentStocksCustomInput;
+                                      });
+                                    },
+                                    daysFilterCallback: (String newDaysFilter) {
+                                      setState(() {
+                                        currentDaysFilterCriterion =
+                                            EDaysFilterCriterion.values
+                                                .firstWhere((e) =>
+                                                    e.toString() ==
+                                                    newDaysFilter);
+                                      });
+                                    },
+                                    stocksFilterCustomInputCallback:
+                                        (String newCustomStockInput) {
+                                      setState(() {
+                                        currentStocksCustomInput =
+                                            newCustomStockInput;
+                                      });
+                                    },
+                                    customStockCode: customStockCode,
+                                  )),
+                            ]))),
+                    Container(
+                        margin: EdgeInsets.fromLTRB(10, 10, 10, 10),
+                        child: TransactionsSortCriterion(
+                          screenSize: screenSize,
+                          sortCriterionCallback: (String newValue) {
+                            setState(() {
+                              currentSortCriterion = ESortCriterion.values
+                                  .firstWhere((element) =>
+                                      element.toString() == newValue);
+                            });
+                            StoreProvider.of<AppState>(context)
+                                .dispatch(GetAllTransactionsAction(
+                              userId: userId,
+                              date: '',
+                              limit: limit,
+                              offset: offset,
+                              sortCriterion: currentSortCriterion.name,
+                              sortDirection: currentSortDirection.name,
+                              dynStockId: dynStockId,
+                            ));
+                          },
+                          sortDirectionCallback: (String newValue) {
+                            setState(() {
+                              currentSortDirection = ESortDirection.values
+                                  .firstWhere((element) =>
+                                      element.toString() == newValue);
+                            });
+                            StoreProvider.of<AppState>(context)
+                                .dispatch(GetAllTransactionsAction(
+                              userId: userId,
+                              date: '',
+                              limit: limit,
+                              offset: offset,
+                              sortCriterion: currentSortCriterion.name,
+                              sortDirection: currentSortDirection.name,
+                              dynStockId: dynStockId,
+                            ));
+                          },
+                        )),
+                    Container(
+                        margin: EdgeInsets.fromLTRB(10, 0, 10, 0),
+                        child: StoreConnector<AppState, TransactionsState>(
+                          onDidChange: (previousState, state) {
+                            if (state.loadFailed && !errorMessageShown) {
+                              WidgetsBinding.instance.addPostFrameCallback((_) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                    ToastMessageHandler
+                                        .showErrorMessageSnackBar(
+                                            '${state.error.message}'));
+                              });
+                              setState(() {
+                                errorMessageShown = true;
+                              });
+                            }
+                          },
+                          converter: ((store) => store.state.allTransactions),
+                          builder: (context, allTransactionsState) {
+                            if (allTransactionsState.loadFailed) {
+                              return Text(
+                                allTransactionsState.error.toString(),
+                                style: GoogleFonts.lusitana(
+                                    color: AccentColors.blue1,
+                                    fontSize: 30,
+                                    fontWeight: FontWeight.bold),
+                                textAlign: TextAlign.center,
+                              );
+                            } else if (allTransactionsState.loading) {
+                              return Text(
+                                'Loading list of transactions ...',
+                                style: GoogleFonts.lusitana(
+                                    color: AccentColors.blue1,
+                                    fontSize: 30,
+                                    fontWeight: FontWeight.bold),
+                                textAlign: TextAlign.center,
+                              );
+                            } else if (allTransactionsState.loaded &&
+                                !allTransactionsState.loading) {
+                              List<Transaction> sortedTransactions =
+                                  List.from(allTransactionsState.data!.items);
+                              sortedTransactions = sortedTransactions
+                                  .where((element) => element.stockCode
+                                      .toLowerCase()
+                                      .contains(currentStocksCustomInput
+                                          .toLowerCase()))
+                                  .toList();
+                              if (sortedTransactions.isEmpty) {
+                                if (currentStocksCustomInput.isNotEmpty) {
+                                  return Container(
+                                      child: Text(
+                                    'No transactions match your search criteria',
+                                    style: GoogleFonts.lusitana(
+                                        color: AccentColors.blue1,
+                                        fontSize: 30,
+                                        fontWeight: FontWeight.bold),
+                                    textAlign: TextAlign.center,
+                                  ));
+                                } else if (currentDaysFilterCriterion ==
+                                    EDaysFilterCriterion.Today) {
+                                  return Container(
+                                      child: Text(
+                                    'No transactions were made today',
+                                    style: GoogleFonts.lusitana(
+                                        color: AccentColors.blue1,
+                                        fontSize: 30,
+                                        fontWeight: FontWeight.bold),
+                                    textAlign: TextAlign.center,
+                                  ));
+                                } else {
+                                  return Container(
+                                      child: Text(
+                                    'There are no transactions made in total',
+                                    style: GoogleFonts.lusitana(
+                                        color: AccentColors.blue1,
+                                        fontSize: 30,
+                                        fontWeight: FontWeight.bold),
+                                    textAlign: TextAlign.center,
+                                  ));
+                                }
+                              }
+                              // switch (currentSortCriterion) {
+                              //   case ESortCriterion.TransactionTime:
+                              //     sortedTransactions
+                              //         .sort((Transaction a, Transaction b) {
+                              //       Transaction first = a;
+                              //       Transaction second = b;
+                              //       if (currentSortDirection == ESortDirection.DESC) {
+                              //         first = b;
+                              //         second = a;
+                              //       }
+                              //       return first.transactionTime.date -
+                              //           second.transactionTime.date;
+                              //     });
+                              //     break;
+                              //   case ESortCriterion.StockCode:
+                              //     sortedTransactions
+                              //         .sort((Transaction a, Transaction b) {
+                              //       Transaction first = a;
+                              //       Transaction second = b;
+                              //       if (currentSortDirection == ESortDirection.DESC) {
+                              //         first = b;
+                              //         second = a;
+                              //       }
+                              //       return first.stockCode
+                              //           .compareTo(second.stockCode);
+                              //     });
+                              //     break;
+                              //   case ESortCriterion.TransactionType:
+                              //     sortedTransactions
+                              //         .sort((Transaction a, Transaction b) {
+                              //       Transaction first = a;
+                              //       Transaction second = b;
+                              //       if (currentSortDirection == ESortDirection.DESC) {
+                              //         first = b;
+                              //         second = a;
+                              //       }
+                              //       return first.type.compareTo(second.type);
+                              //     });
+                              //     break;
+                              //   case ESortCriterion.ReturnAmount:
+                              //     sortedTransactions
+                              //         .sort((Transaction a, Transaction b) {
+                              //       Transaction first = a;
+                              //       Transaction second = b;
+                              //       if (currentSortDirection == ESortDirection.DESC) {
+                              //         first = b;
+                              //         second = a;
+                              //       }
+                              //       return (first.amount - second.amount).toInt();
+                              //     });
+                              //     break;
+                              // }
+                              return Column(children: [
+                                Text(
+                                    'No of transactions: ${sortedTransactions.length}',
+                                    style: GoogleFonts.actor(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: PaletteColors.purple1)),
+                                Container(
+                                    height: (currentStocksFilterCriterion ==
+                                            EStocksFilterCriterion.All
+                                        ? screenSize.height * 0.5
+                                        : screenSize.height * 0.4),
+                                    child: (ListView.builder(
+                                        itemCount: sortedTransactions.length,
+                                        itemBuilder:
+                                            (BuildContext context, int index) {
+                                          return Container(
+                                              margin: EdgeInsets.fromLTRB(
+                                                  0, 15, 0, 15),
+                                              child: TransactionsListItem(
+                                                  screenSize: screenSize,
+                                                  transaction:
+                                                      sortedTransactions[
+                                                          index]));
+                                        })))
+                              ]);
+                            }
+                            return Text('Store is empty: $userId');
+                          },
+                        ))
+                  ]));
+            }));
   }
 }

@@ -65,10 +65,11 @@ void tickerDataMiddleWare(
     if (now.minute < 1 && now.second < 20) {
       fetchChartHistory = true;
     }
-    bool orderPlaced = false;
-    String orderType = '';
-    double tolerance = 1.0;
+
     store.state.allDynStocks.data.forEachIndexed((index, dynStock) async {
+      bool orderPlaced = false;
+      String orderType = '';
+      double tolerance = 1.0;
       TickerDataService()
           .getTickerData(dynStock.yFinStockCode,
               fetchChartHistory: fetchChartHistory,
@@ -80,6 +81,11 @@ void tickerDataMiddleWare(
                   double.infinity)
           .then((response) {
         DateTime now = DateTime.now();
+        bool stockMarketClosed = (now.hour < 9) ||
+            now.hour >= 16 ||
+            (now.hour == 9 && now.minute < 15) ||
+            (now.hour == 15 && now.minute > 30) ||
+            (now.weekday > 5);
         DateFormat formatter = DateFormat('yyyy-MM-dd');
         String formattedNow = formatter.format(now);
         now = DateTime.parse(formattedNow);
@@ -198,48 +204,95 @@ void tickerDataMiddleWare(
         lastTransactionTime =
             DateTime.parse(formattedsecondNextDayOfLastTransactionTime);
 
-        // SELL Logic
-        if (dynStock.lastTransactionType == 'BUY' &&
-            dynStock.stocksAvailableForTrade > 0 &&
-            !(dynStock.stallTransactions)) {
-          if ((now.compareTo(secondNextDayOfLastTransactionTime) >= 0 &&
-                  dynStock.stockType == EStockType.BE.name) ||
-              dynStock.stockType != EStockType.BE.name) {
+        if (!stockMarketClosed) {
+          // SELL Logic
+          if (dynStock.lastTransactionType == 'BUY' &&
+              dynStock.stocksAvailableForTrade > 0 &&
+              !(dynStock.stallTransactions)) {
+            if ((now.compareTo(secondNextDayOfLastTransactionTime) >= 0 &&
+                    dynStock.stockType == EStockType.BE.name) ||
+                dynStock.stockType != EStockType.BE.name) {
+              switch (dynStock.DSTPUnit) {
+                case 'Price':
+                  if (response.price.currentPrice != null &&
+                      (response.price.currentPrice! <=
+                          response.currentLocalMaximumPrice - dynStock.STPr)) {
+                    orderPlaced = true;
+                    orderType = 'SELL';
+                    store.dispatch(CreateTransactionAction(
+                        userId: appStore.state.userId,
+                        instrumentToken: dynStock.instrumentToken,
+                        dynStockId: dynStock.dynStockId.uuid,
+                        body: TransactionBody(
+                            transactionId: '',
+                            type: 'SELL',
+                            noOfStocks: dynStock.stocksAvailableForTrade,
+                            stockCode: dynStock.stockCode,
+                            stockPrice: response.price.currentPrice!)));
+                  }
+                  break;
+                case 'Percentage':
+                  if (response.price.currentPrice != null &&
+                      (response.price.currentPrice! <=
+                          double.parse(((response.currentLocalMaximumPrice) *
+                                  (1 - (dynStock.STPe / 100)))
+                              .toStringAsFixed(2)))) {
+                    orderPlaced = true;
+                    orderType = 'SELL';
+                    store.dispatch(CreateTransactionAction(
+                        userId: appStore.state.userId,
+                        instrumentToken: dynStock.instrumentToken,
+                        dynStockId: dynStock.dynStockId.uuid,
+                        body: TransactionBody(
+                            transactionId: '',
+                            type: 'SELL',
+                            noOfStocks: dynStock.stocksAvailableForTrade,
+                            stockCode: dynStock.stockCode,
+                            stockPrice: response.price.currentPrice!)));
+                  }
+                  break;
+              }
+            }
+          }
+          // BUY Logic
+          if (dynStock.lastTransactionType == 'SELL' &&
+              dynStock.stocksAvailableForTrade == 0 &&
+              !(dynStock.stallTransactions)) {
             switch (dynStock.DSTPUnit) {
               case 'Price':
                 if (response.price.currentPrice != null &&
-                    (response.price.currentPrice! <=
-                        response.currentLocalMaximumPrice - dynStock.STPr)) {
+                    (response.price.currentPrice! >=
+                        response.currentLocalMinimumPrice + dynStock.BTPr)) {
                   orderPlaced = true;
-                  orderType = 'SELL';
+                  orderType = 'BUY';
                   store.dispatch(CreateTransactionAction(
                       userId: appStore.state.userId,
                       instrumentToken: dynStock.instrumentToken,
                       dynStockId: dynStock.dynStockId.uuid,
                       body: TransactionBody(
                           transactionId: '',
-                          type: 'SELL',
-                          noOfStocks: dynStock.stocksAvailableForTrade,
+                          type: 'BUY',
+                          noOfStocks: dynStock.noOfStocks,
                           stockCode: dynStock.stockCode,
                           stockPrice: response.price.currentPrice!)));
                 }
                 break;
               case 'Percentage':
                 if (response.price.currentPrice != null &&
-                    (response.price.currentPrice! <=
-                        double.parse(((response.currentLocalMaximumPrice) *
-                                (1 - (dynStock.STPe / 100)))
+                    (response.price.currentPrice! >=
+                        double.parse(((response.currentLocalMinimumPrice) *
+                                (1 + (dynStock.BTPe / 100)))
                             .toStringAsFixed(2)))) {
                   orderPlaced = true;
-                  orderType = 'SELL';
+                  orderType = 'BUY';
                   store.dispatch(CreateTransactionAction(
                       userId: appStore.state.userId,
                       instrumentToken: dynStock.instrumentToken,
                       dynStockId: dynStock.dynStockId.uuid,
                       body: TransactionBody(
                           transactionId: '',
-                          type: 'SELL',
-                          noOfStocks: dynStock.stocksAvailableForTrade,
+                          type: 'BUY',
+                          noOfStocks: dynStock.noOfStocks,
                           stockCode: dynStock.stockCode,
                           stockPrice: response.price.currentPrice!)));
                 }
@@ -247,51 +300,7 @@ void tickerDataMiddleWare(
             }
           }
         }
-        // BUY Logic
-        if (dynStock.lastTransactionType == 'SELL' &&
-            dynStock.stocksAvailableForTrade == 0 &&
-            !(dynStock.stallTransactions)) {
-          switch (dynStock.DSTPUnit) {
-            case 'Price':
-              if (response.price.currentPrice != null &&
-                  (response.price.currentPrice! >=
-                      response.currentLocalMinimumPrice + dynStock.BTPr)) {
-                orderPlaced = true;
-                orderType = 'BUY';
-                store.dispatch(CreateTransactionAction(
-                    userId: appStore.state.userId,
-                    instrumentToken: dynStock.instrumentToken,
-                    dynStockId: dynStock.dynStockId.uuid,
-                    body: TransactionBody(
-                        transactionId: '',
-                        type: 'BUY',
-                        noOfStocks: dynStock.noOfStocks,
-                        stockCode: dynStock.stockCode,
-                        stockPrice: response.price.currentPrice!)));
-              }
-              break;
-            case 'Percentage':
-              if (response.price.currentPrice != null &&
-                  (response.price.currentPrice! >=
-                      double.parse(((response.currentLocalMinimumPrice) *
-                              (1 + (dynStock.BTPe / 100)))
-                          .toStringAsFixed(2)))) {
-                orderPlaced = true;
-                orderType = 'BUY';
-                store.dispatch(CreateTransactionAction(
-                    userId: appStore.state.userId,
-                    instrumentToken: dynStock.instrumentToken,
-                    dynStockId: dynStock.dynStockId.uuid,
-                    body: TransactionBody(
-                        transactionId: '',
-                        type: 'BUY',
-                        noOfStocks: dynStock.noOfStocks,
-                        stockCode: dynStock.stockCode,
-                        stockPrice: response.price.currentPrice!)));
-              }
-              break;
-          }
-        }
+
         if (orderPlaced) {
           switch (orderType) {
             case 'BUY':

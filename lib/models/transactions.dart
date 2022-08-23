@@ -4,6 +4,36 @@
 
 import 'dart:convert';
 
+import 'dart:convert';
+
+TransactionsResponse transactionsResponseFromJson(String str) =>
+    TransactionsResponse.fromJson(json.decode(str));
+
+String transactionsResponseToJson(TransactionsResponse data) =>
+    json.encode(data.toJson());
+
+class TransactionsResponse {
+  TransactionsResponse({
+    required this.hasMore,
+    required this.items,
+  });
+
+  bool hasMore;
+  List<Transaction> items;
+
+  factory TransactionsResponse.fromJson(Map<String, dynamic> json) =>
+      TransactionsResponse(
+        hasMore: json["hasMore"],
+        items: List<Transaction>.from(
+            json["items"].map((x) => Transaction.fromJson(x))),
+      );
+
+  Map<String, dynamic> toJson() => {
+        "hasMore": hasMore,
+        "items": List<dynamic>.from(items.map((x) => x.toJson())),
+      };
+}
+
 List<Transaction> transactionsFromJson(String str) => List<Transaction>.from(
     json.decode(str).map((x) => Transaction.fromJson(x)));
 

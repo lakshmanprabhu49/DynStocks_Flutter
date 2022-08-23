@@ -94,8 +94,9 @@ class _EventsTodayScreenState extends State<EventsTodayScreen> with RouteAware {
           appStore.state.accessCode.isNotEmpty) {
         DateTime now = DateTime.now();
         String formattedDate = DateFormat('MMM dd yyyy').format(now);
-        List<Transaction> res = await TransactionsService()
+        TransactionsResponse temp = await TransactionsService()
             .getTransactionsForDate(appStore.state.userId, date: formattedDate);
+        List<Transaction> res = temp.items;
         List<ITransactionsBarChart> barChartData = [
           ITransactionsBarChart(
             id: 1,

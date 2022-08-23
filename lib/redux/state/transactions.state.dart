@@ -7,7 +7,7 @@ class TransactionsState {
   bool creating = false;
   bool created = false;
   bool createFailed = false;
-  List<Transaction> data = List.empty(growable: true);
+  TransactionsResponse? data;
   dynamic error;
 
   TransactionsState.initialState() {
@@ -17,7 +17,7 @@ class TransactionsState {
     creating = false;
     created = false;
     createFailed = false;
-    data = List.empty(growable: true);
+    data = null;
     error = null;
   }
 

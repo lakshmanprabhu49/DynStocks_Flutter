@@ -20,7 +20,7 @@ TransactionsState transactionsReducer(TransactionsState state, dynamic action) {
         creating: state.creating,
         created: state.created,
         createFailed: state.createFailed,
-        data: action.allTransactions,
+        data: action.data,
         error: null);
   }
   if (action is GetAllTransactionsFailAction) {
@@ -31,7 +31,7 @@ TransactionsState transactionsReducer(TransactionsState state, dynamic action) {
         creating: state.creating,
         created: state.created,
         createFailed: state.createFailed,
-        data: List.empty(),
+        data: null,
         error: action.error);
   }
 
@@ -46,7 +46,7 @@ TransactionsState transactionsReducer(TransactionsState state, dynamic action) {
         data: state.data);
   }
   if (action is CreateTransactionSuccessAction) {
-    state.data.add(action.transaction);
+    state.data?.items.add(action.transaction);
     return TransactionsState.updatedState(
         loading: state.loading,
         loaded: state.loaded,
@@ -54,7 +54,7 @@ TransactionsState transactionsReducer(TransactionsState state, dynamic action) {
         creating: false,
         created: true,
         createFailed: false,
-        data: List.from(state.data),
+        data: state.data,
         error: null);
   }
   if (action is CreateTransactionFailAction) {
@@ -65,7 +65,7 @@ TransactionsState transactionsReducer(TransactionsState state, dynamic action) {
         creating: false,
         created: false,
         createFailed: true,
-        data: List.empty(),
+        data: null,
         error: action.error);
   }
 

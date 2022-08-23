@@ -1,14 +1,27 @@
+import 'package:dynstocks/models/common.dart';
 import 'package:dynstocks/models/transactions.dart';
 
 class GetAllTransactionsAction {
   String userId;
   String date;
-  GetAllTransactionsAction({required this.userId, required this.date});
+  int limit = 0;
+  int offset = 0;
+  String sortDirection = ESortDirection.DESC.name;
+  String sortCriterion = ESortCriterion.TransactionTime.name;
+  String dynStockId = '';
+  GetAllTransactionsAction(
+      {required this.userId,
+      required this.date,
+      this.limit = 0,
+      this.offset = 0,
+      this.sortCriterion = 'DESC',
+      this.sortDirection = 'TransactionTime',
+      this.dynStockId = ''});
 }
 
 class GetAllTransactionsSuccessAction {
-  final List<Transaction> allTransactions;
-  GetAllTransactionsSuccessAction({required this.allTransactions});
+  final TransactionsResponse data;
+  GetAllTransactionsSuccessAction({required this.data});
 }
 
 class GetAllTransactionsFailAction {

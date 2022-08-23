@@ -15,10 +15,15 @@ void transactionsMiddleWare(
     Store<AppState> store, dynamic action, NextDispatcher next) async {
   if (action is GetAllTransactionsAction) {
     TransactionsService()
-        .getTransactionsForDate(action.userId, date: action.date)
+        .getTransactionsForDate(action.userId,
+            date: action.date,
+            limit: action.limit,
+            offset: action.offset,
+            sortCriterion: action.sortCriterion,
+            sortDirection: action.sortDirection,
+            dynStockId: action.dynStockId)
         .then((response) {
-      store
-          .dispatch(GetAllTransactionsSuccessAction(allTransactions: response));
+      store.dispatch(GetAllTransactionsSuccessAction(data: response));
     }).catchError((error) {
       store.dispatch(GetAllTransactionsFailAction(error: error));
     });
