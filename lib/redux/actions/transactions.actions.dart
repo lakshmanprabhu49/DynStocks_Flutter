@@ -9,6 +9,8 @@ class GetAllTransactionsAction {
   String sortDirection = ESortDirection.DESC.name;
   String sortCriterion = ESortCriterion.TransactionTime.name;
   String dynStockId = '';
+  String filterCriterionStocks = '';
+  String filterCriterionDay = '';
   GetAllTransactionsAction(
       {required this.userId,
       required this.date,
@@ -16,7 +18,9 @@ class GetAllTransactionsAction {
       this.offset = 0,
       this.sortCriterion = 'DESC',
       this.sortDirection = 'TransactionTime',
-      this.dynStockId = ''});
+      this.dynStockId = '',
+      this.filterCriterionStocks = '',
+      this.filterCriterionDay = ''});
 }
 
 class GetAllTransactionsSuccessAction {

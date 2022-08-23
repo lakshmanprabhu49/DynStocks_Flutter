@@ -21,7 +21,9 @@ void transactionsMiddleWare(
             offset: action.offset,
             sortCriterion: action.sortCriterion,
             sortDirection: action.sortDirection,
-            dynStockId: action.dynStockId)
+            dynStockId: action.dynStockId,
+            filterCriterionStocks: action.filterCriterionStocks,
+            filterCriterionDay: action.filterCriterionDay)
         .then((response) {
       store.dispatch(GetAllTransactionsSuccessAction(data: response));
     }).catchError((error) {

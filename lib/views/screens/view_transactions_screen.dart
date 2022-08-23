@@ -261,6 +261,41 @@ class _ViewTransactionsScreenState extends State<ViewTransactionsScreen>
                                                     e.toString() ==
                                                     newDaysFilter);
                                       });
+                                      if (currentDaysFilterCriterion ==
+                                          EDaysFilterCriterion.All) {
+                                        StoreProvider.of<AppState>(context)
+                                            .dispatch(GetAllTransactionsAction(
+                                                userId: userId,
+                                                date: '',
+                                                limit: limit,
+                                                offset: offset,
+                                                sortCriterion:
+                                                    currentSortCriterion.name,
+                                                sortDirection:
+                                                    currentSortDirection.name,
+                                                dynStockId: dynStockId,
+                                                filterCriterionStocks:
+                                                    currentStocksCustomInput,
+                                                filterCriterionDay: ''));
+                                      } else if (currentDaysFilterCriterion ==
+                                          EDaysFilterCriterion.Today) {
+                                        StoreProvider.of<AppState>(context)
+                                            .dispatch(GetAllTransactionsAction(
+                                                userId: userId,
+                                                date: '',
+                                                limit: limit,
+                                                offset: offset,
+                                                sortCriterion:
+                                                    currentSortCriterion.name,
+                                                sortDirection:
+                                                    currentSortDirection.name,
+                                                dynStockId: dynStockId,
+                                                filterCriterionStocks:
+                                                    currentStocksCustomInput,
+                                                filterCriterionDay:
+                                                    EDaysFilterCriterion
+                                                        .Today.name));
+                                      }
                                     },
                                     stocksFilterCustomInputCallback:
                                         (String newCustomStockInput) {
