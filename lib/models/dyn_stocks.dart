@@ -20,6 +20,7 @@ class DynStock {
     required this.instrumentToken,
     required this.DSTPUnit,
     required this.noOfStocks,
+    required this.tolerance,
     this.lastTradedPrice = 0.0,
     this.lastTransactionType = 'BUY',
     this.lastTransactionTime = null,
@@ -47,6 +48,7 @@ class DynStock {
   TransactionTime? lastTransactionTime;
   int stocksAvailableForTrade;
   bool stallTransactions;
+  double tolerance;
   double BTPr;
   double STPr;
   double BTPe;
@@ -74,6 +76,7 @@ class DynStock {
         STPe: json["STPe"],
         noOfStocks: json["noOfStocks"],
         stallTransactions: json["stallTransactions"],
+        tolerance: json["tolerance"],
         transactions: List<Transaction>.from(
             json["transactions"].map((x) => Transaction.fromJson(x))),
       );
@@ -98,6 +101,7 @@ class DynStock {
         "STPe": STPe,
         "noOfStocks": noOfStocks,
         "stallTransactions": stallTransactions,
+        'tolerance': tolerance,
         "transactions": List<dynamic>.from(transactions.map((x) => x.toJson())),
       };
 }
@@ -128,6 +132,7 @@ class DynStockBody {
     required this.stockType,
     required this.DSTPUnit,
     required this.noOfStocks,
+    required this.tolerance,
     this.BTPr = 0.0,
     this.STPr = 0.0,
     this.BTPe = 0.0,
@@ -149,6 +154,7 @@ class DynStockBody {
   double BTPe;
   double STPe;
   bool stallTransactions;
+  double tolerance;
   TransactionBody? transactionForCreateDynStock;
 
   factory DynStockBody.fromJson(Map<String, dynamic> json) => DynStockBody(
@@ -165,6 +171,7 @@ class DynStockBody {
         STPe: json["STPe"],
         noOfStocks: json["noOfStocks"],
         stallTransactions: json["stallTransactions"],
+        tolerance: json["tolerance"],
         transactionForCreateDynStock:
             TransactionBody.fromJson(json["transactionForCreateDynStock"]),
       );
@@ -183,6 +190,7 @@ class DynStockBody {
         "STPe": STPe,
         "noOfStocks": noOfStocks,
         "stallTransactions": stallTransactions,
+        'tolerance': tolerance,
         "transactionForCreateDynStock": transactionForCreateDynStock?.toJson(),
       };
 }

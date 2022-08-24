@@ -5,6 +5,7 @@ import 'package:dynstocks/models/colors.dart';
 import 'package:dynstocks/models/common.dart';
 import 'package:dynstocks/models/dyn_stocks.dart';
 import 'package:dynstocks/redux/actions/dyn_stocks.actions.dart';
+import 'package:dynstocks/redux/actions/net_returns_for_dyn_stocks.action.dart';
 import 'package:dynstocks/redux/actions/ticker_data.actions.dart';
 import 'package:dynstocks/redux/app_state.dart';
 import 'package:dynstocks/redux/state/dyn_stocks.state.dart';
@@ -45,7 +46,9 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
   Map<EDSTPUnit, String> DSTPUnitMap = Map();
   String currentNoOfStocks = '0';
   String currentBTP = '0.0';
+  double netReturnsForDynStocks = 0.0;
   String currentSTP = '0.0';
+  String currentTolerance = '1.0';
   bool deleteButtonDisabled = true;
   EChoice stallTransactions = EChoice.No;
   bool shouldLoadInitialValues = true;
@@ -126,6 +129,7 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
     currentSTP = currentDSTPUnit == EDSTPUnit.Price
         ? dynStock.STPr.toString()
         : dynStock.STPe.toString();
+    currentTolerance = dynStock.tolerance.toString();
     stallTransactions = dynStock.stallTransactions ? EChoice.Yes : EChoice.No;
     DateTime lastTransactionTime =
         DateTime.fromMillisecondsSinceEpoch(dynStock.lastTransactionTime!.date);
@@ -149,6 +153,8 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
     } else {
       deleteButtonDisabled = false;
     }
+    StoreProvider.of<AppState>(context).dispatch(GetNetReturnsForDynStockAction(
+        userId: userId, dynStockId: dynStock.dynStockId.uuid, period: '1h'));
   }
 
   Future<String?> showDeleteDialog(DynStock currentDynStock) {
@@ -276,7 +282,6 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
   @override
   Widget build(BuildContext context) {
     Size screenSize;
-    double aggregatedNetReturns = 0.0;
     screenSize = MediaQuery.of(context).size;
     if (appStore.state.allDynStocks.deleteFailed && !errorMessageShown) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -301,40 +306,6 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
     if (appStore.state.allDynStocks.loaded &&
         !appStore.state.allDynStocks.loading &&
         appStore.state.allDynStocks.data.isNotEmpty) {
-      DateTime lowerLimitTime = DateTime.now();
-      switch (currentDynStockTimePeriod) {
-        case '1h':
-          lowerLimitTime = DateTime(lowerLimitTime.year, lowerLimitTime.month,
-              lowerLimitTime.day, lowerLimitTime.hour - 1);
-          break;
-        case '1d':
-          lowerLimitTime = DateTime(
-              lowerLimitTime.year, lowerLimitTime.month, lowerLimitTime.day);
-          break;
-        case '1w':
-          lowerLimitTime = DateTime(lowerLimitTime.year, lowerLimitTime.month,
-              lowerLimitTime.day - 6);
-          break;
-        case '1m':
-          lowerLimitTime = DateTime(lowerLimitTime.year,
-              lowerLimitTime.month - 1, lowerLimitTime.day + 1);
-          break;
-        case '3m':
-          lowerLimitTime = DateTime(lowerLimitTime.year,
-              lowerLimitTime.month - 3, lowerLimitTime.day + 1);
-          break;
-        case '6m':
-          lowerLimitTime = DateTime(lowerLimitTime.year,
-              lowerLimitTime.month - 6, lowerLimitTime.day + 1);
-          break;
-        case '1y':
-          lowerLimitTime = DateTime(lowerLimitTime.year - 1,
-              lowerLimitTime.month, lowerLimitTime.day + 1);
-          break;
-        case 'All':
-          lowerLimitTime = DateTime.fromMicrosecondsSinceEpoch(0);
-          break;
-      }
       DynStock dynStock = appStore.state.allDynStocks.data
           .firstWhere((dynStock) => dynStock.stockCode == currentDynStockCode);
       currentDynStock = dynStock;
@@ -342,25 +313,26 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
         loadInitialValuesForDynStock(dynStock);
         shouldLoadInitialValues = false;
       }
-      if (dynStock.DSTPUnit.isNotEmpty) {
-        dynStock.transactions.forEach((transaction) {
-          DateTime transactionTimeUTC = DateTime.fromMicrosecondsSinceEpoch(
-              transaction.transactionTime.date * 1000,
-              isUtc: true);
-          DateTime transactionTimeIST =
-              transactionTimeUTC.add(const Duration(seconds: 19800));
-          if (transactionTimeIST.isAfter(lowerLimitTime) ||
-              transactionTimeIST.isAtSameMomentAs(lowerLimitTime)) {
-            int multiplier = transaction.type == 'BUY' ? -1 : 1;
-            aggregatedNetReturns += transaction.amount * multiplier;
-          }
-        });
-      }
+    }
+    if (appStore.state.netReturnsForDynStock.loadFailed && !errorMessageShown) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            ToastMessageHandler.showErrorMessageSnackBar(
+                '${appStore.state.allDynStocks.error.message}'));
+      });
+      setState(() {
+        errorMessageShown = true;
+      });
+    }
+    if (appStore.state.netReturnsForDynStock.loaded &&
+        !appStore.state.netReturnsForDynStock.loading) {
+      setState(() {
+        netReturnsForDynStocks = appStore.state.netReturnsForDynStock.data;
+      });
     }
 
     return Scaffold(
         resizeToAvoidBottomInset: false,
-        key: Key("EventsTodayScreen"),
         drawer: StoreConnector<AppState, AppState>(
             onDidChange: (previousState, state) {
               if (state.allDynStocks.deleteFailed && !errorMessageShown) {
@@ -371,6 +343,23 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                 });
                 setState(() {
                   errorMessageShown = true;
+                });
+              }
+              if (state.netReturnsForDynStock.loadFailed &&
+                  !errorMessageShown) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                      ToastMessageHandler.showErrorMessageSnackBar(
+                          '${state.allDynStocks.error.message}'));
+                });
+                setState(() {
+                  errorMessageShown = true;
+                });
+              }
+              if (state.netReturnsForDynStock.loaded &&
+                  !state.netReturnsForDynStock.loading) {
+                setState(() {
+                  netReturnsForDynStocks = state.netReturnsForDynStock.data;
                 });
               }
               if (state.allDynStocks.updateFailed && !errorMessageShown) {
@@ -407,230 +396,340 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                           ),
                         ),
                         Container(
-                            margin: EdgeInsets.fromLTRB(5, 10, 5, 0),
-                            padding: EdgeInsets.fromLTRB(10, 5, 5, 5),
-                            decoration: BoxDecoration(color: Colors.white),
-                            child: Column(children: [
-                              Row(children: [
-                                Text(
-                                  'DSTP Unit',
-                                  textAlign: TextAlign.left,
-                                  style: GoogleFonts.lusitana(
-                                      fontSize: 23, color: PaletteColors.blue2),
-                                )
+                            height: screenSize.height * 0.75,
+                            child: SingleChildScrollView(
+                              child: Column(children: [
+                                Container(
+                                    margin: EdgeInsets.fromLTRB(5, 10, 5, 0),
+                                    padding: EdgeInsets.fromLTRB(10, 5, 5, 5),
+                                    decoration:
+                                        BoxDecoration(color: Colors.white),
+                                    child: Column(children: [
+                                      Row(children: [
+                                        Text(
+                                          'DSTP Unit',
+                                          textAlign: TextAlign.left,
+                                          style: GoogleFonts.lusitana(
+                                              fontSize: 23,
+                                              color: PaletteColors.blue2),
+                                        )
+                                      ]),
+                                      Container(
+                                          margin:
+                                              EdgeInsets.fromLTRB(0, 0, 0, 10),
+                                          decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                              color: PaletteColors.blue3),
+                                          padding:
+                                              EdgeInsets.fromLTRB(10, 0, 10, 0),
+                                          child: DropdownButton(
+                                              style: GoogleFonts.overlock(
+                                                  color: PaletteColors.purple1,
+                                                  fontSize: 20,
+                                                  fontWeight: FontWeight.bold),
+                                              isExpanded: true,
+                                              alignment:
+                                                  AlignmentDirectional.center,
+                                              dropdownColor:
+                                                  PaletteColors.blue3,
+                                              value: currentDSTPUnit.toString(),
+                                              items:
+                                                  DSTPUnitMap.entries.map((e) {
+                                                return DropdownMenuItem<String>(
+                                                    value: e.key.toString(),
+                                                    child: Text(
+                                                      e.value,
+                                                      textAlign:
+                                                          TextAlign.center,
+                                                    ));
+                                              }).toList(),
+                                              onChanged: (newValue) {
+                                                setState(() {
+                                                  currentDSTPUnit = EDSTPUnit
+                                                      .values
+                                                      .firstWhere((element) =>
+                                                          element.toString() ==
+                                                          newValue);
+                                                });
+                                              })),
+                                    ])),
+                                Container(
+                                    margin: EdgeInsets.fromLTRB(5, 10, 5, 0),
+                                    padding: EdgeInsets.fromLTRB(10, 5, 5, 5),
+                                    decoration:
+                                        BoxDecoration(color: Colors.white),
+                                    child: Column(children: [
+                                      Row(children: [
+                                        Text(
+                                          'Number of Stocks',
+                                          textAlign: TextAlign.left,
+                                          style: GoogleFonts.lusitana(
+                                              fontSize: 23,
+                                              color: PaletteColors.blue2),
+                                        )
+                                      ]),
+                                      Container(
+                                          margin:
+                                              EdgeInsets.fromLTRB(0, 0, 0, 10),
+                                          decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                              color: PaletteColors.blue3),
+                                          padding:
+                                              EdgeInsets.fromLTRB(10, 0, 10, 0),
+                                          child: (TextFormField(
+                                            initialValue: currentNoOfStocks,
+                                            keyboardType: TextInputType.number,
+                                            validator: (value) {
+                                              if (value!.isEmpty) {
+                                                return 'Please enter a value';
+                                              }
+                                              if (value.contains('.')) {
+                                                return 'No decimal places allowed';
+                                              }
+                                              return null;
+                                            },
+                                            autovalidateMode: AutovalidateMode
+                                                .onUserInteraction,
+                                            onChanged: (newValue) =>
+                                                setState(() {
+                                              currentNoOfStocks = newValue;
+                                            }),
+                                          ))),
+                                    ])),
+                                Container(
+                                    margin: EdgeInsets.fromLTRB(5, 10, 5, 0),
+                                    padding: EdgeInsets.fromLTRB(10, 5, 5, 5),
+                                    decoration:
+                                        BoxDecoration(color: Colors.white),
+                                    child: Column(children: [
+                                      Row(children: [
+                                        Text(
+                                          currentDSTPUnit == EDSTPUnit.Price
+                                              ? 'BTPr'
+                                              : 'BTPe',
+                                          textAlign: TextAlign.left,
+                                          style: GoogleFonts.lusitana(
+                                              fontSize: 23,
+                                              color: PaletteColors.blue2),
+                                        )
+                                      ]),
+                                      Container(
+                                          margin:
+                                              EdgeInsets.fromLTRB(0, 0, 0, 10),
+                                          decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                              color: PaletteColors.blue3),
+                                          padding:
+                                              EdgeInsets.fromLTRB(10, 0, 10, 0),
+                                          child: (TextFormField(
+                                              initialValue: currentBTP,
+                                              keyboardType:
+                                                  TextInputType.number,
+                                              autovalidateMode: AutovalidateMode
+                                                  .onUserInteraction,
+                                              validator: (value) {
+                                                if (value!.isEmpty) {
+                                                  return 'Please enter a value';
+                                                }
+                                                if (currentDSTPUnit ==
+                                                        EDSTPUnit.Percentage &&
+                                                    (double.parse(value
+                                                                as String) >
+                                                            100.0 ||
+                                                        double.parse(value
+                                                                as String) <
+                                                            0.0)) {
+                                                  return 'Please enter a valid percentage';
+                                                }
+                                                if (currentDSTPUnit ==
+                                                        EDSTPUnit.Price &&
+                                                    value.split('.').length >
+                                                        2) {
+                                                  return 'Please enter a valid decimal number';
+                                                }
+                                                return null;
+                                              },
+                                              onChanged: (newValue) =>
+                                                  setState(() {
+                                                    currentBTP = newValue;
+                                                  })))),
+                                    ])),
+                                Container(
+                                    margin: EdgeInsets.fromLTRB(5, 10, 5, 0),
+                                    padding: EdgeInsets.fromLTRB(10, 5, 5, 5),
+                                    decoration:
+                                        BoxDecoration(color: Colors.white),
+                                    child: Column(children: [
+                                      Row(children: [
+                                        Text(
+                                          currentDSTPUnit == EDSTPUnit.Price
+                                              ? 'STPr'
+                                              : 'STPe',
+                                          textAlign: TextAlign.left,
+                                          style: GoogleFonts.lusitana(
+                                              fontSize: 23,
+                                              color: PaletteColors.blue2),
+                                        )
+                                      ]),
+                                      Container(
+                                          margin:
+                                              EdgeInsets.fromLTRB(0, 0, 0, 10),
+                                          decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                              color: PaletteColors.blue3),
+                                          padding:
+                                              EdgeInsets.fromLTRB(10, 0, 10, 0),
+                                          child: (TextFormField(
+                                              autovalidateMode: AutovalidateMode
+                                                  .onUserInteraction,
+                                              validator: (value) {
+                                                if (value!.isEmpty) {
+                                                  return 'Please enter a value';
+                                                }
+                                                if (currentDSTPUnit ==
+                                                        EDSTPUnit.Percentage &&
+                                                    (double.parse(value
+                                                                as String) >
+                                                            100.0 ||
+                                                        double.parse(value
+                                                                as String) <
+                                                            0.0)) {
+                                                  return 'Please enter a valid percentage';
+                                                }
+                                                if (currentDSTPUnit ==
+                                                        EDSTPUnit.Price &&
+                                                    value.split('.').length >
+                                                        2) {
+                                                  return 'Please enter a valid decimal number';
+                                                }
+                                                return null;
+                                              },
+                                              initialValue: currentSTP,
+                                              keyboardType:
+                                                  TextInputType.number,
+                                              onChanged: (newValue) =>
+                                                  setState(() {
+                                                    currentSTP = newValue;
+                                                  })))),
+                                    ])),
+                                Container(
+                                    margin: EdgeInsets.fromLTRB(5, 10, 5, 0),
+                                    padding: EdgeInsets.fromLTRB(10, 5, 5, 5),
+                                    decoration:
+                                        BoxDecoration(color: Colors.white),
+                                    child: Column(children: [
+                                      Row(children: [
+                                        Text(
+                                          'Tolerance (amount)',
+                                          textAlign: TextAlign.left,
+                                          style: GoogleFonts.lusitana(
+                                              fontSize: 23,
+                                              color: PaletteColors.blue2),
+                                        )
+                                      ]),
+                                      Container(
+                                          margin:
+                                              EdgeInsets.fromLTRB(0, 0, 0, 10),
+                                          decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                              color: PaletteColors.blue3),
+                                          padding:
+                                              EdgeInsets.fromLTRB(10, 0, 10, 0),
+                                          child: (TextFormField(
+                                              autovalidateMode: AutovalidateMode
+                                                  .onUserInteraction,
+                                              validator: (value) {
+                                                if (value!.isEmpty) {
+                                                  return 'Please enter a value';
+                                                }
+                                                if (currentDSTPUnit ==
+                                                        EDSTPUnit.Percentage &&
+                                                    (double.parse(value
+                                                                as String) >
+                                                            100.0 ||
+                                                        double.parse(value
+                                                                as String) <
+                                                            0.0)) {
+                                                  return 'Please enter a valid percentage';
+                                                }
+                                                if (currentDSTPUnit ==
+                                                        EDSTPUnit.Price &&
+                                                    value.split('.').length >
+                                                        2) {
+                                                  return 'Please enter a valid decimal number';
+                                                }
+                                                return null;
+                                              },
+                                              initialValue: currentTolerance,
+                                              keyboardType:
+                                                  TextInputType.number,
+                                              onChanged: (newValue) =>
+                                                  setState(() {
+                                                    currentTolerance = newValue;
+                                                  })))),
+                                    ])),
+                                Container(
+                                    margin: EdgeInsets.fromLTRB(5, 10, 5, 0),
+                                    padding: EdgeInsets.fromLTRB(10, 5, 5, 5),
+                                    decoration:
+                                        BoxDecoration(color: Colors.white),
+                                    child: Column(children: [
+                                      Row(children: [
+                                        Text(
+                                          'Stall Transactions',
+                                          textAlign: TextAlign.left,
+                                          style: GoogleFonts.lusitana(
+                                              fontSize: 23,
+                                              color: PaletteColors.blue2),
+                                        )
+                                      ]),
+                                      Container(
+                                          margin:
+                                              EdgeInsets.fromLTRB(0, 0, 0, 10),
+                                          decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                              color: PaletteColors.blue3),
+                                          padding:
+                                              EdgeInsets.fromLTRB(10, 0, 10, 0),
+                                          child: DropdownButton(
+                                              style: GoogleFonts.overlock(
+                                                  color: PaletteColors.purple1,
+                                                  fontSize: 20,
+                                                  fontWeight: FontWeight.bold),
+                                              isExpanded: true,
+                                              alignment:
+                                                  AlignmentDirectional.center,
+                                              dropdownColor:
+                                                  PaletteColors.blue3,
+                                              value: stallTransactions.name
+                                                  .toString(),
+                                              items: EChoice.values.map((e) {
+                                                return DropdownMenuItem<String>(
+                                                    value: e.name.toString(),
+                                                    child: Text(
+                                                      e.name,
+                                                      textAlign:
+                                                          TextAlign.center,
+                                                    ));
+                                              }).toList(),
+                                              onChanged: (newValue) {
+                                                setState(() {
+                                                  stallTransactions = EChoice
+                                                      .values
+                                                      .firstWhere((element) =>
+                                                          element.name ==
+                                                          newValue);
+                                                });
+                                              })),
+                                    ])),
                               ]),
-                              Container(
-                                  margin: EdgeInsets.fromLTRB(0, 0, 0, 10),
-                                  decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(10),
-                                      color: PaletteColors.blue3),
-                                  padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
-                                  child: DropdownButton(
-                                      style: GoogleFonts.overlock(
-                                          color: PaletteColors.purple1,
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.bold),
-                                      isExpanded: true,
-                                      alignment: AlignmentDirectional.center,
-                                      dropdownColor: PaletteColors.blue3,
-                                      value: currentDSTPUnit.toString(),
-                                      items: DSTPUnitMap.entries.map((e) {
-                                        return DropdownMenuItem<String>(
-                                            value: e.key.toString(),
-                                            child: Text(
-                                              e.value,
-                                              textAlign: TextAlign.center,
-                                            ));
-                                      }).toList(),
-                                      onChanged: (newValue) {
-                                        setState(() {
-                                          currentDSTPUnit = EDSTPUnit.values
-                                              .firstWhere((element) =>
-                                                  element.toString() ==
-                                                  newValue);
-                                        });
-                                      })),
-                            ])),
-                        Container(
-                            margin: EdgeInsets.fromLTRB(5, 10, 5, 0),
-                            padding: EdgeInsets.fromLTRB(10, 5, 5, 5),
-                            decoration: BoxDecoration(color: Colors.white),
-                            child: Column(children: [
-                              Row(children: [
-                                Text(
-                                  'Number of Stocks',
-                                  textAlign: TextAlign.left,
-                                  style: GoogleFonts.lusitana(
-                                      fontSize: 23, color: PaletteColors.blue2),
-                                )
-                              ]),
-                              Container(
-                                  margin: EdgeInsets.fromLTRB(0, 0, 0, 10),
-                                  decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(10),
-                                      color: PaletteColors.blue3),
-                                  padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
-                                  child: (TextFormField(
-                                    initialValue: currentNoOfStocks,
-                                    keyboardType: TextInputType.number,
-                                    validator: (value) {
-                                      if (value!.isEmpty) {
-                                        return 'Please enter a value';
-                                      }
-                                      if (value.contains('.')) {
-                                        return 'No decimal places allowed';
-                                      }
-                                      return null;
-                                    },
-                                    autovalidateMode:
-                                        AutovalidateMode.onUserInteraction,
-                                    onChanged: (newValue) => setState(() {
-                                      currentNoOfStocks = newValue;
-                                    }),
-                                  ))),
-                            ])),
-                        Container(
-                            margin: EdgeInsets.fromLTRB(5, 10, 5, 0),
-                            padding: EdgeInsets.fromLTRB(10, 5, 5, 5),
-                            decoration: BoxDecoration(color: Colors.white),
-                            child: Column(children: [
-                              Row(children: [
-                                Text(
-                                  currentDSTPUnit == EDSTPUnit.Price
-                                      ? 'BTPr'
-                                      : 'BTPe',
-                                  textAlign: TextAlign.left,
-                                  style: GoogleFonts.lusitana(
-                                      fontSize: 23, color: PaletteColors.blue2),
-                                )
-                              ]),
-                              Container(
-                                  margin: EdgeInsets.fromLTRB(0, 0, 0, 10),
-                                  decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(10),
-                                      color: PaletteColors.blue3),
-                                  padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
-                                  child: (TextFormField(
-                                      initialValue: currentBTP,
-                                      keyboardType: TextInputType.number,
-                                      autovalidateMode:
-                                          AutovalidateMode.onUserInteraction,
-                                      validator: (value) {
-                                        if (value!.isEmpty) {
-                                          return 'Please enter a value';
-                                        }
-                                        if (currentDSTPUnit ==
-                                                EDSTPUnit.Percentage &&
-                                            (double.parse(value as String) >
-                                                    100.0 ||
-                                                double.parse(value as String) <
-                                                    0.0)) {
-                                          return 'Please enter a valid percentage';
-                                        }
-                                        if (currentDSTPUnit ==
-                                                EDSTPUnit.Price &&
-                                            value.split('.').length > 2) {
-                                          return 'Please enter a valid decimal number';
-                                        }
-                                        return null;
-                                      },
-                                      onChanged: (newValue) => setState(() {
-                                            currentBTP = newValue;
-                                          })))),
-                            ])),
-                        Container(
-                            margin: EdgeInsets.fromLTRB(5, 10, 5, 0),
-                            padding: EdgeInsets.fromLTRB(10, 5, 5, 5),
-                            decoration: BoxDecoration(color: Colors.white),
-                            child: Column(children: [
-                              Row(children: [
-                                Text(
-                                  currentDSTPUnit == EDSTPUnit.Price
-                                      ? 'STPr'
-                                      : 'STPe',
-                                  textAlign: TextAlign.left,
-                                  style: GoogleFonts.lusitana(
-                                      fontSize: 23, color: PaletteColors.blue2),
-                                )
-                              ]),
-                              Container(
-                                  margin: EdgeInsets.fromLTRB(0, 0, 0, 10),
-                                  decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(10),
-                                      color: PaletteColors.blue3),
-                                  padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
-                                  child: (TextFormField(
-                                      autovalidateMode:
-                                          AutovalidateMode.onUserInteraction,
-                                      validator: (value) {
-                                        if (value!.isEmpty) {
-                                          return 'Please enter a value';
-                                        }
-                                        if (currentDSTPUnit ==
-                                                EDSTPUnit.Percentage &&
-                                            (double.parse(value as String) >
-                                                    100.0 ||
-                                                double.parse(value as String) <
-                                                    0.0)) {
-                                          return 'Please enter a valid percentage';
-                                        }
-                                        if (currentDSTPUnit ==
-                                                EDSTPUnit.Price &&
-                                            value.split('.').length > 2) {
-                                          return 'Please enter a valid decimal number';
-                                        }
-                                        return null;
-                                      },
-                                      initialValue: currentSTP,
-                                      keyboardType: TextInputType.number,
-                                      onChanged: (newValue) => setState(() {
-                                            currentSTP = newValue;
-                                          })))),
-                            ])),
-                        Container(
-                            margin: EdgeInsets.fromLTRB(5, 10, 5, 0),
-                            padding: EdgeInsets.fromLTRB(10, 5, 5, 5),
-                            decoration: BoxDecoration(color: Colors.white),
-                            child: Column(children: [
-                              Row(children: [
-                                Text(
-                                  'Stall Transactions',
-                                  textAlign: TextAlign.left,
-                                  style: GoogleFonts.lusitana(
-                                      fontSize: 23, color: PaletteColors.blue2),
-                                )
-                              ]),
-                              Container(
-                                  margin: EdgeInsets.fromLTRB(0, 0, 0, 10),
-                                  decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(10),
-                                      color: PaletteColors.blue3),
-                                  padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
-                                  child: DropdownButton(
-                                      style: GoogleFonts.overlock(
-                                          color: PaletteColors.purple1,
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.bold),
-                                      isExpanded: true,
-                                      alignment: AlignmentDirectional.center,
-                                      dropdownColor: PaletteColors.blue3,
-                                      value: stallTransactions.name.toString(),
-                                      items: EChoice.values.map((e) {
-                                        return DropdownMenuItem<String>(
-                                            value: e.name.toString(),
-                                            child: Text(
-                                              e.name,
-                                              textAlign: TextAlign.center,
-                                            ));
-                                      }).toList(),
-                                      onChanged: (newValue) {
-                                        setState(() {
-                                          stallTransactions = EChoice.values
-                                              .firstWhere((element) =>
-                                                  element.name == newValue);
-                                        });
-                                      })),
-                            ])),
+                            )),
                         Container(
                           margin: EdgeInsets.fromLTRB(0, 15, 0, 0),
                           child: Row(
@@ -724,6 +823,8 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                                                                 EChoice.Yes
                                                             ? true
                                                             : false,
+                                                    tolerance: double.parse(
+                                                        currentTolerance),
                                                   )));
                                           setState(() {
                                             errorMessageShown = false;
@@ -757,6 +858,45 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
               );
             }),
         body: StoreConnector<AppState, AppState>(
+            onDidChange: (previousState, state) {
+              if (state.allDynStocks.deleteFailed && !errorMessageShown) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                      ToastMessageHandler.showErrorMessageSnackBar(
+                          '${state.allDynStocks.error.message}'));
+                });
+                setState(() {
+                  errorMessageShown = true;
+                });
+              }
+              if (state.netReturnsForDynStock.loadFailed &&
+                  !errorMessageShown) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                      ToastMessageHandler.showErrorMessageSnackBar(
+                          '${state.allDynStocks.error.message}'));
+                });
+                setState(() {
+                  errorMessageShown = true;
+                });
+              }
+              if (state.netReturnsForDynStock.loaded &&
+                  !state.netReturnsForDynStock.loading) {
+                setState(() {
+                  netReturnsForDynStocks = state.netReturnsForDynStock.data;
+                });
+              }
+              if (state.allDynStocks.updateFailed && !errorMessageShown) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                      ToastMessageHandler.showErrorMessageSnackBar(
+                          '${state.allDynStocks.error.message}'));
+                });
+                setState(() {
+                  errorMessageShown = true;
+                });
+              }
+            },
             converter: ((store) => store.state),
             builder: (context, state) {
               DynStock? currentDynStock = state.allDynStocks.data.firstWhere(
@@ -771,10 +911,12 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                       stockType: '',
                       instrumentToken: '',
                       DSTPUnit: '',
+                      tolerance: 1.0,
                       noOfStocks: 0));
               if (currentDynStock.dynStockId.uuid.isNotEmpty) {
-                return Container(
-                    child: Column(
+                return SingleChildScrollView(
+                    child: Container(
+                        child: Column(
                   children: [
                     Container(
                         margin: EdgeInsets.fromLTRB(10, 30, 10, 0),
@@ -1153,6 +1295,44 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                                 ),
                               ]),
                         ),
+                        Container(
+                          margin: EdgeInsets.fromLTRB(20, 10, 20, 10),
+                          child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                Container(
+                                  child: Container(
+                                      width: screenSize.width * 0.35,
+                                      height: screenSize.height * 0.075,
+                                      decoration: BoxDecoration(
+                                          color: PaletteColors.purple2,
+                                          borderRadius:
+                                              BorderRadius.circular(15)),
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            currentDynStock.tolerance
+                                                .toStringAsFixed(2),
+                                            style: GoogleFonts.daysOne(
+                                              color: PaletteColors.blue2,
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          Text(
+                                            'Tolerance (amount)',
+                                            style: GoogleFonts.outfit(
+                                              color: PaletteColors.blue4,
+                                              fontSize: 15,
+                                            ),
+                                          )
+                                        ],
+                                      )),
+                                ),
+                              ]),
+                        ),
                       ]),
                     ),
                     if (state.allTickerData.data.isNotEmpty)
@@ -1165,7 +1345,7 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                                     width: screenSize.width * 0.35,
                                     height: screenSize.height * 0.075,
                                     decoration: BoxDecoration(
-                                        color: PaletteColors.purple2,
+                                        color: PaletteColors.blue3,
                                         borderRadius:
                                             BorderRadius.circular(15)),
                                     child: Column(
@@ -1197,7 +1377,7 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                                     width: screenSize.width * 0.35,
                                     height: screenSize.height * 0.075,
                                     decoration: BoxDecoration(
-                                        color: PaletteColors.purple2,
+                                        color: PaletteColors.blue3,
                                         borderRadius:
                                             BorderRadius.circular(15)),
                                     child: Column(
@@ -1205,7 +1385,7 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                                           MainAxisAlignment.center,
                                       children: [
                                         Text(
-                                          '${currentDynStock.lastTransactionType == 'BUY' ? (state.allTickerData.data[currentDynStockCode]?.currentLocalMaximumPrice ?? '') : (state.allTickerData.data[currentDynStockCode]?.currentLocalMinimumPrice)}',
+                                          '${currentDynStock.lastTransactionType == 'BUY' ? (state.allTickerData.data[currentDynStockCode]?.currentLocalMaximumPrice.toStringAsFixed(2) ?? '') : (state.allTickerData.data[currentDynStockCode]?.currentLocalMinimumPrice.toStringAsFixed(2))}',
                                           style: GoogleFonts.daysOne(
                                             color: PaletteColors.blue2,
                                             fontSize: 20,
@@ -1411,6 +1591,17 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                                       currentDynStockTimePeriod =
                                           dynStockTimePeriod[index];
                                     });
+                                    StoreProvider.of<AppState>(context)
+                                        .dispatch(
+                                            GetNetReturnsForDynStockAction(
+                                                userId: userId,
+                                                dynStockId: currentDynStock
+                                                    .dynStockId.uuid,
+                                                period:
+                                                    currentDynStockTimePeriod));
+                                    setState(() {
+                                      errorMessageShown = false;
+                                    });
                                   },
                                 ));
                           })),
@@ -1426,14 +1617,14 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                             Icon(
                               Icons.currency_rupee,
                               size: 25,
-                              color: aggregatedNetReturns >= 0
+                              color: netReturnsForDynStocks >= 0
                                   ? AccentColors.green2
                                   : AccentColors.red2,
                             ),
                             Text(
-                              aggregatedNetReturns.toStringAsFixed(2),
+                              netReturnsForDynStocks.toStringAsFixed(2),
                               style: GoogleFonts.lusitana(
-                                color: aggregatedNetReturns >= 0
+                                color: netReturnsForDynStocks >= 0
                                     ? AccentColors.green2
                                     : AccentColors.red2,
                                 fontWeight: FontWeight.bold,
@@ -1590,7 +1781,7 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                           ],
                         ))
                   ],
-                ));
+                )));
               } else {
                 return Text('Hi');
               }

@@ -182,7 +182,7 @@ class _EventsTodayScreenState extends State<EventsTodayScreen> with RouteAware {
             barChartData[3].amount += (transaction.amount * multiplier);
           } else if (time.contains('13:00')) {
             barChartData[4].amount += (transaction.amount * multiplier);
-          } else if (time.contains('14:00')) {
+          } else if (time.contains('14:00'))  {
             barChartData[5].amount += (transaction.amount * multiplier);
           } else if (time.contains('15:00')) {
             barChartData[6].amount += (transaction.amount * multiplier);

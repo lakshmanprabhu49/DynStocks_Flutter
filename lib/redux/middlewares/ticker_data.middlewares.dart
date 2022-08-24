@@ -69,7 +69,6 @@ void tickerDataMiddleWare(
     store.state.allDynStocks.data.forEachIndexed((index, dynStock) async {
       bool orderPlaced = false;
       String orderType = '';
-      double tolerance = 1.0;
       TickerDataService()
           .getTickerData(dynStock.yFinStockCode,
               fetchChartHistory: fetchChartHistory,
@@ -113,7 +112,8 @@ void tickerDataMiddleWare(
                   dynStock.lastTradedPrice * (1 + (dynStock.STPe / 100.00));
             }
             // Define a tolerance amount so that the trade doesn't repeatedly happen at the same time
-            lastTradedPriceCorrected = lastTradedPriceCorrected - tolerance;
+            lastTradedPriceCorrected = lastTradedPriceCorrected -
+                dynStock.tolerance / dynStock.stocksAvailableForTrade;
             response.currentLocalMaximumPrice = max(
                 max(
                     max(response.currentLocalMaximumPrice,
@@ -134,7 +134,8 @@ void tickerDataMiddleWare(
                   dynStock.lastTradedPrice * (1 + (dynStock.STPe / 100.00));
             }
             // Define a tolerance amount so that the trade doesn't repeatedly happen at the same time
-            lastTradedPriceCorrected = lastTradedPriceCorrected - tolerance;
+            lastTradedPriceCorrected = lastTradedPriceCorrected -
+                dynStock.tolerance / dynStock.stocksAvailableForTrade;
             response.currentLocalMaximumPrice = max(
                 max(response.currentLocalMaximumPrice,
                     lastTradedPriceCorrected),
@@ -161,7 +162,8 @@ void tickerDataMiddleWare(
                   dynStock.lastTradedPrice * (1 - (dynStock.BTPe / 100.00));
             }
             // Define a tolerance amount so that the trade doesn't repeatedly happen at the same time
-            lastTradedPriceCorrected = lastTradedPriceCorrected + tolerance;
+            lastTradedPriceCorrected = lastTradedPriceCorrected +
+                dynStock.tolerance / dynStock.stocksAvailableForTrade;
             response.currentLocalMinimumPrice = min(
                 min(
                     min(response.currentLocalMinimumPrice,
@@ -182,7 +184,8 @@ void tickerDataMiddleWare(
                   dynStock.lastTradedPrice * (1 - (dynStock.BTPe / 100.00));
             }
             // Define a tolerance amount so that the trade doesn't repeatedly happen at the same time
-            lastTradedPriceCorrected = lastTradedPriceCorrected + tolerance;
+            lastTradedPriceCorrected = lastTradedPriceCorrected +
+                dynStock.tolerance / dynStock.stocksAvailableForTrade;
             response.currentLocalMinimumPrice = min(
                 min(response.currentLocalMinimumPrice,
                     lastTradedPriceCorrected),

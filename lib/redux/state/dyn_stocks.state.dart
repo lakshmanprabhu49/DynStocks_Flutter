@@ -1,5 +1,4 @@
 import 'package:dynstocks/models/dyn_stocks.dart';
-import 'package:dynstocks/models/transactions.dart';
 
 class DynStocksState {
   bool loading = false;

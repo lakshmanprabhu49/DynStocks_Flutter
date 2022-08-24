@@ -116,7 +116,8 @@ class _ViewTransactionsScreenState extends State<ViewTransactionsScreen>
         limit: limit,
         offset: offset,
         dynStockId: dynStockId,
-        sortDirection: ESortDirection.DESC.name));
+        sortDirection: ESortDirection.DESC.name,
+        sortCriterion: ESortCriterion.TransactionTime.name));
     setState(() {
       errorMessageShown = false;
     });
@@ -426,7 +427,6 @@ class _ViewTransactionsScreenState extends State<ViewTransactionsScreen>
                                   ));
                                 }
                               }
-                              // switch (currentSortCriterion) {
                               //   case ESortCriterion.TransactionTime:
                               //     sortedTransactions
                               //         .sort((Transaction a, Transaction b) {
