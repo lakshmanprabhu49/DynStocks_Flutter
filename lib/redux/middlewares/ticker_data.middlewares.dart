@@ -207,7 +207,7 @@ void tickerDataMiddleWare(
         lastTransactionTime =
             DateTime.parse(formattedsecondNextDayOfLastTransactionTime);
 
-        if (!stockMarketClosed) {
+        if (!stockMarketClosed && !store.state.allTransactions.creating) {
           // SELL Logic
           if (dynStock.lastTransactionType == 'BUY' &&
               dynStock.stocksAvailableForTrade > 0 &&
