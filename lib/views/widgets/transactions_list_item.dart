@@ -23,7 +23,7 @@ class TransactionsListItem extends StatelessWidget {
     String hour12 = transactionTimeIST.hour <= 12
         ? transactionTimeIST.hour.toString()
         : (transactionTimeIST.hour - 12).toString();
-    String timePostFix = transactionTimeIST.hour <= 12 ? 'AM' : 'PM';
+    String timePostFix = transactionTimeIST.hour < 12 ? 'AM' : 'PM';
     transactionTime +=
         '       $hour12:$minuteZeroAdder${transactionTimeIST.minute} $timePostFix';
     return (Container(
