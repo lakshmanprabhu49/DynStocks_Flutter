@@ -74,7 +74,6 @@ void tickerDataMiddleWare(
     store.state.allDynStocks.data.forEachIndexed((index, dynStock) async {
       bool orderPlaced = false;
       String orderType = '';
-      bool placingOrder = false;
       TickerDataService()
           .getTickerData(dynStock.yFinStockCode,
               fetchChartHistory: fetchChartHistory,

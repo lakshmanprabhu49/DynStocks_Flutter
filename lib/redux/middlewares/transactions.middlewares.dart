@@ -85,6 +85,7 @@ void transactionsMiddleWare(
             String emailBodyLine2 =
                 'Transaction Time: ${transactionTime.hour}:${transactionTime.minute}:${transactionTime.second} ${transactionTime.day}/${transactionTime.month}/${transactionTime.year}';
             String emailBodyLine3 = 'Total Amount: ${response.amount}';
+            store.dispatch(GetAllDynStocksAction(userId: action.userId));
             // EmailJSService()
             //     .sendEmail(Email(
             //         username: 'Myself',
@@ -95,7 +96,6 @@ void transactionsMiddleWare(
             //         body:
             //             '${emailBodyLine1} ${emailBodyLine2} ${emailBodyLine3}'))
             //     .then((value) {
-            //   store.dispatch(GetAllDynStocksAction(userId: action.userId));
             // }).catchError((error) {
             //   placingOrder = false;
             //   store.dispatch(CreateTransactionFailAction(error: error));
