@@ -24,7 +24,10 @@ double findLocalMaximaFromPreviousData(StockChart? chart) {
       chart.chartQuotes!.high!.isEmpty) {
     return double.negativeInfinity;
   }
-  num localMaximum = chart.chartQuotes!.high!.last;
+  num localMaximum = max(
+      max(chart.chartQuotes!.high!.last, chart.chartQuotes!.close!.last),
+      chart.chartQuotes!.open!.last);
+
   List<num>? high = chart.chartQuotes!.high;
   int index = chart.chartQuotes!.high!.length - 1;
   while (index > 0) {
@@ -44,7 +47,9 @@ double findLocalMinimaFromPreviousData(StockChart? chart) {
       chart.chartQuotes!.low!.isEmpty) {
     return double.infinity;
   }
-  num localMinimum = chart.chartQuotes!.low!.last;
+  num localMinimum = min(
+      min(chart.chartQuotes!.low!.last, chart.chartQuotes!.close!.last),
+      chart.chartQuotes!.open!.last);
   List<num>? low = chart.chartQuotes!.low;
   int index = chart.chartQuotes!.low!.length - 1;
   while (index > 0) {
@@ -69,6 +74,7 @@ void tickerDataMiddleWare(
     store.state.allDynStocks.data.forEachIndexed((index, dynStock) async {
       bool orderPlaced = false;
       String orderType = '';
+      bool placingOrder = false;
       TickerDataService()
           .getTickerData(dynStock.yFinStockCode,
               fetchChartHistory: fetchChartHistory,
@@ -305,16 +311,10 @@ void tickerDataMiddleWare(
         }
 
         if (orderPlaced) {
-          switch (orderType) {
-            case 'BUY':
-              map[dynStock.stockCode]?.currentLocalMaximumPrice =
-                  response.price.currentPrice!;
-              break;
-            case 'SELL':
-              map[dynStock.stockCode]?.currentLocalMinimumPrice =
-                  response.price.currentPrice!;
-              break;
-          }
+          map[dynStock.stockCode]?.currentLocalMaximumPrice =
+              response.price.currentPrice!;
+          map[dynStock.stockCode]?.currentLocalMinimumPrice =
+              response.price.currentPrice!;
         }
         store.dispatch(GetAllTickerDataSuccessAction(allTickerData: map));
       }).catchError((error) {

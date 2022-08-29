@@ -25,6 +25,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:fl_chart/fl_chart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:wakelock/wakelock.dart';
 import 'package:yahoofin/yahoofin.dart';
 import 'package:intl/intl.dart';
 import 'package:collection/collection.dart';
@@ -195,6 +196,11 @@ class _UserInfoScreenState extends State<UserInfoScreen> with RouteAware {
 
   @override
   Widget build(BuildContext context) {
+    Wakelock.enabled.then((value) {
+      if (!value) {
+        Wakelock.enable();
+      }
+    });
     Size screenSize = MediaQuery.of(context).size;
     if (mounted && !isLoaded) {
       StoreProvider.of<AppState>(context)

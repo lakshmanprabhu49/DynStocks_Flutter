@@ -21,6 +21,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:wakelock/wakelock.dart';
 import '../../models/transactions.dart';
 import 'package:intl/intl.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
@@ -182,7 +183,7 @@ class _EventsTodayScreenState extends State<EventsTodayScreen> with RouteAware {
             barChartData[3].amount += (transaction.amount * multiplier);
           } else if (time.contains('13:00')) {
             barChartData[4].amount += (transaction.amount * multiplier);
-          } else if (time.contains('14:00'))  {
+          } else if (time.contains('14:00')) {
             barChartData[5].amount += (transaction.amount * multiplier);
           } else if (time.contains('15:00')) {
             barChartData[6].amount += (transaction.amount * multiplier);
@@ -321,6 +322,11 @@ class _EventsTodayScreenState extends State<EventsTodayScreen> with RouteAware {
 
   @override
   Widget build(BuildContext context) {
+    Wakelock.enabled.then((value) {
+      if (!value) {
+        Wakelock.enable();
+      }
+    });
     if (isLoaded == false &&
         appStore.state.userId.isNotEmpty &&
         appStore.state.accessCode.isNotEmpty) {
@@ -351,115 +357,120 @@ class _EventsTodayScreenState extends State<EventsTodayScreen> with RouteAware {
       resizeToAvoidBottomInset: false,
       key: Key("EventsTodayScreen"),
       body: StoreConnector<AppState, AppState>(
-          onDidChange: (previousState, state) {
-            if (appStore.state.allDynStocks.loadFailed && !errorMessageShown) {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                    ToastMessageHandler.showErrorMessageSnackBar(
-                        '${state.allDynStocks.error.message}'));
-              });
-              setState(() {
-                errorMessageShown = true;
-              });
-            }
-          },
-          converter: ((store) => store.state),
-          builder: (context, state) => Container(
-              color: Colors.transparent,
-              height: screenSize.height,
-              width: screenSize.width,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Flexible(
-                      key: Key("Today's Events"),
-                      flex: 2,
-                      child: Container(
-                        margin: EdgeInsets.fromLTRB(0, 60, 0, 0),
-                        child: Text(
-                          'Today\'s Events',
-                          textAlign: TextAlign.start,
-                          style: GoogleFonts.outfit(
-                              color: PaletteColors.blue2,
-                              fontSize: 45,
-                              fontWeight: FontWeight.bold),
-                        ),
-                      )),
-                  Flexible(
-                      key: Key("TransactionsTodayBarChart"),
-                      flex: 5,
-                      child: TransactionsTodayBarChart(
-                          transactionsToday: transactionsToday,
-                          barChartsRenderData: barChartsRenderData,
-                          screenSize: screenSize)),
-                  Flexible(
-                      key: Key("TransactionTodayDetails"),
-                      flex: 6,
-                      child: Container(
-                          width: screenSize.width,
-                          height: screenSize.height,
-                          decoration: BoxDecoration(
-                              color: PaletteColors.blue2,
-                              borderRadius: BorderRadius.only(
-                                topLeft: Radius.circular(40),
-                                topRight: Radius.circular(40),
-                              )),
-                          child: Column(children: [
-                            Flexible(
-                                flex: 4,
-                                child: (TransactionsTodayDetails(
-                                  maxTradedAmount: maxTradedAmount,
-                                  noOfStocks: noOfStocks,
-                                  netReturnsToday: netReturnsToday,
-                                  screenSize: screenSize,
-                                ))),
-                            Flexible(
-                                flex: 2,
-                                child: Container(
-                                    margin: EdgeInsets.fromLTRB(0, 10, 0, 0),
-                                    child: ElevatedButton(
-                                        child: Text(
-                                          'View all Transactions',
-                                          style: GoogleFonts.lusitana(
-                                            color: PaletteColors.blue2,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 20,
+        onDidChange: (previousState, state) {
+          if (appStore.state.allDynStocks.loadFailed && !errorMessageShown) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                  ToastMessageHandler.showErrorMessageSnackBar(
+                      '${state.allDynStocks.error.message}'));
+            });
+            setState(() {
+              errorMessageShown = true;
+            });
+          }
+        },
+        converter: ((store) => store.state),
+        builder: (context, state) => SingleChildScrollView(
+            child: Container(
+                color: Colors.transparent,
+                height: screenSize.height,
+                width: screenSize.width,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Flexible(
+                        key: Key("Today's Events"),
+                        flex: 2,
+                        child: Container(
+                          margin: EdgeInsets.fromLTRB(0, 60, 0, 0),
+                          child: Text(
+                            'Today\'s Events',
+                            textAlign: TextAlign.start,
+                            style: GoogleFonts.outfit(
+                                color: PaletteColors.blue2,
+                                fontSize: 45,
+                                fontWeight: FontWeight.bold),
+                          ),
+                        )),
+                    Flexible(
+                        key: Key("TransactionsTodayBarChart"),
+                        flex: 5,
+                        child: TransactionsTodayBarChart(
+                            transactionsToday: transactionsToday,
+                            barChartsRenderData: barChartsRenderData,
+                            screenSize: screenSize)),
+                    Flexible(
+                        key: Key("TransactionTodayDetails"),
+                        flex: 6,
+                        child: Container(
+                            width: screenSize.width,
+                            height: screenSize.height,
+                            decoration: BoxDecoration(
+                                color: PaletteColors.blue2,
+                                borderRadius: BorderRadius.only(
+                                  topLeft: Radius.circular(40),
+                                  topRight: Radius.circular(40),
+                                )),
+                            child: Column(children: [
+                              Flexible(
+                                  flex: 4,
+                                  child: (TransactionsTodayDetails(
+                                    maxTradedAmount: maxTradedAmount,
+                                    noOfStocks: noOfStocks,
+                                    netReturnsToday: netReturnsToday,
+                                    screenSize: screenSize,
+                                  ))),
+                              Flexible(
+                                  flex: 2,
+                                  child: Container(
+                                      margin: EdgeInsets.fromLTRB(0, 10, 0, 0),
+                                      child: ElevatedButton(
+                                          child: Text(
+                                            'View all Transactions',
+                                            style: GoogleFonts.lusitana(
+                                              color: PaletteColors.blue2,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 20,
+                                            ),
                                           ),
-                                        ),
-                                        onPressed: () {
-                                          Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      ViewTransactionsScreen(
-                                                        customStockCode: '',
-                                                      )));
-                                        },
-                                        style: ButtonStyle(
-                                            shape: MaterialStateProperty.all(
-                                                RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.all(
-                                                  Radius.circular(30)),
-                                            )),
-                                            fixedSize:
-                                                MaterialStateProperty.all(Size(
-                                                    screenSize.width * 0.7,
-                                                    screenSize.height * 0.06)),
-                                            backgroundColor:
-                                                MaterialStateProperty
-                                                    .resolveWith((states) {
-                                              Color finalColor;
-                                              states.contains(
-                                                      MaterialState.pressed)
-                                                  ? finalColor =
-                                                      PaletteColors.blue4
-                                                  : finalColor =
-                                                      PaletteColors.blue3;
-                                              return finalColor;
-                                            }))))),
-                          ]))),
-                ],
-              ))),
+                                          onPressed: () {
+                                            Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        ViewTransactionsScreen(
+                                                          customStockCode: '',
+                                                        )));
+                                          },
+                                          style: ButtonStyle(
+                                              shape: MaterialStateProperty.all(
+                                                  RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.all(
+                                                    Radius.circular(30)),
+                                              )),
+                                              fixedSize:
+                                                  MaterialStateProperty.all(
+                                                      Size(
+                                                          screenSize.width *
+                                                              0.7,
+                                                          screenSize.height *
+                                                              0.06)),
+                                              backgroundColor:
+                                                  MaterialStateProperty
+                                                      .resolveWith((states) {
+                                                Color finalColor;
+                                                states.contains(
+                                                        MaterialState.pressed)
+                                                    ? finalColor =
+                                                        PaletteColors.blue4
+                                                    : finalColor =
+                                                        PaletteColors.blue3;
+                                                return finalColor;
+                                              }))))),
+                            ]))),
+                  ],
+                ))),
+      ),
       bottomNavigationBar: BottomNavigationBarCustom(
         screenSize: screenSize,
         selectedIndex: 0,

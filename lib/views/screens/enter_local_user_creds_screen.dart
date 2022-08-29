@@ -24,6 +24,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:wakelock/wakelock.dart';
 import '../../models/transactions.dart';
 import 'package:intl/intl.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
@@ -87,6 +88,11 @@ class _EnterLocalUserCredsScreenState extends State<EnterLocalUserCredsScreen>
 
   @override
   Widget build(BuildContext context) {
+    Wakelock.enabled.then((value) {
+      if (!value) {
+        Wakelock.enable();
+      }
+    });
     if ((appStore.state.kotakStockAPI.loginFailed) && !errorMessageShown) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(

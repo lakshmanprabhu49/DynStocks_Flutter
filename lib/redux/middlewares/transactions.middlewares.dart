@@ -11,6 +11,7 @@ import 'package:dynstocks/services/kotak_stock_api.service.dart';
 import 'package:dynstocks/services/transactions.service.dart';
 import 'package:redux/redux.dart';
 
+bool placingOrder = false;
 void transactionsMiddleWare(
     Store<AppState> store, dynamic action, NextDispatcher next) async {
   if (action is GetAllTransactionsAction) {
@@ -30,11 +31,10 @@ void transactionsMiddleWare(
       store.dispatch(GetAllTransactionsFailAction(error: error));
     });
   }
-  if (action is CreateTransactionAction) {
-    DynStock dynStockInvolved =
-        store.state.allDynStocks.data.firstWhere((element) {
-      return element.dynStockId.uuid == action.dynStockId;
-    });
+  if (action is CreateTransactionAction &&
+      !placingOrder &&
+      !store.state.allTransactions.creating) {
+    placingOrder = true;
     KotakStockAPIService()
         .placeOrder(
             action.userId,
@@ -56,6 +56,7 @@ void transactionsMiddleWare(
                     : order.success!.bse!.orderId),
                 action.instrumentToken)
             .then((position) {
+          placingOrder = false;
           OrderReportsSuccess tradedStock = position!.success.firstWhere(
               (element) =>
                   element.orderId ==
@@ -84,28 +85,32 @@ void transactionsMiddleWare(
             String emailBodyLine2 =
                 'Transaction Time: ${transactionTime.hour}:${transactionTime.minute}:${transactionTime.second} ${transactionTime.day}/${transactionTime.month}/${transactionTime.year}';
             String emailBodyLine3 = 'Total Amount: ${response.amount}';
-            EmailJSService()
-                .sendEmail(Email(
-                    username: 'Myself',
-                    subject: 'Transaction Made',
-                    title: 'Transaction Made for ${action.body.stockCode}',
-                    subtitle:
-                        'Transaction has been made for ${action.body.stockCode} with the following params',
-                    body:
-                        '${emailBodyLine1} ${emailBodyLine2} ${emailBodyLine3}'))
-                .then((value) {
-              store.dispatch(GetAllDynStocksAction(userId: action.userId));
-            }).catchError((error) {
-              store.dispatch(CreateTransactionFailAction(error: error));
-            });
+            // EmailJSService()
+            //     .sendEmail(Email(
+            //         username: 'Myself',
+            //         subject: 'Transaction Made',
+            //         title: 'Transaction Made for ${action.body.stockCode}',
+            //         subtitle:
+            //             'Transaction has been made for ${action.body.stockCode} with the following params',
+            //         body:
+            //             '${emailBodyLine1} ${emailBodyLine2} ${emailBodyLine3}'))
+            //     .then((value) {
+            //   store.dispatch(GetAllDynStocksAction(userId: action.userId));
+            // }).catchError((error) {
+            //   placingOrder = false;
+            //   store.dispatch(CreateTransactionFailAction(error: error));
+            // });
           }).catchError((error) {
+            placingOrder = false;
             store.dispatch(CreateTransactionFailAction(error: error));
           });
         }).catchError((error) {
+          placingOrder = false;
           store.dispatch(CreateTransactionFailAction(error: error));
         });
       });
     }).catchError((error) {
+      placingOrder = false;
       store.dispatch(CreateTransactionFailAction(error: error));
     });
   }

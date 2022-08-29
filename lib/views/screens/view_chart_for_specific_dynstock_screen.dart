@@ -20,6 +20,7 @@ import 'package:flutter_redux/flutter_redux.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:fl_chart/fl_chart.dart';
+import 'package:wakelock/wakelock.dart';
 import 'package:yahoofin/yahoofin.dart';
 import 'package:intl/intl.dart';
 import 'package:collection/collection.dart';
@@ -301,6 +302,11 @@ class _ViewChartForSpecificDynStockScreenState
 
   @override
   Widget build(BuildContext context) {
+    Wakelock.enabled.then((value) {
+      if (!value) {
+        Wakelock.enable();
+      }
+    });
     Size screenSize = MediaQuery.of(context).size;
     if (!isLoaded) {
       parseDataForDynStockPriceChart();
@@ -312,285 +318,294 @@ class _ViewChartForSpecificDynStockScreenState
       body: StoreConnector<AppState, AppState>(
           converter: ((store) => store.state),
           builder: (context, state) {
-            return Container(
-                margin: EdgeInsets.fromLTRB(10, 30, 10, 0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                            margin: EdgeInsets.fromLTRB(10, 0, 0, 0),
-                            child: ButtonTheme(
-                                height: 25,
-                                minWidth: 25,
-                                child: TextButton(
-                                  style: ButtonStyle(
-                                      foregroundColor:
-                                          MaterialStateProperty.all(
-                                              Colors.transparent),
-                                      backgroundColor:
-                                          MaterialStateProperty.all(
-                                              Colors.transparent)),
-                                  child: Icon(
-                                    Icons.arrow_back,
-                                    size: 35,
-                                    color: Colors.black,
-                                  ),
-                                  onPressed: () {
-                                    Navigator.pop(context);
-                                  },
-                                ))),
-                        Container(
-                            margin: EdgeInsets.fromLTRB(0, 0, 0, 0),
-                            child: Text(
-                              'VIEW CHART',
-                              style: GoogleFonts.outfit(
-                                fontSize: 30 /
-                                    int.parse((1 +
-                                            (currentDynStockCode.length / 10)
-                                                .toInt())
-                                        .toString()),
-                                color: PaletteColors.blue2,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            )),
-                      ],
-                    ),
-                    Container(
-                      margin: EdgeInsets.fromLTRB(20, 10, 20, 0),
-                      width: screenSize.width,
-                      height: 50,
-                      padding: EdgeInsets.fromLTRB(5, 5, 5, 5),
-                      decoration: BoxDecoration(
-                          color: PaletteColors.blue3,
-                          borderRadius: BorderRadius.circular(20)),
-                      child: ListView.separated(
-                          separatorBuilder: (context, index) => SizedBox(
-                                width: 10,
-                                height: 10,
-                              ),
-                          scrollDirection: Axis.horizontal,
-                          itemCount: stockTimePeriod.length,
-                          itemBuilder: ((context, index) {
-                            return Container(
-                                width: 55,
-                                height: 25,
-                                decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular((25))),
-                                child: ElevatedButton(
-                                  style: ButtonStyle(
-                                      shape: MaterialStateProperty.all<
-                                              OutlinedBorder>(
-                                          RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(15))),
-                                      fixedSize: MaterialStateProperty.all(
-                                          Size(30, 30)),
-                                      backgroundColor:
-                                          MaterialStateProperty.all(
-                                              currentStockTimePeriod ==
-                                                      stockTimePeriod[index]
-                                                  ? PaletteColors.blue2
-                                                  : PaletteColors.blue3)),
-                                  child: Text(
-                                    stockTimePeriod[index],
-                                    style: GoogleFonts.lusitana(
-                                      color: currentStockTimePeriod ==
-                                              stockTimePeriod[index]
-                                          ? Colors.white
-                                          : PaletteColors.blue2,
-                                      fontSize: 15,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                  onPressed: () {
-                                    setState(() {
-                                      currentStockTimePeriod =
-                                          stockTimePeriod[index];
-                                      isLoaded = false;
-                                    });
-                                  },
-                                ));
-                          })),
-                    ),
-                    Container(
-                      width: screenSize.width,
-                      height: screenSize.height * 0.5,
-                      margin: EdgeInsets.fromLTRB(0, 20, 0, 10),
-                      padding: EdgeInsets.fromLTRB(10, 20, 10, 20),
-                      decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                              colors: [
-                            PaletteColors.blue2,
-                            Colors.black,
-                          ],
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter)),
-                      child: LineChart(LineChartData(
-                          lineTouchData: LineTouchData(
-                              enabled: true,
-                              handleBuiltInTouches: true,
-                              touchTooltipData: LineTouchTooltipData(
-                                  getTooltipItems: ((touchedSpots) {
-                                    return touchedSpots.map((touchedSpot) {
-                                      DateTime transactionTime =
-                                          DateTime.fromMillisecondsSinceEpoch(
-                                              touchedSpot.x.round());
-                                      return LineTooltipItem(
-                                          '${touchedSpot.y}\n',
-                                          GoogleFonts.daysOne(
-                                            color: AccentColors.blue1,
-                                            fontSize: 15,
-                                          ),
-                                          children: [
-                                            TextSpan(
-                                                style: GoogleFonts.daysOne(
-                                                  color: AccentColors.yellow1,
-                                                  fontSize: 10,
-                                                ),
-                                                text:
-                                                    '${transactionTime.hour}:${transactionTime.minute}:${transactionTime.second} ${transactionTime.day}/${transactionTime.month}/${transactionTime.year}')
-                                          ]);
-                                    }).toList();
-                                  }),
-                                  tooltipBgColor: Colors.white)),
-                          gridData: FlGridData(show: false),
-                          borderData: FlBorderData(
-                              show: true,
-                              border: Border(
-                                top: BorderSide(color: Colors.transparent),
-                                bottom: BorderSide(color: Colors.transparent),
-                                left: BorderSide(color: Colors.transparent),
-                                right: BorderSide(color: Colors.transparent),
-                              )),
-                          lineBarsData: [
-                            LineChartBarData(
-                                dotData: FlDotData(show: true),
-                                spots: dynStockChartPoints,
-                                isCurved: false,
-                                barWidth: 5,
-                                color: Colors.blue),
-                          ],
-                          titlesData: FlTitlesData(
-                              rightTitles: AxisTitles(
-                                  sideTitles: SideTitles(
-                                      showTitles: true,
-                                      reservedSize: 50,
-                                      getTitlesWidget: (value, meta) {
-                                        return Container(
-                                            child: Text(
-                                                value.toStringAsFixed(2),
-                                                style: GoogleFonts.lusitana(
-                                                    fontSize: 15,
-                                                    color: Colors.white)));
-                                      })),
-                              topTitles: AxisTitles(
-                                  sideTitles: SideTitles(showTitles: false)),
-                              leftTitles: AxisTitles(
-                                  sideTitles: SideTitles(showTitles: false)),
-                              bottomTitles: AxisTitles(
-                                  sideTitles: SideTitles(
-                                showTitles: true,
-                                getTitlesWidget: (value, meta) {
-                                  DateTime time =
-                                      DateTime.fromMillisecondsSinceEpoch(
-                                          value.toInt());
-                                  String timeString = '';
-                                  switch (currentStockTimePeriod) {
-                                    case '1d':
-                                      timeString =
-                                          '${time.hour}:${time.minute}';
-                                      break;
-                                    case '1w':
-                                      timeString = '${time.month}-${time.day}';
-                                      break;
-                                    case '1m':
-                                      timeString = '${time.month}-${time.day}';
-                                      break;
-                                    case '3m':
-                                      timeString = '${time.month}-${time.day}';
-                                      break;
-                                    case '6m':
-                                      timeString = '${time.month}-${time.day}';
-                                      break;
-                                    case '1y':
-                                      timeString = '${time.month} ${time.day}';
-                                      break;
-                                  }
-                                  return Container(
-                                      child: Text(
-                                    timeString,
-                                    style: GoogleFonts.lusitana(
-                                      color: Colors.white,
-                                      fontSize: 15,
-                                    ),
-                                  ));
-                                },
-                              ))))),
-                    ),
-                    Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            return SingleChildScrollView(
+              child: Container(
+                  margin: EdgeInsets.fromLTRB(10, 30, 10, 0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Row(
                         children: [
                           Container(
-                            child: Container(
-                                height: screenSize.height * 0.1,
-                                padding: EdgeInsets.fromLTRB(20, 10, 20, 10),
-                                decoration: BoxDecoration(
-                                    color: PaletteColors.blue3,
-                                    borderRadius: BorderRadius.circular(15)),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      netReturnsForDynStock.toStringAsFixed(2),
-                                      style: GoogleFonts.daysOne(
-                                        color: PaletteColors.blue2,
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                              margin: EdgeInsets.fromLTRB(10, 0, 0, 0),
+                              child: ButtonTheme(
+                                  height: 25,
+                                  minWidth: 25,
+                                  child: TextButton(
+                                    style: ButtonStyle(
+                                        foregroundColor:
+                                            MaterialStateProperty.all(
+                                                Colors.transparent),
+                                        backgroundColor:
+                                            MaterialStateProperty.all(
+                                                Colors.transparent)),
+                                    child: Icon(
+                                      Icons.arrow_back,
+                                      size: 35,
+                                      color: Colors.black,
                                     ),
-                                    Text(
-                                      'Net Returns',
-                                      style: GoogleFonts.outfit(
-                                        color: PaletteColors.blue4,
-                                        fontSize: 15,
-                                      ),
-                                    )
-                                  ],
-                                )),
-                          ),
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                    },
+                                  ))),
                           Container(
-                            child: Container(
-                                height: screenSize.height * 0.1,
-                                padding: EdgeInsets.fromLTRB(20, 10, 20, 10),
-                                decoration: BoxDecoration(
-                                    color: PaletteColors.blue3,
-                                    borderRadius: BorderRadius.circular(15)),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      netCAGR.toStringAsFixed(2),
-                                      style: GoogleFonts.daysOne(
-                                        color: PaletteColors.blue2,
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    Text(
-                                      'CAGR',
-                                      style: GoogleFonts.outfit(
-                                        color: PaletteColors.blue4,
+                              margin: EdgeInsets.fromLTRB(0, 0, 0, 0),
+                              child: Text(
+                                'VIEW CHART',
+                                style: GoogleFonts.outfit(
+                                  fontSize: 30 /
+                                      int.parse((1 +
+                                              (currentDynStockCode.length / 10)
+                                                  .toInt())
+                                          .toString()),
+                                  color: PaletteColors.blue2,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              )),
+                        ],
+                      ),
+                      Container(
+                        margin: EdgeInsets.fromLTRB(20, 10, 20, 0),
+                        width: screenSize.width,
+                        height: 50,
+                        padding: EdgeInsets.fromLTRB(5, 5, 5, 5),
+                        decoration: BoxDecoration(
+                            color: PaletteColors.blue3,
+                            borderRadius: BorderRadius.circular(20)),
+                        child: ListView.separated(
+                            separatorBuilder: (context, index) => SizedBox(
+                                  width: 10,
+                                  height: 10,
+                                ),
+                            scrollDirection: Axis.horizontal,
+                            itemCount: stockTimePeriod.length,
+                            itemBuilder: ((context, index) {
+                              return Container(
+                                  width: 55,
+                                  height: 25,
+                                  decoration: BoxDecoration(
+                                      borderRadius:
+                                          BorderRadius.circular((25))),
+                                  child: ElevatedButton(
+                                    style: ButtonStyle(
+                                        shape: MaterialStateProperty.all<
+                                                OutlinedBorder>(
+                                            RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(15))),
+                                        fixedSize: MaterialStateProperty.all(
+                                            Size(30, 30)),
+                                        backgroundColor:
+                                            MaterialStateProperty.all(
+                                                currentStockTimePeriod ==
+                                                        stockTimePeriod[index]
+                                                    ? PaletteColors.blue2
+                                                    : PaletteColors.blue3)),
+                                    child: Text(
+                                      stockTimePeriod[index],
+                                      style: GoogleFonts.lusitana(
+                                        color: currentStockTimePeriod ==
+                                                stockTimePeriod[index]
+                                            ? Colors.white
+                                            : PaletteColors.blue2,
                                         fontSize: 15,
                                       ),
-                                    )
-                                  ],
+                                      textAlign: TextAlign.center,
+                                    ),
+                                    onPressed: () {
+                                      setState(() {
+                                        currentStockTimePeriod =
+                                            stockTimePeriod[index];
+                                        isLoaded = false;
+                                      });
+                                    },
+                                  ));
+                            })),
+                      ),
+                      Container(
+                        width: screenSize.width,
+                        height: screenSize.height * 0.5,
+                        margin: EdgeInsets.fromLTRB(0, 20, 0, 10),
+                        padding: EdgeInsets.fromLTRB(10, 20, 10, 20),
+                        decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                                colors: [
+                              PaletteColors.blue2,
+                              Colors.black,
+                            ],
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter)),
+                        child: LineChart(LineChartData(
+                            lineTouchData: LineTouchData(
+                                enabled: true,
+                                handleBuiltInTouches: true,
+                                touchTooltipData: LineTouchTooltipData(
+                                    getTooltipItems: ((touchedSpots) {
+                                      return touchedSpots.map((touchedSpot) {
+                                        DateTime transactionTime =
+                                            DateTime.fromMillisecondsSinceEpoch(
+                                                touchedSpot.x.round());
+                                        return LineTooltipItem(
+                                            '${touchedSpot.y}\n',
+                                            GoogleFonts.daysOne(
+                                              color: AccentColors.blue1,
+                                              fontSize: 15,
+                                            ),
+                                            children: [
+                                              TextSpan(
+                                                  style: GoogleFonts.daysOne(
+                                                    color: AccentColors.yellow1,
+                                                    fontSize: 10,
+                                                  ),
+                                                  text:
+                                                      '${transactionTime.hour}:${transactionTime.minute}:${transactionTime.second} ${transactionTime.day}/${transactionTime.month}/${transactionTime.year}')
+                                            ]);
+                                      }).toList();
+                                    }),
+                                    tooltipBgColor: Colors.white)),
+                            gridData: FlGridData(show: false),
+                            borderData: FlBorderData(
+                                show: true,
+                                border: Border(
+                                  top: BorderSide(color: Colors.transparent),
+                                  bottom: BorderSide(color: Colors.transparent),
+                                  left: BorderSide(color: Colors.transparent),
+                                  right: BorderSide(color: Colors.transparent),
                                 )),
-                          )
-                        ]),
-                  ],
-                ));
+                            lineBarsData: [
+                              LineChartBarData(
+                                  dotData: FlDotData(show: true),
+                                  spots: dynStockChartPoints,
+                                  isCurved: false,
+                                  barWidth: 5,
+                                  color: Colors.blue),
+                            ],
+                            titlesData: FlTitlesData(
+                                rightTitles: AxisTitles(
+                                    sideTitles: SideTitles(
+                                        showTitles: true,
+                                        reservedSize: 50,
+                                        getTitlesWidget: (value, meta) {
+                                          return Container(
+                                              child: Text(
+                                                  value.toStringAsFixed(2),
+                                                  style: GoogleFonts.lusitana(
+                                                      fontSize: 15,
+                                                      color: Colors.white)));
+                                        })),
+                                topTitles: AxisTitles(
+                                    sideTitles: SideTitles(showTitles: false)),
+                                leftTitles: AxisTitles(
+                                    sideTitles: SideTitles(showTitles: false)),
+                                bottomTitles: AxisTitles(
+                                    sideTitles: SideTitles(
+                                  showTitles: true,
+                                  getTitlesWidget: (value, meta) {
+                                    DateTime time =
+                                        DateTime.fromMillisecondsSinceEpoch(
+                                            value.toInt());
+                                    String timeString = '';
+                                    switch (currentStockTimePeriod) {
+                                      case '1d':
+                                        timeString =
+                                            '${time.hour}:${time.minute}';
+                                        break;
+                                      case '1w':
+                                        timeString =
+                                            '${time.month}-${time.day}';
+                                        break;
+                                      case '1m':
+                                        timeString =
+                                            '${time.month}-${time.day}';
+                                        break;
+                                      case '3m':
+                                        timeString =
+                                            '${time.month}-${time.day}';
+                                        break;
+                                      case '6m':
+                                        timeString =
+                                            '${time.month}-${time.day}';
+                                        break;
+                                      case '1y':
+                                        timeString =
+                                            '${time.month} ${time.day}';
+                                        break;
+                                    }
+                                    return Container(
+                                        child: Text(
+                                      timeString,
+                                      style: GoogleFonts.lusitana(
+                                        color: Colors.white,
+                                        fontSize: 15,
+                                      ),
+                                    ));
+                                  },
+                                ))))),
+                      ),
+                      Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            Container(
+                              child: Container(
+                                  height: screenSize.height * 0.1,
+                                  padding: EdgeInsets.fromLTRB(20, 10, 20, 10),
+                                  decoration: BoxDecoration(
+                                      color: PaletteColors.blue3,
+                                      borderRadius: BorderRadius.circular(15)),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        netReturnsForDynStock
+                                            .toStringAsFixed(2),
+                                        style: GoogleFonts.daysOne(
+                                          color: PaletteColors.blue2,
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      Text(
+                                        'Net Returns',
+                                        style: GoogleFonts.outfit(
+                                          color: PaletteColors.blue4,
+                                          fontSize: 15,
+                                        ),
+                                      )
+                                    ],
+                                  )),
+                            ),
+                            Container(
+                              child: Container(
+                                  height: screenSize.height * 0.1,
+                                  padding: EdgeInsets.fromLTRB(20, 10, 20, 10),
+                                  decoration: BoxDecoration(
+                                      color: PaletteColors.blue3,
+                                      borderRadius: BorderRadius.circular(15)),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        netCAGR.toStringAsFixed(2),
+                                        style: GoogleFonts.daysOne(
+                                          color: PaletteColors.blue2,
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      Text(
+                                        'CAGR',
+                                        style: GoogleFonts.outfit(
+                                          color: PaletteColors.blue4,
+                                          fontSize: 15,
+                                        ),
+                                      )
+                                    ],
+                                  )),
+                            )
+                          ]),
+                    ],
+                  )),
+            );
           }),
     );
   }

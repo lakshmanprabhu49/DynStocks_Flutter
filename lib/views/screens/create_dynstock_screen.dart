@@ -23,6 +23,7 @@ import 'package:dynstocks/views/screens/view_transactions_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:wakelock/wakelock.dart';
 import 'package:yahoofin/yahoofin.dart';
 import '../../models/transactions.dart';
 import 'package:intl/intl.dart';
@@ -144,6 +145,11 @@ class _CreateDynStockScreenState extends State<CreateDynStockScreen>
 
   @override
   Widget build(BuildContext context) {
+    Wakelock.enabled.then((value) {
+      if (!value) {
+        Wakelock.enable();
+      }
+    });
     Size screenSize = MediaQuery.of(context).size;
     if (appStore.state.allDynStocks.createFailed && !errorMessageShown) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -213,7 +219,7 @@ class _CreateDynStockScreenState extends State<CreateDynStockScreen>
             }
           },
           converter: ((store) => store.state),
-          builder: (context, state) => Container(
+          builder: (context, state) => SingleChildScrollView(
                 child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [

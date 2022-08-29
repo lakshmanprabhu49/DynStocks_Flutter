@@ -75,16 +75,16 @@ void dynStocksMiddleWare(
                 emailBodyLine3 =
                     ' BTPe: ${response.BTPe}, STPr: ${response.STPe}';
               }
-              EmailJSService()
-                  .sendEmail(Email(
-                      username: 'Myself',
-                      subject: 'DynStock Created',
-                      title: 'DynStock Created for ${response.stockCode}',
-                      subtitle:
-                          'DynStock has been created for ${response.stockCode} with the following params:',
-                      body: '$emailBodyLine1$emailBodyLine2$emailBodyLine3'))
-                  .then((value) {})
-                  .catchError((error) {});
+              // EmailJSService()
+              //     .sendEmail(Email(
+              //         username: 'Myself',
+              //         subject: 'DynStock Created',
+              //         title: 'DynStock Created for ${response.stockCode}',
+              //         subtitle:
+              //             'DynStock has been created for ${response.stockCode} with the following params:',
+              //         body: '$emailBodyLine1$emailBodyLine2$emailBodyLine3'))
+              //     .then((value) {})
+              //     .catchError((error) {});
             }).catchError((error) {
               store.dispatch(CreateDynStockFailAction(error: error));
             });
@@ -113,16 +113,16 @@ void dynStocksMiddleWare(
       } else {
         emailBodyLine3 = ' BTPe: ${response.BTPe}, STPr: ${response.STPe}';
       }
-      EmailJSService()
-          .sendEmail(Email(
-              username: 'Myself',
-              subject: 'DynStock Updated',
-              title: 'DynStock Updated for ${response.stockCode}',
-              subtitle:
-                  'DynStock has been updated for ${response.stockCode} with the following params:',
-              body: '$emailBodyLine1\n$emailBodyLine2\n$emailBodyLine3'))
-          .then((value) {})
-          .catchError((error) {});
+      // EmailJSService()
+      //     .sendEmail(Email(
+      //         username: 'Myself',
+      //         subject: 'DynStock Updated',
+      //         title: 'DynStock Updated for ${response.stockCode}',
+      //         subtitle:
+      //             'DynStock has been updated for ${response.stockCode} with the following params:',
+      //         body: '$emailBodyLine1\n$emailBodyLine2\n$emailBodyLine3'))
+      //     .then((value) {})
+      //     .catchError((error) {});
     }).catchError((error) {
       store.dispatch(UpdateDynStockFailAction(error: error));
     });
@@ -181,16 +181,16 @@ void dynStocksMiddleWare(
                   .then((response) {
                 store.dispatch(
                     DeleteDynStockSuccessAction(dynStockId: response));
-                EmailJSService()
-                    .sendEmail(Email(
-                        username: 'Myself',
-                        subject: 'DynStock Deleted',
-                        title: 'DynStock Deleted for ${action.stockCode}',
-                        subtitle:
-                            'DynStock has been deleted for ${action.stockCode}',
-                        body: ''))
-                    .then((value) {})
-                    .catchError((error) {});
+                // EmailJSService()
+                //     .sendEmail(Email(
+                //         username: 'Myself',
+                //         subject: 'DynStock Deleted',
+                //         title: 'DynStock Deleted for ${action.stockCode}',
+                //         subtitle:
+                //             'DynStock has been deleted for ${action.stockCode}',
+                //         body: ''))
+                //     .then((value) {})
+                //     .catchError((error) {});
               }).catchError((error) {
                 store.dispatch(DeleteDynStockFailAction(error: error));
               });
@@ -205,15 +205,15 @@ void dynStocksMiddleWare(
           .deleteDynStock(action.userId, action.dynStockId)
           .then((response) {
         store.dispatch(DeleteDynStockSuccessAction(dynStockId: response));
-        EmailJSService()
-            .sendEmail(Email(
-                username: 'Myself',
-                subject: 'DynStock Deleted',
-                title: 'DynStock Deleted for ${action.stockCode}',
-                subtitle: 'DynStock has been deleted for ${action.stockCode}',
-                body: ''))
-            .then((value) {})
-            .catchError((error) {});
+        // EmailJSService()
+        //     .sendEmail(Email(
+        //         username: 'Myself',
+        //         subject: 'DynStock Deleted',
+        //         title: 'DynStock Deleted for ${action.stockCode}',
+        //         subtitle: 'DynStock has been deleted for ${action.stockCode}',
+        //         body: ''))
+        //     .then((value) {})
+        //     .catchError((error) {});
       }).catchError((error) {
         store.dispatch(DeleteDynStockFailAction(error: error));
       });

@@ -14,6 +14,7 @@ import 'package:dynstocks/views/widgets/dyn_stocks_list_item.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:wakelock/wakelock.dart';
 
 class ViewDynStocksListScreen extends StatefulWidget {
   const ViewDynStocksListScreen({Key? key}) : super(key: key);
@@ -103,6 +104,11 @@ class _ViewDynStocksListScreenState extends State<ViewDynStocksListScreen>
 
   @override
   Widget build(BuildContext context) {
+    Wakelock.enabled.then((value) {
+      if (!value) {
+        Wakelock.enable();
+      }
+    });
     Size screenSize = MediaQuery.of(context).size;
     if (appStore.state.allDynStocks.loadFailed && !errorMessageShown) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
