@@ -49,6 +49,7 @@ class _EventsTodayScreenState extends State<EventsTodayScreen> with RouteAware {
   int selectedBottomBarIndex = 0;
   bool isTimedTickerFetchStarted = false;
   bool errorMessageShown = false;
+  bool reload = false;
   void resetState() {
     transactionsToday = null;
     isLoaded = false;
@@ -327,6 +328,18 @@ class _EventsTodayScreenState extends State<EventsTodayScreen> with RouteAware {
         Wakelock.enable();
       }
     });
+    DateTime now = DateTime.now();
+    if ((now.hour < 9) || (now.hour == 9 && now.hour < 15)) {
+      Timer.periodic(Duration(seconds: 1), (timer) {
+        DateTime currentTime = DateTime.now();
+        if (currentTime.hour == 9 && now.hour >= 15) {
+          setState(() {
+            reload = true;
+          });
+          timer.cancel();
+        }
+      });
+    }
     if (isLoaded == false &&
         appStore.state.userId.isNotEmpty &&
         appStore.state.accessCode.isNotEmpty) {

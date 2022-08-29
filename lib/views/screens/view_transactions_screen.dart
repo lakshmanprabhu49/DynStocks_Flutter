@@ -48,6 +48,7 @@ class _ViewTransactionsScreenState extends State<ViewTransactionsScreen>
   String customStockCode;
   int limit = 50;
   int offset = 0;
+  bool reload = false;
   @override
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
@@ -144,6 +145,18 @@ class _ViewTransactionsScreenState extends State<ViewTransactionsScreen>
         Wakelock.enable();
       }
     });
+    DateTime now = DateTime.now();
+    if ((now.hour < 9) || (now.hour == 9 && now.hour < 15)) {
+      Timer.periodic(Duration(seconds: 1), (timer) {
+        DateTime currentTime = DateTime.now();
+        if (currentTime.hour == 9 && now.hour >= 15) {
+          setState(() {
+            reload = true;
+          });
+          timer.cancel();
+        }
+      });
+    }
     if (dynStockId.isEmpty && customStockCode.isNotEmpty) {
       setState(() {
         dynStockId = appStore.state.allDynStocks.data

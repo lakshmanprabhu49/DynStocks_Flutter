@@ -53,6 +53,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> with RouteAware {
   List<FlSpot> dynStockChartPoints = [];
   bool isLoaded = false;
   bool errorMessageShown = false;
+  bool reload = false;
   @override
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
@@ -201,6 +202,18 @@ class _UserInfoScreenState extends State<UserInfoScreen> with RouteAware {
         Wakelock.enable();
       }
     });
+    DateTime now = DateTime.now();
+    if ((now.hour < 9) || (now.hour == 9 && now.hour < 15)) {
+      Timer.periodic(Duration(seconds: 1), (timer) {
+        DateTime currentTime = DateTime.now();
+        if (currentTime.hour == 9 && now.hour >= 15) {
+          setState(() {
+            reload = true;
+          });
+          timer.cancel();
+        }
+      });
+    }
     Size screenSize = MediaQuery.of(context).size;
     if (mounted && !isLoaded) {
       StoreProvider.of<AppState>(context)
