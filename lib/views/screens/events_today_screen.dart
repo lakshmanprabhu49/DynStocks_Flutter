@@ -335,6 +335,7 @@ class _EventsTodayScreenState extends State<EventsTodayScreen> with RouteAware {
         if (currentTime.hour == 9 && now.hour >= 15) {
           setState(() {
             reload = true;
+            isLoaded = false;
           });
           timer.cancel();
         }
