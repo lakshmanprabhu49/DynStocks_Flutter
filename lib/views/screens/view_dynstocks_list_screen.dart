@@ -133,6 +133,17 @@ class _ViewDynStocksListScreenState extends State<ViewDynStocksListScreen>
         errorMessageShown = true;
       });
     }
+    if (appStore.state.allTransactions.createFailed && !errorMessageShown) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            ToastMessageHandler.showErrorMessageSnackBar(
+                '${appStore.state.allTransactions.error.message}'));
+      });
+      setState(() {
+        errorMessageShown = true;
+      });
+    }
     return Scaffold(
       resizeToAvoidBottomInset: false,
       body: Container(
@@ -250,6 +261,18 @@ class _ViewDynStocksListScreenState extends State<ViewDynStocksListScreen>
                               ScaffoldMessenger.of(context).showSnackBar(
                                   ToastMessageHandler.showErrorMessageSnackBar(
                                       '${state.error.message}'));
+                            });
+                            setState(() {
+                              errorMessageShown = true;
+                            });
+                          }
+                          if (appStore.state.allTransactions.createFailed &&
+                              !errorMessageShown) {
+                            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                  ToastMessageHandler.showErrorMessageSnackBar(
+                                      '${appStore.state.allTransactions.error.message}'));
                             });
                             setState(() {
                               errorMessageShown = true;

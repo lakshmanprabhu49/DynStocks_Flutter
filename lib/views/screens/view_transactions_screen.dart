@@ -178,11 +178,33 @@ class _ViewTransactionsScreenState extends State<ViewTransactionsScreen>
         errorMessageShown = true;
       });
     }
+    if (appStore.state.allTransactions.createFailed && !errorMessageShown) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            ToastMessageHandler.showErrorMessageSnackBar(
+                '${appStore.state.allTransactions.error.message}'));
+      });
+      setState(() {
+        errorMessageShown = true;
+      });
+    }
     return Scaffold(
         resizeToAvoidBottomInset: false,
         body: StoreConnector<AppState, AppState>(
             onDidChange: (previousState, state) {
               if (state.allTransactions.loadFailed && !errorMessageShown) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                      ToastMessageHandler.showErrorMessageSnackBar(
+                          '${state.allTransactions.error.message}'));
+                });
+                setState(() {
+                  errorMessageShown = true;
+                });
+              }
+              if (state.allTransactions.createFailed && !errorMessageShown) {
+                ScaffoldMessenger.of(context).hideCurrentSnackBar();
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   ScaffoldMessenger.of(context).showSnackBar(
                       ToastMessageHandler.showErrorMessageSnackBar(
@@ -408,7 +430,8 @@ class _ViewTransactionsScreenState extends State<ViewTransactionsScreen>
                               } else if (allTransactionsState.loaded &&
                                   !allTransactionsState.loading) {
                                 List<Transaction> sortedTransactions =
-                                    List.from(allTransactionsState.data!.items);
+                                    List.from(
+                                        allTransactionsState.data?.items ?? []);
                                 sortedTransactions = sortedTransactions
                                     .where((element) => element.stockCode
                                         .toLowerCase()

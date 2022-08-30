@@ -36,13 +36,17 @@ class GetAllTransactionsFailAction {
 class CreateTransactionAction {
   String userId;
   String dynStockId;
+  String stockCode;
   String instrumentToken;
   TransactionBody body;
+  String stockOrderType = EStockOrderType.Market.name;
   CreateTransactionAction(
       {required this.userId,
       required this.instrumentToken,
       required this.dynStockId,
-      required this.body});
+      required this.stockCode,
+      required this.body,
+      required this.stockOrderType});
 }
 
 class CreateTransactionSuccessAction {

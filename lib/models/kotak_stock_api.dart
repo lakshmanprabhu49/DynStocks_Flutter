@@ -266,6 +266,7 @@ class OrderReportsSuccess {
     required this.instrumentType,
     required this.orderId,
     required this.price,
+    required this.statusInfo,
     required this.transactionType,
   });
 
@@ -276,7 +277,7 @@ class OrderReportsSuccess {
   int orderId;
   double price;
   String transactionType;
-
+  String statusInfo;
   factory OrderReportsSuccess.fromJson(Map<String, dynamic> json) =>
       OrderReportsSuccess(
         exchange: json["exchange"],
@@ -285,6 +286,7 @@ class OrderReportsSuccess {
         instrumentType: json["instrumentType"],
         orderId: json["orderId"],
         price: json["price"].toDouble(),
+        statusInfo: json["statusInfo"],
         transactionType: json["transactionType"],
       );
 
@@ -295,6 +297,7 @@ class OrderReportsSuccess {
         "instrumentType": instrumentType,
         "orderId": orderId,
         "price": price,
+        "statusInfo": statusInfo,
         "transactionType": transactionType,
       };
 }

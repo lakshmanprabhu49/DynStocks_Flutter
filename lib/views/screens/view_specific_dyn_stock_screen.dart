@@ -343,6 +343,17 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
         errorMessageShown = true;
       });
     }
+    if (appStore.state.allTransactions.createFailed && !errorMessageShown) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            ToastMessageHandler.showErrorMessageSnackBar(
+                '${appStore.state.allTransactions.error.message}'));
+      });
+      setState(() {
+        errorMessageShown = true;
+      });
+    }
     if (appStore.state.netReturnsForDynStock.loaded &&
         !appStore.state.netReturnsForDynStock.loading) {
       setState(() {
@@ -883,6 +894,17 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                   ScaffoldMessenger.of(context).showSnackBar(
                       ToastMessageHandler.showErrorMessageSnackBar(
                           '${state.allDynStocks.error.message}'));
+                });
+                setState(() {
+                  errorMessageShown = true;
+                });
+              }
+              if (state.allTransactions.createFailed && !errorMessageShown) {
+                ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                      ToastMessageHandler.showErrorMessageSnackBar(
+                          '${state.allTransactions.error.message}'));
                 });
                 setState(() {
                   errorMessageShown = true;

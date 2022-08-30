@@ -25,6 +25,8 @@ enum EKotakStockOrderType {
   MIS,
 }
 
+enum EStockOrderType { Limit, Market }
+
 enum EPositions { TODAYS, OPEN, STOCKS }
 
 enum EStockType { EQ, BE, BL, BT, BZ, GZ, IL }
@@ -32,3 +34,5 @@ enum EStockType { EQ, BE, BL, BT, BZ, GZ, IL }
 enum EExchange { NSE, BSE }
 
 enum EChoice { Yes, No }
+
+enum EStockTradeStatusInfo { Traded, Open }

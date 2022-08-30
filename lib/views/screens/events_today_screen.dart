@@ -50,6 +50,7 @@ class _EventsTodayScreenState extends State<EventsTodayScreen> with RouteAware {
   bool isTimedTickerFetchStarted = false;
   bool errorMessageShown = false;
   bool reload = false;
+  bool timerCreatedFor915 = false;
   void resetState() {
     transactionsToday = null;
     isLoaded = false;
@@ -329,13 +330,17 @@ class _EventsTodayScreenState extends State<EventsTodayScreen> with RouteAware {
       }
     });
     DateTime now = DateTime.now();
-    if ((now.hour < 9) || (now.hour == 9 && now.hour < 15)) {
+    if (((now.hour < 9) || (now.hour == 9 && now.hour < 15)) &&
+        !timerCreatedFor915) {
+      setState(() {
+        timerCreatedFor915 = true;
+      });
       Timer.periodic(Duration(seconds: 1), (timer) {
         DateTime currentTime = DateTime.now();
         if (currentTime.hour == 9 && now.hour >= 15) {
           setState(() {
-            reload = true;
             isLoaded = false;
+            reload = true;
           });
           timer.cancel();
         }
@@ -366,6 +371,17 @@ class _EventsTodayScreenState extends State<EventsTodayScreen> with RouteAware {
         errorMessageShown = true;
       });
     }
+    if (appStore.state.allTransactions.createFailed && !errorMessageShown) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            ToastMessageHandler.showErrorMessageSnackBar(
+                '${appStore.state.allTransactions.error.message}'));
+      });
+      setState(() {
+        errorMessageShown = true;
+      });
+    }
     Size screenSize = MediaQuery.of(context).size;
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -377,6 +393,17 @@ class _EventsTodayScreenState extends State<EventsTodayScreen> with RouteAware {
               ScaffoldMessenger.of(context).showSnackBar(
                   ToastMessageHandler.showErrorMessageSnackBar(
                       '${state.allDynStocks.error.message}'));
+            });
+            setState(() {
+              errorMessageShown = true;
+            });
+          }
+          if (state.allTransactions.createFailed && !errorMessageShown) {
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                  ToastMessageHandler.showErrorMessageSnackBar(
+                      '${state.allTransactions.error.message}'));
             });
             setState(() {
               errorMessageShown = true;
