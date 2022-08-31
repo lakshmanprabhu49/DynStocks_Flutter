@@ -50,11 +50,17 @@ class CreateTransactionAction {
 }
 
 class CreateTransactionSuccessAction {
-  final Transaction transaction;
-  CreateTransactionSuccessAction({required this.transaction});
+  String stockCode;
+  CreateTransactionSuccessAction({required this.stockCode});
 }
 
 class CreateTransactionFailAction {
   final dynamic error;
-  CreateTransactionFailAction({required this.error});
+  String stockCode;
+  CreateTransactionFailAction({required this.stockCode, this.error});
+}
+
+class InitializeCreateTransactionStateAction {
+  final Map<String, TransactionsCreate> data;
+  InitializeCreateTransactionStateAction({required this.data});
 }

@@ -178,7 +178,8 @@ class _ViewTransactionsScreenState extends State<ViewTransactionsScreen>
         errorMessageShown = true;
       });
     }
-    if (appStore.state.allTransactions.createFailed && !errorMessageShown) {
+    if (appStore.state.transactionsCreateState.error != null &&
+        !errorMessageShown) {
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -203,7 +204,8 @@ class _ViewTransactionsScreenState extends State<ViewTransactionsScreen>
                   errorMessageShown = true;
                 });
               }
-              if (state.allTransactions.createFailed && !errorMessageShown) {
+              if (state.transactionsCreateState.error != null &&
+                  !errorMessageShown) {
                 ScaffoldMessenger.of(context).hideCurrentSnackBar();
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   ScaffoldMessenger.of(context).showSnackBar(

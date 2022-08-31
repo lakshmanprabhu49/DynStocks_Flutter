@@ -14,7 +14,6 @@ import 'package:dynstocks/services/kotak_stock_api.service.dart';
 import 'package:dynstocks/services/transactions.service.dart';
 import 'package:redux/redux.dart';
 
-bool placingOrder = false;
 void transactionsMiddleWare(
     Store<AppState> store, dynamic action, NextDispatcher next) async {
   if (action is GetAllTransactionsAction) {
@@ -34,10 +33,7 @@ void transactionsMiddleWare(
       store.dispatch(GetAllTransactionsFailAction(error: error));
     });
   }
-  if (action is CreateTransactionAction &&
-      !placingOrder &&
-      !store.state.allTransactions.creating) {
-    placingOrder = true;
+  if (action is CreateTransactionAction) {
     KotakStockAPIService()
         .placeOrder(
             action.userId,
@@ -73,7 +69,6 @@ void transactionsMiddleWare(
               ? order.success!.nse!.orderId
               : order.success!.bse!.orderId;
           if (tradedStock.statusInfo == EStockTradeStatusInfo.Traded.name) {
-            placingOrder = false;
             TransactionsService()
                 .createTransaction(
                     action.userId,
@@ -88,7 +83,7 @@ void transactionsMiddleWare(
                         stockPrice: tradedStock.price))
                 .then((response) {
               store.dispatch(
-                  CreateTransactionSuccessAction(transaction: response));
+                  CreateTransactionSuccessAction(stockCode: action.stockCode));
               store.state.allTickerData.data[action.stockCode]!
                   .currentLocalMaximumPrice = tradedStock.price;
               store.state.allTickerData.data[action.stockCode]!
@@ -118,8 +113,8 @@ void transactionsMiddleWare(
               //   store.dispatch(CreateTransactionFailAction(error: error));
               // });
             }).catchError((error) {
-              placingOrder = false;
-              store.dispatch(CreateTransactionFailAction(error: error));
+              store.dispatch(CreateTransactionFailAction(
+                  stockCode: action.stockCode, error: error));
             });
           } else {
             Timer.periodic(Duration(seconds: 10), (timer) {
@@ -144,7 +139,6 @@ void transactionsMiddleWare(
                 if (tradedStock.statusInfo ==
                     EStockTradeStatusInfo.Traded.name) {
                   timer.cancel();
-                  placingOrder = false;
                   TransactionsService()
                       .createTransaction(
                           action.userId,
@@ -158,8 +152,9 @@ void transactionsMiddleWare(
                               stockCode: action.body.stockCode,
                               stockPrice: tradedStock.price))
                       .then((response) {
-                    store.dispatch(
-                        CreateTransactionSuccessAction(transaction: response));
+                    store.dispatch(CreateTransactionSuccessAction(
+                      stockCode: action.stockCode,
+                    ));
                     store.state.allTickerData.data[action.stockCode]!
                         .currentLocalMaximumPrice = tradedStock.price;
                     store.state.allTickerData.data[action.stockCode]!
@@ -191,26 +186,26 @@ void transactionsMiddleWare(
                     //   store.dispatch(CreateTransactionFailAction(error: error));
                     // });
                   }).catchError((error) {
-                    placingOrder = false;
-                    store.dispatch(CreateTransactionFailAction(error: error));
+                    store.dispatch(CreateTransactionFailAction(
+                        stockCode: action.stockCode, error: error));
                   });
                 }
               }).catchError((error) {
-                placingOrder = false;
-                store.dispatch(CreateTransactionFailAction(error: error));
+                store.dispatch(CreateTransactionFailAction(
+                    stockCode: action.stockCode, error: error));
               });
             });
           }
         }).catchError((error) {
-          placingOrder = false;
-          store.dispatch(CreateTransactionFailAction(error: error));
+          store.dispatch(CreateTransactionFailAction(
+              stockCode: action.stockCode, error: error));
         });
       });
 
       ///////
     }).catchError((error) {
-      placingOrder = false;
-      store.dispatch(CreateTransactionFailAction(error: error));
+      store.dispatch(CreateTransactionFailAction(
+          stockCode: action.stockCode, error: error));
     });
   }
   next(action);

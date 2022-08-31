@@ -2,15 +2,11 @@ import 'dart:math';
 
 import 'package:dynstocks/main.dart';
 import 'package:dynstocks/models/common.dart';
-import 'package:dynstocks/models/kotak_stock_api.dart';
 import 'package:dynstocks/models/transactions.dart';
 import 'package:dynstocks/models/yahoo_finance_data.dart';
-import 'package:dynstocks/redux/actions/kotak_stock_api.actions.dart';
 import 'package:dynstocks/redux/actions/transactions.actions.dart';
 import 'package:dynstocks/redux/actions/ticker_data.actions.dart';
 import 'package:dynstocks/redux/app_state.dart';
-import 'package:dynstocks/redux/state/ticker_data.state.dart';
-import 'package:dynstocks/services/transactions.service.dart';
 import 'package:dynstocks/services/ticker_data.service.dart';
 import 'package:redux/redux.dart';
 import 'package:collection/collection.dart';
@@ -196,6 +192,7 @@ void tickerDataMiddleWare(
           }
         }
 
+        store.dispatch(GetAllTickerDataSuccessAction(allTickerData: map));
         lastTransactionTime = lastTransactionTime.subtract(Duration(
             hours: lastTransactionTime.hour,
             minutes: lastTransactionTime.minute,
@@ -208,7 +205,11 @@ void tickerDataMiddleWare(
         lastTransactionTime =
             DateTime.parse(formattedsecondNextDayOfLastTransactionTime);
 
-        if (!stockMarketClosed && !store.state.allTransactions.creating) {
+        if (!stockMarketClosed &&
+            (store.state.transactionsCreateState.data[dynStock.stockCode] !=
+                null) &&
+            !(store.state.transactionsCreateState.data[dynStock.stockCode]!
+                .creating)) {
           // SELL Logic
           if (dynStock.lastTransactionType == 'BUY' &&
               dynStock.stocksAvailableForTrade == dynStock.noOfStocks &&
@@ -405,7 +406,6 @@ void tickerDataMiddleWare(
         //   map[dynStock.stockCode]?.currentLocalMinimumPrice =
         //       response.price.currentPrice!;
         // }
-        store.dispatch(GetAllTickerDataSuccessAction(allTickerData: map));
       }).catchError((error) {
         store.dispatch(GetAllTickerDataFailAction(error: error));
       });

@@ -25,8 +25,7 @@ class TimedTickerCall {
       if (!sellCondition) {
         Timer timer = Timer.periodic(Duration(seconds: 10), (timer) {
           print('Here');
-          if (!appStore.state.allTransactions.creating &&
-              !appStore.state.allTransactions.loading &&
+          if (!appStore.state.allTransactions.loading &&
               !appStore.state.allDynStocks.loading &&
               !appStore.state.allDynStocks.creating &&
               !appStore.state.allDynStocks.updating &&

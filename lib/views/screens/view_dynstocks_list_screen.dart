@@ -133,7 +133,8 @@ class _ViewDynStocksListScreenState extends State<ViewDynStocksListScreen>
         errorMessageShown = true;
       });
     }
-    if (appStore.state.allTransactions.createFailed && !errorMessageShown) {
+    if (appStore.state.transactionsCreateState.error != null &&
+        !errorMessageShown) {
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -266,7 +267,8 @@ class _ViewDynStocksListScreenState extends State<ViewDynStocksListScreen>
                               errorMessageShown = true;
                             });
                           }
-                          if (appStore.state.allTransactions.createFailed &&
+                          if (appStore.state.transactionsCreateState.error !=
+                                  null &&
                               !errorMessageShown) {
                             ScaffoldMessenger.of(context).hideCurrentSnackBar();
                             WidgetsBinding.instance.addPostFrameCallback((_) {

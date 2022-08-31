@@ -1,6 +1,7 @@
 import 'package:dynstocks/models/local_user_creds.dart';
 import 'package:dynstocks/redux/state/authentication.state.dart';
 import 'package:dynstocks/redux/state/dyn_stocks.state.dart';
+import 'package:dynstocks/redux/state/transactions_create.state.dart';
 import 'package:dynstocks/redux/state/kotak_stock_api.state.dart';
 import 'package:dynstocks/redux/state/net_returns_for_dyn_stock.state.dart';
 import 'package:dynstocks/redux/state/transactions.state.dart';
@@ -15,6 +16,8 @@ class AppState {
   String DYNSTOCKS_X_REQUEST_ID = 'DYNSTOCKS_X_REQUEST_ID';
   TransactionsState allTransactions = TransactionsState.initialState();
   DynStocksState allDynStocks = DynStocksState.initialState();
+  TransactionsCreateState transactionsCreateState =
+      TransactionsCreateState.initialState();
   TickerDataState allTickerData = TickerDataState.initialState();
   KotakStockAPIState kotakStockAPI = KotakStockAPIState.initialState();
   UserInfoState userInfo = UserInfoState.initialState();
@@ -29,18 +32,19 @@ class AppState {
     userInfo = UserInfoState.initialState();
     authState = AuthState.initialState();
     netReturnsForDynStock = NetReturnsForDynStockState.initialState();
+    transactionsCreateState = TransactionsCreateState.initialState();
   }
-  AppState.updatedState({
-    TransactionsState? allTransactions,
-    DynStocksState? allDynStocks,
-    TickerDataState? allTickerData,
-    String? accessCode,
-    KotakStockAPIState? kotakStockAPI,
-    UserInfoState? userInfo,
-    AuthState? authState,
-    String? userId,
-    NetReturnsForDynStockState? netReturnsForDynStock,
-  }) {
+  AppState.updatedState(
+      {TransactionsState? allTransactions,
+      DynStocksState? allDynStocks,
+      TickerDataState? allTickerData,
+      String? accessCode,
+      KotakStockAPIState? kotakStockAPI,
+      UserInfoState? userInfo,
+      AuthState? authState,
+      String? userId,
+      NetReturnsForDynStockState? netReturnsForDynStock,
+      TransactionsCreateState? transactionsCreateState}) {
     if (allDynStocks != null) {
       this.allDynStocks = allDynStocks;
     }
@@ -67,6 +71,9 @@ class AppState {
     }
     if (netReturnsForDynStock != null) {
       this.netReturnsForDynStock = netReturnsForDynStock;
+    }
+    if (transactionsCreateState != null) {
+      this.transactionsCreateState = transactionsCreateState;
     }
   }
 }

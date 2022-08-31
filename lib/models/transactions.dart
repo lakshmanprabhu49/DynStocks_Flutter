@@ -152,3 +152,36 @@ class TransactionBody {
         "stockPrice": stockPrice,
       };
 }
+
+TransactionsCreate transactionsCreateFromJson(String str) =>
+    TransactionsCreate.fromJson(json.decode(str));
+
+String transactionsCreateToJson(TransactionsCreate data) =>
+    json.encode(data.toJson());
+
+class TransactionsCreate {
+  TransactionsCreate({
+    required this.creating,
+    required this.created,
+    required this.createFailed,
+    this.error,
+  });
+
+  bool creating;
+  bool created;
+  bool createFailed;
+  dynamic error;
+
+  factory TransactionsCreate.fromJson(Map<String, dynamic> json) =>
+      TransactionsCreate(
+        creating: json["creating"],
+        created: json["created"],
+        createFailed: json["createFailed"],
+      );
+
+  Map<String, dynamic> toJson() => {
+        "creating": creating,
+        "created": created,
+        "createFailed": createFailed,
+      };
+}

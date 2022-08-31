@@ -20,6 +20,15 @@ void dynStocksMiddleWare(
   if (action is GetAllDynStocksAction) {
     DynStocksService().getDynStocks(action.userId).then((response) {
       store.dispatch(GetAllDynStocksSuccessAction(allDynStocks: response));
+      Map<String, TransactionsCreate> map =
+          Map<String, TransactionsCreate>.from(
+              store.state.transactionsCreateState.data);
+      for (DynStock dynStock in response) {
+        if (map[dynStock.stockCode] == null) {
+          map[dynStock.stockCode] = TransactionsCreate(
+              creating: false, created: false, createFailed: false);
+        }
+      }
     }).catchError((error) {
       store.dispatch(GetAllDynStocksFailAction(error: error));
     });

@@ -6,6 +6,7 @@ import 'package:dynstocks/redux/reducers/local_user_creds.reducers.dart';
 import 'package:dynstocks/redux/reducers/net_returns_for_dyn_stock.reducers.dart';
 import 'package:dynstocks/redux/reducers/transactions.reducers.dart';
 import 'package:dynstocks/redux/reducers/ticker_data.reducers.dart';
+import 'package:dynstocks/redux/reducers/transactions_create.reducers.dart';
 import 'package:dynstocks/redux/reducers/user_info.reducers.dart';
 
 AppState appReducer(AppState state, dynamic action) {
@@ -17,6 +18,8 @@ AppState appReducer(AppState state, dynamic action) {
         accessCode: accessCodeReducer(state.accessCode, action),
         allTransactions: transactionsReducer(state.allTransactions, action),
         allDynStocks: dynStocksReducer(state.allDynStocks, action),
+        transactionsCreateState:
+            transactionsCreateReducer(state.transactionsCreateState, action),
         allTickerData: tickerDataReducer(state.allTickerData, action),
         kotakStockAPI: kotakStockAPIReducer(state.kotakStockAPI, action),
         authState: authReducer(state.authState, action),
