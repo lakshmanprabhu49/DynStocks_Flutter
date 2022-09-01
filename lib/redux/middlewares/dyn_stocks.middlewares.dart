@@ -8,6 +8,7 @@ import 'package:dynstocks/redux/actions/dyn_stocks.actions.dart';
 import 'package:dynstocks/redux/actions/dyn_stocks.actions.dart';
 import 'package:dynstocks/redux/actions/kotak_stock_api.actions.dart';
 import 'package:dynstocks/redux/actions/ticker_data.actions.dart';
+import 'package:dynstocks/redux/actions/transactions.actions.dart';
 import 'package:dynstocks/redux/app_state.dart';
 import 'package:dynstocks/services/dyn_stocks.service.dart';
 import 'package:dynstocks/services/emailjs.service.dart';
@@ -23,11 +24,16 @@ void dynStocksMiddleWare(
       Map<String, TransactionsCreate> map =
           Map<String, TransactionsCreate>.from(
               store.state.transactionsCreateState.data);
+      bool mapAltered = false;
       for (DynStock dynStock in response) {
         if (map[dynStock.stockCode] == null) {
+          mapAltered = true;
           map[dynStock.stockCode] = TransactionsCreate(
               creating: false, created: false, createFailed: false);
         }
+      }
+      if (mapAltered) {
+        store.dispatch(InitializeCreateTransactionStateAction(data: map));
       }
     }).catchError((error) {
       store.dispatch(GetAllDynStocksFailAction(error: error));

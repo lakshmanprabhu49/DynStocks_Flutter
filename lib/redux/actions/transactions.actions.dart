@@ -40,13 +40,15 @@ class CreateTransactionAction {
   String instrumentToken;
   TransactionBody body;
   String stockOrderType = EStockOrderType.Market.name;
+  bool placeKotakAPIStockOrder = true;
   CreateTransactionAction(
       {required this.userId,
       required this.instrumentToken,
       required this.dynStockId,
       required this.stockCode,
       required this.body,
-      required this.stockOrderType});
+      required this.stockOrderType,
+      this.placeKotakAPIStockOrder = true});
 }
 
 class CreateTransactionSuccessAction {

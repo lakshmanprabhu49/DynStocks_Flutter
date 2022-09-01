@@ -35,7 +35,12 @@ class TimedTickerCall {
             StoreProvider.of<AppState>(context)
                 .dispatch(GetAllTickerDataAction());
             DateTime now = DateTime.now();
-            if (now.hour < 9 || now.hour >= 16 || now.weekday > 5) {
+            bool stockMarketClosed = (now.hour < 9) ||
+                now.hour >= 16 ||
+                (now.hour == 9 && now.minute < 15) ||
+                (now.hour == 15 && now.minute > 30) ||
+                (now.weekday > 5);
+            if (stockMarketClosed) {
               stopTimedTickerCallForDynStocks();
             }
           }

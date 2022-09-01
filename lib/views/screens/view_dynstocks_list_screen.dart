@@ -7,6 +7,7 @@ import 'package:dynstocks/redux/actions/dyn_stocks.actions.dart';
 import 'package:dynstocks/redux/actions/ticker_data.actions.dart';
 import 'package:dynstocks/redux/app_state.dart';
 import 'package:dynstocks/redux/state/dyn_stocks.state.dart';
+import 'package:dynstocks/static/post-market-timer.dart';
 import 'package:dynstocks/static/toast_message_handler.dart';
 import 'package:dynstocks/static/timed_ticker_call.dart';
 import 'package:dynstocks/views/widgets/bottom_navigation_bar_custom.dart';
@@ -49,6 +50,7 @@ class _ViewDynStocksListScreenState extends State<ViewDynStocksListScreen>
   void startPeriodicTimer() {
     Timer.periodic(Duration(seconds: 1), (timer) {
       if (mounted) {
+        PostMarketTimer.startPostMarketTimer(context);
         bool timerStarted = TimedTickerCall?.startTimedTickerCallForDynStocks(
           context,
         );

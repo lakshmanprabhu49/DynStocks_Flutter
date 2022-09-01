@@ -11,6 +11,7 @@ import 'package:dynstocks/redux/actions/ticker_data.actions.dart';
 import 'package:dynstocks/redux/actions/transactions.actions.dart';
 import 'package:dynstocks/redux/app_state.dart';
 import 'package:dynstocks/services/transactions.service.dart';
+import 'package:dynstocks/static/post-market-timer.dart';
 import 'package:dynstocks/static/toast_message_handler.dart';
 import 'package:dynstocks/static/timed_ticker_call.dart';
 import 'package:dynstocks/views/widgets/bottom_navigation_bar_custom.dart';
@@ -86,7 +87,6 @@ class _EventsTodayScreenState extends State<EventsTodayScreen> with RouteAware {
     }
     transactionsToday = null;
     isLoaded = false;
-    barChartData = List<ITransactionsBarChart>.empty(growable: true);
     noOfStocks.putIfAbsent('SELL', () => 0);
     noOfStocks.putIfAbsent('BUY', () => 0);
   }
@@ -304,6 +304,7 @@ class _EventsTodayScreenState extends State<EventsTodayScreen> with RouteAware {
   void startPeriodicTimer() {
     Timer.periodic(Duration(seconds: 1), (timer) {
       if (mounted) {
+        PostMarketTimer.startPostMarketTimer(context);
         bool timerStarted = TimedTickerCall?.startTimedTickerCallForDynStocks(
           context,
         );

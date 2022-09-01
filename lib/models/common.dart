@@ -1,3 +1,5 @@
+// ignore_for_file: constant_identifier_names, prefer_generic_function_type_aliases
+
 enum EStocksFilterCriterion { All, Custom }
 
 enum EDaysFilterCriterion { All, Today, Custom }
@@ -35,4 +37,21 @@ enum EExchange { NSE, BSE }
 
 enum EChoice { Yes, No }
 
-enum EStockTradeStatusInfo { Traded, Open }
+enum ETransactionType { BUY, SELL }
+
+enum EStockTradeStatusInfo { Traded, Open, Partially_Traded }
+
+extension EStockTradeStatusInfoExtension on EStockTradeStatusInfo {
+  String get name {
+    switch (this) {
+      case EStockTradeStatusInfo.Traded:
+        return 'Traded';
+      case EStockTradeStatusInfo.Open:
+        return 'Open';
+      case EStockTradeStatusInfo.Partially_Traded:
+        return 'Partially traded';
+      default:
+        return 'Open';
+    }
+  }
+}

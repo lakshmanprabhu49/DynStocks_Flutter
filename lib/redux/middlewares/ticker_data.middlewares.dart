@@ -21,20 +21,6 @@ double findLocalMaximaFromPreviousData(StockChart? chart) {
     return double.negativeInfinity;
   }
   return double.negativeInfinity;
-  num localMaximum = max(
-      max(chart.chartQuotes!.high!.last, chart.chartQuotes!.close!.last),
-      chart.chartQuotes!.open!.last);
-
-  List<num>? high = chart.chartQuotes!.high;
-  int index = chart.chartQuotes!.high!.length - 1;
-  while (index > 0) {
-    if ((high![index - 1] < high[index]) && (high[index + 1] < high[index])) {
-      localMaximum = high[index];
-      break;
-    }
-    index--;
-  }
-  return localMaximum as double;
 }
 
 double findLocalMinimaFromPreviousData(StockChart? chart) {
@@ -45,19 +31,6 @@ double findLocalMinimaFromPreviousData(StockChart? chart) {
     return double.infinity;
   }
   return double.infinity;
-  num localMinimum = min(
-      min(chart.chartQuotes!.low!.last, chart.chartQuotes!.close!.last),
-      chart.chartQuotes!.open!.last);
-  List<num>? low = chart.chartQuotes!.low;
-  int index = chart.chartQuotes!.low!.length - 1;
-  while (index > 0) {
-    if ((low![index - 1] > low[index]) && (low[index + 1] > low[index])) {
-      localMinimum = low[index];
-      break;
-    }
-    index--;
-  }
-  return localMinimum as double;
 }
 
 void tickerDataMiddleWare(
@@ -104,7 +77,7 @@ void tickerDataMiddleWare(
                 findLocalMaximaFromPreviousData(response.chart);
             possibleLocalMaximaFromYesterday = double.parse(
                 possibleLocalMaximaFromYesterday.toStringAsFixed(2));
-            // double lastTradedPriceCorrected = dynStock.lastTradedPrice;
+            double lastTradedPriceCorrected = dynStock.lastTradedPrice;
             // if (dynStock.DSTPUnit == EDSTPUnit.Price.name) {
             //   // Add the STPr value for localMaxima computation
             //   lastTradedPriceCorrected =
@@ -120,14 +93,14 @@ void tickerDataMiddleWare(
             response.currentLocalMaximumPrice = max(
                 max(
                     max(response.currentLocalMaximumPrice,
-                        double.negativeInfinity),
+                        lastTradedPriceCorrected),
                     response.price.currentPrice ?? double.negativeInfinity),
                 possibleLocalMaximaFromYesterday);
             response.currentLocalMinimumPrice =
                 response.currentLocalMaximumPrice;
           } else {
             // App is running, so no need to compare with previous day's local maxima
-            // double lastTradedPriceCorrected = dynStock.lastTradedPrice;
+            double lastTradedPriceCorrected = dynStock.lastTradedPrice;
             // if (dynStock.DSTPUnit == EDSTPUnit.Price.name) {
             //   lastTradedPriceCorrected =
             //       dynStock.lastTradedPrice + dynStock.STPr;
@@ -139,7 +112,8 @@ void tickerDataMiddleWare(
             // lastTradedPriceCorrected = lastTradedPriceCorrected -
             //     dynStock.tolerance / dynStock.stocksAvailableForTrade;
             response.currentLocalMaximumPrice = max(
-                max(response.currentLocalMaximumPrice, double.negativeInfinity),
+                max(response.currentLocalMaximumPrice,
+                    lastTradedPriceCorrected),
                 response.price.currentPrice ?? double.negativeInfinity);
             response.currentLocalMinimumPrice =
                 response.currentLocalMaximumPrice;
@@ -152,7 +126,7 @@ void tickerDataMiddleWare(
                 findLocalMinimaFromPreviousData(response.chart);
             possibleLocalMinimaFromYesterday = double.parse(
                 (possibleLocalMinimaFromYesterday).toStringAsFixed(2));
-            // double lastTradedPriceCorrected = dynStock.lastTradedPrice;
+            double lastTradedPriceCorrected = dynStock.lastTradedPrice;
             // if (dynStock.DSTPUnit == EDSTPUnit.Price.name) {
             //   // Subtract the BTPr value
             //   lastTradedPriceCorrected =
@@ -166,14 +140,16 @@ void tickerDataMiddleWare(
             // lastTradedPriceCorrected = lastTradedPriceCorrected +
             //     dynStock.tolerance / dynStock.stocksAvailableForTrade;
             response.currentLocalMinimumPrice = min(
-                min(min(response.currentLocalMinimumPrice, double.infinity),
+                min(
+                    min(response.currentLocalMinimumPrice,
+                        lastTradedPriceCorrected),
                     response.price.currentPrice ?? double.infinity),
                 possibleLocalMinimaFromYesterday);
             response.currentLocalMaximumPrice =
                 response.currentLocalMinimumPrice;
           } else {
             // App is running, so no need to compare with previous day's local minima
-            // double lastTradedPriceCorrected = dynStock.lastTradedPrice;
+            double lastTradedPriceCorrected = dynStock.lastTradedPrice;
             // if (dynStock.DSTPUnit == EDSTPUnit.Price.name) {
             //   lastTradedPriceCorrected =
             //       dynStock.lastTradedPrice - dynStock.BTPr;
@@ -185,7 +161,8 @@ void tickerDataMiddleWare(
             // lastTradedPriceCorrected = lastTradedPriceCorrected +
             //     dynStock.tolerance / dynStock.stocksAvailableForTrade;
             response.currentLocalMinimumPrice = min(
-                min(response.currentLocalMinimumPrice, double.infinity),
+                min(response.currentLocalMinimumPrice,
+                    lastTradedPriceCorrected),
                 response.price.currentPrice ?? double.infinity);
             response.currentLocalMaximumPrice =
                 response.currentLocalMinimumPrice;
@@ -212,7 +189,6 @@ void tickerDataMiddleWare(
                 .creating)) {
           // SELL Logic
           if (dynStock.lastTransactionType == 'BUY' &&
-              dynStock.stocksAvailableForTrade == dynStock.noOfStocks &&
               !(dynStock.stallTransactions)) {
             if ((now.compareTo(secondNextDayOfLastTransactionTime) >= 0 &&
                     dynStock.stockType == EStockType.BE.name) ||
@@ -234,7 +210,9 @@ void tickerDataMiddleWare(
                         body: TransactionBody(
                             transactionId: '',
                             type: 'SELL',
-                            noOfStocks: dynStock.stocksAvailableForTrade,
+                            noOfStocks: dynStock.stocksAvailableForTrade == 0
+                                ? dynStock.noOfStocks
+                                : dynStock.stocksAvailableForTrade,
                             stockCode: dynStock.stockCode,
                             stockPrice: max(
                                 response.price.currentPrice!,
@@ -255,7 +233,9 @@ void tickerDataMiddleWare(
                         body: TransactionBody(
                             transactionId: '',
                             type: 'SELL',
-                            noOfStocks: dynStock.stocksAvailableForTrade,
+                            noOfStocks: dynStock.stocksAvailableForTrade == 0
+                                ? dynStock.noOfStocks
+                                : dynStock.stocksAvailableForTrade,
                             stockCode: dynStock.stockCode,
                             stockPrice: response.price.currentPrice!)));
                   }
@@ -276,7 +256,9 @@ void tickerDataMiddleWare(
                         body: TransactionBody(
                             transactionId: '',
                             type: 'SELL',
-                            noOfStocks: dynStock.stocksAvailableForTrade,
+                            noOfStocks: dynStock.stocksAvailableForTrade == 0
+                                ? dynStock.noOfStocks
+                                : dynStock.stocksAvailableForTrade,
                             stockCode: dynStock.stockCode,
                             stockPrice: max(
                                 response.price.currentPrice!,
@@ -299,7 +281,9 @@ void tickerDataMiddleWare(
                         body: TransactionBody(
                             transactionId: '',
                             type: 'SELL',
-                            noOfStocks: dynStock.stocksAvailableForTrade,
+                            noOfStocks: dynStock.stocksAvailableForTrade == 0
+                                ? dynStock.noOfStocks
+                                : dynStock.stocksAvailableForTrade,
                             stockCode: dynStock.stockCode,
                             stockPrice: response.price.currentPrice!)));
                   }
@@ -309,7 +293,6 @@ void tickerDataMiddleWare(
           }
           // BUY Logic
           if (dynStock.lastTransactionType == 'SELL' &&
-              dynStock.stocksAvailableForTrade == 0 &&
               !(dynStock.stallTransactions)) {
             switch (dynStock.DSTPUnit) {
               case 'Price':
@@ -327,7 +310,8 @@ void tickerDataMiddleWare(
                       body: TransactionBody(
                           transactionId: '',
                           type: 'BUY',
-                          noOfStocks: dynStock.noOfStocks,
+                          noOfStocks: (dynStock.noOfStocks -
+                              dynStock.stocksAvailableForTrade),
                           stockCode: dynStock.stockCode,
                           stockPrice: min(
                               response.price.currentPrice!,
@@ -348,7 +332,8 @@ void tickerDataMiddleWare(
                       body: TransactionBody(
                           transactionId: '',
                           type: 'BUY',
-                          noOfStocks: dynStock.noOfStocks,
+                          noOfStocks: (dynStock.noOfStocks -
+                              dynStock.stocksAvailableForTrade),
                           stockCode: dynStock.stockCode,
                           stockPrice: response.price.currentPrice!)));
                 }
@@ -368,7 +353,8 @@ void tickerDataMiddleWare(
                       body: TransactionBody(
                           transactionId: '',
                           type: 'BUY',
-                          noOfStocks: dynStock.noOfStocks,
+                          noOfStocks: (dynStock.noOfStocks -
+                              dynStock.stocksAvailableForTrade),
                           stockCode: dynStock.stockCode,
                           stockPrice: min(
                               response.price.currentPrice!,
@@ -391,7 +377,8 @@ void tickerDataMiddleWare(
                       body: TransactionBody(
                           transactionId: '',
                           type: 'BUY',
-                          noOfStocks: dynStock.noOfStocks,
+                          noOfStocks: (dynStock.noOfStocks -
+                              dynStock.stocksAvailableForTrade),
                           stockCode: dynStock.stockCode,
                           stockPrice: response.price.currentPrice!)));
                 }

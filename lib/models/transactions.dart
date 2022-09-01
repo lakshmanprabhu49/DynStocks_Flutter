@@ -127,30 +127,54 @@ class TransactionBody {
   int noOfStocks;
   String stockCode;
   double stockPrice;
-
+  int? stocksAvailableForTrade;
   TransactionBody(
       {required this.transactionId,
       required this.type,
       required this.noOfStocks,
       required this.stockCode,
-      required this.stockPrice});
+      required this.stockPrice,
+      this.stocksAvailableForTrade});
 
-  factory TransactionBody.fromJson(Map<String, dynamic> json) =>
-      TransactionBody(
+  factory TransactionBody.fromJson(Map<String, dynamic> json) {
+    if (json['stocksAvailableForTrade'] != null) {
+      return TransactionBody(
+          transactionId: json['transactionId'],
+          type: json['type'],
+          noOfStocks: json['noOfStocks'],
+          stockCode: json['stockCode'],
+          stockPrice: json['stockPrice'],
+          stocksAvailableForTrade: json['stocksAvailableForTrade']);
+    } else {
+      return TransactionBody(
         transactionId: json['transactionId'],
         type: json['type'],
         noOfStocks: json['noOfStocks'],
         stockCode: json['stockCode'],
         stockPrice: json['stockPrice'],
       );
-
-  Map<String, dynamic> toJson() => {
+    }
+  }
+  Map<String, dynamic> toJson() {
+    if (stocksAvailableForTrade != null) {
+      return {
+        "transactionId": transactionId,
+        "type": type,
+        "noOfStocks": noOfStocks,
+        "stockCode": stockCode,
+        "stockPrice": stockPrice,
+        "stocksAvailableForTrade": stocksAvailableForTrade,
+      };
+    } else {
+      return {
         "transactionId": transactionId,
         "type": type,
         "noOfStocks": noOfStocks,
         "stockCode": stockCode,
         "stockPrice": stockPrice,
       };
+    }
+  }
 }
 
 TransactionsCreate transactionsCreateFromJson(String str) =>

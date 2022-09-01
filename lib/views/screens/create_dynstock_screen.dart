@@ -13,6 +13,7 @@ import 'package:dynstocks/redux/actions/transactions.actions.dart';
 import 'package:dynstocks/redux/app_state.dart';
 import 'package:dynstocks/services/ticker_data.service.dart';
 import 'package:dynstocks/services/transactions.service.dart';
+import 'package:dynstocks/static/post-market-timer.dart';
 import 'package:dynstocks/static/toast_message_handler.dart';
 import 'package:dynstocks/static/timed_ticker_call.dart';
 import 'package:dynstocks/views/screens/view_dynstocks_list_screen.dart';
@@ -110,6 +111,7 @@ class _CreateDynStockScreenState extends State<CreateDynStockScreen>
   void startPeriodicTimer() {
     Timer.periodic(Duration(seconds: 1), (timer) {
       if (mounted) {
+        PostMarketTimer.startPostMarketTimer(context);
         bool timerStarted = TimedTickerCall?.startTimedTickerCallForDynStocks(
           context,
         );
@@ -383,7 +385,9 @@ class _CreateDynStockScreenState extends State<CreateDynStockScreen>
                                 Column(children: [
                                   Container(
                                     child: Text(
-                                      (searchedStockPrice! > 0 ? '+' : '') +
+                                      (searchedStockPriceChange! > 0
+                                              ? '+'
+                                              : '') +
                                           searchedStockPriceChange!
                                               .toStringAsFixed(2),
                                       style: GoogleFonts.overlock(
@@ -396,7 +400,9 @@ class _CreateDynStockScreenState extends State<CreateDynStockScreen>
                                   Container(
                                     child: Text(
                                       '(' +
-                                          (searchedStockPrice! > 0 ? '+' : '') +
+                                          (searchedStockPriceChangePercent! > 0
+                                              ? '+'
+                                              : '') +
                                           searchedStockPriceChangePercent!
                                               .toStringAsFixed(2) +
                                           '% )',

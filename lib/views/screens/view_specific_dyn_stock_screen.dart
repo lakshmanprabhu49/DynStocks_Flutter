@@ -4,11 +4,15 @@ import 'package:dynstocks/main.dart';
 import 'package:dynstocks/models/colors.dart';
 import 'package:dynstocks/models/common.dart';
 import 'package:dynstocks/models/dyn_stocks.dart';
+import 'package:dynstocks/models/transactions.dart' as TRANSACTIONS;
+import 'package:dynstocks/models/user_info.dart' as USERINFO;
 import 'package:dynstocks/redux/actions/dyn_stocks.actions.dart';
 import 'package:dynstocks/redux/actions/net_returns_for_dyn_stocks.action.dart';
 import 'package:dynstocks/redux/actions/ticker_data.actions.dart';
+import 'package:dynstocks/redux/actions/transactions.actions.dart';
 import 'package:dynstocks/redux/app_state.dart';
 import 'package:dynstocks/redux/state/dyn_stocks.state.dart';
+import 'package:dynstocks/static/post-market-timer.dart';
 import 'package:dynstocks/static/toast_message_handler.dart';
 import 'package:dynstocks/static/timed_ticker_call.dart';
 import 'package:dynstocks/views/screens/view_chart_for_specific_dynstock_screen.dart';
@@ -72,6 +76,7 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
   void startPeriodicTimer() {
     Timer.periodic(Duration(seconds: 1), (timer) {
       if (mounted) {
+        PostMarketTimer.startPostMarketTimer(context);
         bool timerStarted = TimedTickerCall?.startTimedTickerCallForDynStocks(
           context,
         );
@@ -280,6 +285,89 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
   }
 
   String userId = appStore.state.userId;
+
+  Future<String?> showForceSellDialog(DynStock currentDynStock) {
+    return showDialog<String>(
+      context: context,
+      builder: (BuildContext context) => AlertDialog(
+        title: Text(
+          'Logout',
+          style: GoogleFonts.outfit(
+            fontSize: 25,
+            fontWeight: FontWeight.bold,
+            color: AccentColors.red1,
+          ),
+        ),
+        content: Text(
+          'Are you sure you want to force sell the stock at the market price?',
+          style: GoogleFonts.outfit(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: AccentColors.yellow1,
+          ),
+        ),
+        actions: <Widget>[
+          ElevatedButton(
+            style: ButtonStyle(
+              backgroundColor: MaterialStateProperty.all(
+                Colors.white,
+              ),
+            ),
+            onPressed: () => Navigator.pop(context, 'Cancel'),
+            child: Container(
+                padding: EdgeInsets.fromLTRB(10, 10, 10, 10),
+                child: Text(
+                  'Cancel',
+                  style: GoogleFonts.lusitana(
+                    fontSize: 15,
+                    color: AccentColors.red1,
+                    fontWeight: FontWeight.bold,
+                  ),
+                )),
+          ),
+          ElevatedButton(
+            style: ButtonStyle(
+              backgroundColor: MaterialStateProperty.all(
+                AccentColors.red1,
+              ),
+            ),
+            onPressed: () {
+              if (mounted) {
+                setState(() {
+                  StoreProvider.of<AppState>(context).dispatch(
+                      CreateTransactionAction(
+                          userId: userId,
+                          instrumentToken: currentDynStock.instrumentToken,
+                          dynStockId: currentDynStock.dynStockId.uuid,
+                          stockCode: currentDynStock.stockCode,
+                          body: TRANSACTIONS.TransactionBody(
+                              transactionId:
+                                  DateTime.now().microsecond.toString(),
+                              stockCode: currentDynStock.stockCode,
+                              type: 'SELL',
+                              stockPrice: 0,
+                              noOfStocks:
+                                  currentDynStock.stocksAvailableForTrade),
+                          stockOrderType: EStockOrderType.Market.name));
+                  errorMessageShown = false;
+                });
+              }
+            },
+            child: Container(
+                padding: EdgeInsets.fromLTRB(10, 10, 10, 10),
+                child: Text(
+                  'Force Cell',
+                  style: GoogleFonts.lusitana(
+                    fontSize: 15,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                )),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1820,6 +1908,49 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                                                   ViewChartForSpecificDynStockScreen(
                                                       currentDynStockCode:
                                                           currentDynStockCode))));
+                                    })),
+                          ],
+                        )),
+                    Container(
+                        margin: EdgeInsets.fromLTRB(0, 10, 0, 0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            Container(
+                                width: screenSize.width * 0.45,
+                                height: 70,
+                                decoration: BoxDecoration(
+                                    border: Border.all(
+                                        color: AccentColors.red2, width: 4),
+                                    borderRadius: BorderRadius.circular(30),
+                                    gradient: LinearGradient(
+                                        colors: [
+                                          AccentColors.red1,
+                                          AccentColors.yellow1,
+                                        ],
+                                        begin: Alignment.topCenter,
+                                        end: Alignment.bottomCenter)),
+                                child: ElevatedButton(
+                                    style: ButtonStyle(
+                                        shape: MaterialStateProperty.all<
+                                                RoundedRectangleBorder>(
+                                            RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(25))),
+                                        backgroundColor:
+                                            MaterialStateProperty.all(
+                                          Colors.transparent,
+                                        )),
+                                    child: Text(
+                                      'Force Sell',
+                                      style: GoogleFonts.outfit(
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                          fontSize: 18),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                    onPressed: () {
+                                      showForceSellDialog(currentDynStock);
                                     })),
                           ],
                         ))
