@@ -339,11 +339,14 @@ class _EventsTodayScreenState extends State<EventsTodayScreen> with RouteAware {
       Timer.periodic(Duration(seconds: 1), (timer) {
         DateTime currentTime = DateTime.now();
         if (currentTime.hour == 9 && now.hour >= 15) {
+          timer.cancel();
           setState(() {
             isLoaded = false;
             reload = true;
           });
-          timer.cancel();
+          Route newRoute =
+              MaterialPageRoute(builder: (context) => EventsTodayScreen());
+          Navigator.pushReplacement(context, newRoute);
         }
       });
     }

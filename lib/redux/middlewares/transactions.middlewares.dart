@@ -35,179 +35,893 @@ void transactionsMiddleWare(
   }
   if (action is CreateTransactionAction) {
     if (action.placeKotakAPIStockOrder) {
-      if (!(store
-          .state.transactionsCreateState.data[action.stockCode]!.creating)) {
-        KotakStockAPIService()
-            .placeOrder(
-                action.userId,
-                store.state.accessCode,
-                KotakStockAPIPlaceOrderBody(
-                    orderType: 'N',
-                    instrumentToken: action.instrumentToken,
-                    transactionType: action.body.type,
-                    quantity: action.body.noOfStocks,
-                    price: action.stockOrderType == EStockOrderType.Limit.name
-                        ? action.body.stockPrice
-                        : 0.0))
-            .then((order) {
-          bool orderPlacedInNSE = order!.success!.nse != null ? true : false;
-          ///////
-          Future.delayed(Duration(milliseconds: 200), () {
-            KotakStockAPIService()
-                .getOrderReport(
-                    action.userId,
-                    store.state.accessCode,
-                    (orderPlacedInNSE
-                        ? order.success!.nse!.orderId
-                        : order.success!.bse!.orderId),
-                    action.instrumentToken)
-                .then((position) {
-              OrderReportsSuccess tradedStock = position!.success.firstWhere(
-                  (element) =>
-                      element.orderId ==
+      if (!action.forcedTransaction) {
+        if (!(store
+            .state.transactionsCreateState.data[action.stockCode]!.creating)) {
+          KotakStockAPIService()
+              .placeOrder(
+                  action.userId,
+                  store.state.accessCode,
+                  KotakStockAPIPlaceOrderBody(
+                      orderType: 'N',
+                      instrumentToken: action.instrumentToken,
+                      transactionType: action.body.type,
+                      quantity: action.body.noOfStocks,
+                      price: action.stockOrderType == EStockOrderType.Limit.name
+                          ? action.body.stockPrice
+                          : 0.0))
+              .then((order) {
+            bool orderPlacedInNSE = order!.success!.nse != null ? true : false;
+            ///////
+            Future.delayed(Duration(milliseconds: 200), () {
+              KotakStockAPIService()
+                  .getOrderReport(
+                      action.userId,
+                      store.state.accessCode,
                       (orderPlacedInNSE
                           ? order.success!.nse!.orderId
-                          : order.success!.bse!.orderId));
-              int orderId = orderPlacedInNSE
-                  ? order.success!.nse!.orderId
-                  : order.success!.bse!.orderId;
-              if (tradedStock.statusInfo == EStockTradeStatusInfo.Traded.name) {
-                TransactionsService()
-                    .createTransaction(
-                        action.userId,
-                        action.dynStockId,
-                        TransactionBody(
-                            transactionId: orderPlacedInNSE
-                                ? order.success!.nse!.orderId.toString()
-                                : order.success!.bse!.orderId.toString(),
-                            type: action.body.type,
-                            noOfStocks: action.body.noOfStocks,
-                            stockCode: action.body.stockCode,
-                            stockPrice: tradedStock.price))
-                    .then((response) {
-                  store.dispatch(CreateTransactionSuccessAction(
-                      stockCode: action.stockCode));
-                  store.state.allTickerData.data[action.stockCode]!
-                      .currentLocalMaximumPrice = tradedStock.price;
-                  store.state.allTickerData.data[action.stockCode]!
-                      .currentLocalMinimumPrice = tradedStock.price;
-                  store.dispatch(GetAllTickerDataSuccessAction(
-                      allTickerData: store.state.allTickerData.data));
-                  DateTime transactionTime =
-                      DateTime.fromMillisecondsSinceEpoch(
-                          response.transactionTime.date);
-                  String emailBodyLine1 =
-                      'Transaction Type: ${response.type}, Transaction Price: ${response.stockPrice}, Number of Stocks: ${response.noOfStocks}';
-                  String emailBodyLine2 =
-                      'Transaction Time: ${transactionTime.hour}:${transactionTime.minute}:${transactionTime.second} ${transactionTime.day}/${transactionTime.month}/${transactionTime.year}';
-                  String emailBodyLine3 = 'Total Amount: ${response.amount}';
-                  store.dispatch(GetAllDynStocksAction(userId: action.userId));
-                  // EmailJSService()
-                  //     .sendEmail(Email(
-                  //         username: 'Myself',
-                  //         subject: 'Transaction Made',
-                  //         title: 'Transaction Made for ${action.body.stockCode}',
-                  //         subtitle:
-                  //             'Transaction has been made for ${action.body.stockCode} with the following params',
-                  //         body:
-                  //             '${emailBodyLine1} ${emailBodyLine2} ${emailBodyLine3}'))
-                  //     .then((value) {
-                  // }).catchError((error) {
-                  //   placingOrder = false;
-                  //   store.dispatch(CreateTransactionFailAction(error: error));
-                  // });
-                }).catchError((error) {
-                  store.dispatch(CreateTransactionFailAction(
-                      stockCode: action.stockCode, error: error));
-                });
-              } else {
-                Timer.periodic(Duration(seconds: 10), (timer) {
-                  KotakStockAPIService()
-                      .getOrderReport(
+                          : order.success!.bse!.orderId),
+                      action.instrumentToken)
+                  .then((position) {
+                OrderReportsSuccess tradedStock = position!.success.firstWhere(
+                    (element) =>
+                        element.orderId ==
+                        (orderPlacedInNSE
+                            ? order.success!.nse!.orderId
+                            : order.success!.bse!.orderId));
+                int orderId = orderPlacedInNSE
+                    ? order.success!.nse!.orderId
+                    : order.success!.bse!.orderId;
+                if (tradedStock.statusInfo ==
+                    EStockTradeStatusInfo.Traded.name) {
+                  TransactionsService()
+                      .createTransaction(
                           action.userId,
-                          store.state.accessCode,
-                          (orderPlacedInNSE
-                              ? order.success!.nse!.orderId
-                              : order.success!.bse!.orderId),
-                          action.instrumentToken)
-                      .then((position) {
-                    OrderReportsSuccess tradedStock = position!.success
-                        .firstWhere((element) =>
-                            element.orderId ==
-                            (orderPlacedInNSE
-                                ? order.success!.nse!.orderId
-                                : order.success!.bse!.orderId));
-                    int orderId = orderPlacedInNSE
-                        ? order.success!.nse!.orderId
-                        : order.success!.bse!.orderId;
-                    if (tradedStock.statusInfo ==
-                        EStockTradeStatusInfo.Traded.name) {
-                      timer.cancel();
-                      TransactionsService()
-                          .createTransaction(
-                              action.userId,
-                              action.dynStockId,
-                              TransactionBody(
-                                  transactionId: orderPlacedInNSE
-                                      ? order.success!.nse!.orderId.toString()
-                                      : order.success!.bse!.orderId.toString(),
-                                  type: action.body.type,
-                                  noOfStocks: action.body.noOfStocks,
-                                  stockCode: action.body.stockCode,
-                                  stockPrice: tradedStock.price))
-                          .then((response) {
-                        store.dispatch(CreateTransactionSuccessAction(
-                          stockCode: action.stockCode,
-                        ));
-                        store.state.allTickerData.data[action.stockCode]!
-                            .currentLocalMaximumPrice = tradedStock.price;
-                        store.state.allTickerData.data[action.stockCode]!
-                            .currentLocalMinimumPrice = tradedStock.price;
-                        store.dispatch(GetAllTickerDataSuccessAction(
-                            allTickerData: store.state.allTickerData.data));
-                        DateTime transactionTime =
-                            DateTime.fromMillisecondsSinceEpoch(
-                                response.transactionTime.date);
-                        String emailBodyLine1 =
-                            'Transaction Type: ${response.type}, Transaction Price: ${response.stockPrice}, Number of Stocks: ${response.noOfStocks}';
-                        String emailBodyLine2 =
-                            'Transaction Time: ${transactionTime.hour}:${transactionTime.minute}:${transactionTime.second} ${transactionTime.day}/${transactionTime.month}/${transactionTime.year}';
-                        String emailBodyLine3 =
-                            'Total Amount: ${response.amount}';
-                        store.dispatch(
-                            GetAllDynStocksAction(userId: action.userId));
-                        // EmailJSService()
-                        //     .sendEmail(Email(
-                        //         username: 'Myself',
-                        //         subject: 'Transaction Made',
-                        //         title: 'Transaction Made for ${action.body.stockCode}',
-                        //         subtitle:
-                        //             'Transaction has been made for ${action.body.stockCode} with the following params',
-                        //         body:
-                        //             '${emailBodyLine1} ${emailBodyLine2} ${emailBodyLine3}'))
-                        //     .then((value) {
-                        // }).catchError((error) {
-                        //   placingOrder = false;
-                        //   store.dispatch(CreateTransactionFailAction(error: error));
-                        // });
-                      }).catchError((error) {
-                        store.dispatch(CreateTransactionFailAction(
-                            stockCode: action.stockCode, error: error));
-                      });
-                    }
+                          action.dynStockId,
+                          TransactionBody(
+                              transactionId: orderPlacedInNSE
+                                  ? order.success!.nse!.orderId.toString()
+                                  : order.success!.bse!.orderId.toString(),
+                              type: action.body.type,
+                              noOfStocks: action.body.noOfStocks,
+                              stockCode: action.body.stockCode,
+                              stockPrice: tradedStock.price))
+                      .then((response) {
+                    store.dispatch(CreateTransactionSuccessAction(
+                        stockCode: action.stockCode));
+                    store.state.allTickerData.data[action.stockCode]!
+                        .currentLocalMaximumPrice = tradedStock.price;
+                    store.state.allTickerData.data[action.stockCode]!
+                        .currentLocalMinimumPrice = tradedStock.price;
+                    store.dispatch(GetAllTickerDataSuccessAction(
+                        allTickerData: store.state.allTickerData.data));
+                    DateTime transactionTime =
+                        DateTime.fromMillisecondsSinceEpoch(
+                            response.transactionTime.date);
+                    String emailBodyLine1 =
+                        'Transaction Type: ${response.type}, Transaction Price: ${response.stockPrice}, Number of Stocks: ${response.noOfStocks}';
+                    String emailBodyLine2 =
+                        'Transaction Time: ${transactionTime.hour}:${transactionTime.minute}:${transactionTime.second} ${transactionTime.day}/${transactionTime.month}/${transactionTime.year}';
+                    String emailBodyLine3 = 'Total Amount: ${response.amount}';
+                    store
+                        .dispatch(GetAllDynStocksAction(userId: action.userId));
+                    // EmailJSService()
+                    //     .sendEmail(Email(
+                    //         username: 'Myself',
+                    //         subject: 'Transaction Made',
+                    //         title: 'Transaction Made for ${action.body.stockCode}',
+                    //         subtitle:
+                    //             'Transaction has been made for ${action.body.stockCode} with the following params',
+                    //         body:
+                    //             '${emailBodyLine1} ${emailBodyLine2} ${emailBodyLine3}'))
+                    //     .then((value) {
+                    // }).catchError((error) {
+                    //   placingOrder = false;
+                    //   store.dispatch(CreateTransactionFailAction(error: error));
+                    // });
                   }).catchError((error) {
                     store.dispatch(CreateTransactionFailAction(
                         stockCode: action.stockCode, error: error));
                   });
+                } else {
+                  Timer.periodic(Duration(seconds: 3), (timer) {
+                    KotakStockAPIService()
+                        .getOrderReport(
+                            action.userId,
+                            store.state.accessCode,
+                            (orderPlacedInNSE
+                                ? order.success!.nse!.orderId
+                                : order.success!.bse!.orderId),
+                            action.instrumentToken)
+                        .then((position) {
+                      OrderReportsSuccess tradedStock = position!.success
+                          .firstWhere((element) =>
+                              element.orderId ==
+                              (orderPlacedInNSE
+                                  ? order.success!.nse!.orderId
+                                  : order.success!.bse!.orderId));
+                      int orderId = orderPlacedInNSE
+                          ? order.success!.nse!.orderId
+                          : order.success!.bse!.orderId;
+                      if (tradedStock.statusInfo ==
+                          EStockTradeStatusInfo.Traded.name) {
+                        timer.cancel();
+                        TransactionsService()
+                            .createTransaction(
+                                action.userId,
+                                action.dynStockId,
+                                TransactionBody(
+                                    transactionId: orderPlacedInNSE
+                                        ? order.success!.nse!.orderId.toString()
+                                        : order.success!.bse!.orderId
+                                            .toString(),
+                                    type: action.body.type,
+                                    noOfStocks: action.body.noOfStocks,
+                                    stockCode: action.body.stockCode,
+                                    stockPrice: tradedStock.price))
+                            .then((response) {
+                          store.dispatch(CreateTransactionSuccessAction(
+                            stockCode: action.stockCode,
+                          ));
+                          store.state.allTickerData.data[action.stockCode]!
+                              .currentLocalMaximumPrice = tradedStock.price;
+                          store.state.allTickerData.data[action.stockCode]!
+                              .currentLocalMinimumPrice = tradedStock.price;
+                          store.dispatch(GetAllTickerDataSuccessAction(
+                              allTickerData: store.state.allTickerData.data));
+                          DateTime transactionTime =
+                              DateTime.fromMillisecondsSinceEpoch(
+                                  response.transactionTime.date);
+                          String emailBodyLine1 =
+                              'Transaction Type: ${response.type}, Transaction Price: ${response.stockPrice}, Number of Stocks: ${response.noOfStocks}';
+                          String emailBodyLine2 =
+                              'Transaction Time: ${transactionTime.hour}:${transactionTime.minute}:${transactionTime.second} ${transactionTime.day}/${transactionTime.month}/${transactionTime.year}';
+                          String emailBodyLine3 =
+                              'Total Amount: ${response.amount}';
+                          store.dispatch(
+                              GetAllDynStocksAction(userId: action.userId));
+                          // EmailJSService()
+                          //     .sendEmail(Email(
+                          //         username: 'Myself',
+                          //         subject: 'Transaction Made',
+                          //         title: 'Transaction Made for ${action.body.stockCode}',
+                          //         subtitle:
+                          //             'Transaction has been made for ${action.body.stockCode} with the following params',
+                          //         body:
+                          //             '${emailBodyLine1} ${emailBodyLine2} ${emailBodyLine3}'))
+                          //     .then((value) {
+                          // }).catchError((error) {
+                          //   placingOrder = false;
+                          //   store.dispatch(CreateTransactionFailAction(error: error));
+                          // });
+                        }).catchError((error) {
+                          store.dispatch(CreateTransactionFailAction(
+                              stockCode: action.stockCode, error: error));
+                        });
+                      }
+                    }).catchError((error) {
+                      store.dispatch(CreateTransactionFailAction(
+                          stockCode: action.stockCode, error: error));
+                    });
+                  });
+                }
+              }).catchError((error) {
+                store.dispatch(CreateTransactionFailAction(
+                    stockCode: action.stockCode, error: error));
+              });
+            });
+
+            ///////
+          }).catchError((error) {
+            store.dispatch(CreateTransactionFailAction(
+                stockCode: action.stockCode, error: error));
+          });
+        }
+      } else {
+        KotakStockAPIService()
+            .getAllOrderReport(
+                action.userId, store.state.accessCode, action.instrumentToken)
+            .then((orderReports) {
+          bool thereAreNoIncompleteOrders = true;
+          for (var orderReport in orderReports!.success) {
+            if (action.body.type == ETransactionType.BUY.name) {
+              // Force BUY is initiated. If there is any open transaction for BUY, cancel it
+              // If there is a partial transaction for BUY,Modify it such that it becomes a full transaction, change noOfStocks to the traded stocks
+              // For the remaining stocks that are not bought in above, BUY it at the market price
+              if (orderReport.statusInfo == EStockTradeStatusInfo.Open.name) {
+                KotakStockAPIService()
+                    .cancelOrder(action.userId, store.state.accessCode,
+                        orderReport.orderId.toString())
+                    .then((cancelledOrder) {
+                  store.dispatch(CreateTransactionSuccessAction(
+                      stockCode: action.stockCode));
+                  store.dispatch(GetAllTickerDataSuccessAction(
+                      allTickerData: store.state.allTickerData.data));
+                }).catchError((error) {
+                  store.dispatch(CreateTransactionFailAction(
+                      stockCode: action.stockCode, error: error));
+                });
+                thereAreNoIncompleteOrders = false;
+              } else if (orderReport.statusInfo ==
+                  EStockTradeStatusInfo.Partially_Traded.name) {
+                // Modify the order first such that , partially traded transaction becomes Fully Traded transaction
+                thereAreNoIncompleteOrders = false;
+                int quantityBoughtAlready =
+                    orderReport.orderQuantity - orderReport.pendingQuantity;
+                KotakStockAPIService()
+                    .modifyOrder(
+                        action.userId,
+                        store.state.accessCode,
+                        orderReport.orderId.toString(),
+                        KotakStockAPIPlaceOrderBody(
+                            orderType: 'N',
+                            instrumentToken: action.instrumentToken,
+                            transactionType: ETransactionType.BUY.name,
+                            quantity: quantityBoughtAlready))
+                    .then((modifiedOrder) {
+                  bool orderPlacedInNSE =
+                      modifiedOrder!.success!.nse != null ? true : false;
+                  TransactionsService()
+                      .createTransaction(
+                          action.userId,
+                          action.dynStockId,
+                          TransactionBody(
+                              transactionId: orderPlacedInNSE
+                                  ? modifiedOrder.success!.nse!.orderId
+                                      .toString()
+                                  : modifiedOrder.success!.bse!.orderId
+                                      .toString(),
+                              type: action.body.type,
+                              noOfStocks: action.body.noOfStocks,
+                              stockCode: action.body.stockCode,
+                              stockPrice: orderReport.price))
+                      .then((response) {
+                    // Then place the BUY order to BUY the remaining quantity at the market price
+                    KotakStockAPIService()
+                        .placeOrder(
+                            action.userId,
+                            store.state.accessCode,
+                            KotakStockAPIPlaceOrderBody(
+                                orderType: 'N',
+                                instrumentToken: action.instrumentToken,
+                                transactionType: ETransactionType.BUY.name,
+                                quantity: orderReport.pendingQuantity))
+                        .then((newOrder) {
+                      bool orderPlacedInNSE =
+                          newOrder!.success!.nse != null ? true : false;
+                      Future.delayed(Duration(milliseconds: 200), () {
+                        KotakStockAPIService()
+                            .getOrderReport(
+                                action.userId,
+                                store.state.accessCode,
+                                (orderPlacedInNSE
+                                    ? newOrder.success!.nse!.orderId
+                                    : newOrder.success!.bse!.orderId),
+                                action.instrumentToken)
+                            .then((position) {
+                          OrderReportsSuccess tradedStock = position!.success
+                              .firstWhere((element) =>
+                                  element.orderId ==
+                                  (orderPlacedInNSE
+                                      ? newOrder.success!.nse!.orderId
+                                      : newOrder.success!.bse!.orderId));
+                          int orderId = orderPlacedInNSE
+                              ? newOrder.success!.nse!.orderId
+                              : newOrder.success!.bse!.orderId;
+                          if (tradedStock.statusInfo ==
+                              EStockTradeStatusInfo.Traded.name) {
+                            TransactionsService()
+                                .createTransaction(
+                                    action.userId,
+                                    action.dynStockId,
+                                    TransactionBody(
+                                        transactionId: orderPlacedInNSE
+                                            ? newOrder.success!.nse!.orderId
+                                                .toString()
+                                            : newOrder.success!.bse!.orderId
+                                                .toString(),
+                                        type: action.body.type,
+                                        noOfStocks: action.body.noOfStocks,
+                                        stockCode: action.body.stockCode,
+                                        stockPrice: tradedStock.price))
+                                .then((response) {
+                              store.dispatch(CreateTransactionSuccessAction(
+                                  stockCode: action.stockCode));
+                              store.state.allTickerData.data[action.stockCode]!
+                                  .currentLocalMaximumPrice = tradedStock.price;
+                              store.state.allTickerData.data[action.stockCode]!
+                                  .currentLocalMinimumPrice = tradedStock.price;
+                              store.dispatch(GetAllTickerDataSuccessAction(
+                                  allTickerData:
+                                      store.state.allTickerData.data));
+                              DateTime transactionTime =
+                                  DateTime.fromMillisecondsSinceEpoch(
+                                      response.transactionTime.date);
+                              String emailBodyLine1 =
+                                  'Transaction Type: ${response.type}, Transaction Price: ${response.stockPrice}, Number of Stocks: ${response.noOfStocks}';
+                              String emailBodyLine2 =
+                                  'Transaction Time: ${transactionTime.hour}:${transactionTime.minute}:${transactionTime.second} ${transactionTime.day}/${transactionTime.month}/${transactionTime.year}';
+                              String emailBodyLine3 =
+                                  'Total Amount: ${response.amount}';
+                              store.dispatch(
+                                  GetAllDynStocksAction(userId: action.userId));
+                              // EmailJSService()
+                              //     .sendEmail(Email(
+                              //         username: 'Myself',
+                              //         subject: 'Transaction Made',
+                              //         title: 'Transaction Made for ${action.body.stockCode}',
+                              //         subtitle:
+                              //             'Transaction has been made for ${action.body.stockCode} with the following params',
+                              //         body:
+                              //             '${emailBodyLine1} ${emailBodyLine2} ${emailBodyLine3}'))
+                              //     .then((value) {
+                              // }).catchError((error) {
+                              //   placingOrder = false;
+                              //   store.dispatch(CreateTransactionFailAction(error: error));
+                              // });
+                            }).catchError((error) {
+                              store.dispatch(CreateTransactionFailAction(
+                                  stockCode: action.stockCode, error: error));
+                            });
+                          } else {
+                            Timer.periodic(Duration(seconds: 3), (timer) {
+                              KotakStockAPIService()
+                                  .getOrderReport(
+                                      action.userId,
+                                      store.state.accessCode,
+                                      (orderPlacedInNSE
+                                          ? newOrder.success!.nse!.orderId
+                                          : newOrder.success!.bse!.orderId),
+                                      action.instrumentToken)
+                                  .then((position) {
+                                OrderReportsSuccess tradedStock =
+                                    position!.success.firstWhere((element) =>
+                                        element.orderId ==
+                                        (orderPlacedInNSE
+                                            ? newOrder.success!.nse!.orderId
+                                            : newOrder.success!.bse!.orderId));
+                                int orderId = orderPlacedInNSE
+                                    ? newOrder.success!.nse!.orderId
+                                    : newOrder.success!.bse!.orderId;
+                                if (tradedStock.statusInfo ==
+                                    EStockTradeStatusInfo.Traded.name) {
+                                  timer.cancel();
+                                  TransactionsService()
+                                      .createTransaction(
+                                          action.userId,
+                                          action.dynStockId,
+                                          TransactionBody(
+                                              transactionId: orderPlacedInNSE
+                                                  ? newOrder
+                                                      .success!.nse!.orderId
+                                                      .toString()
+                                                  : newOrder
+                                                      .success!.bse!.orderId
+                                                      .toString(),
+                                              type: action.body.type,
+                                              noOfStocks:
+                                                  action.body.noOfStocks,
+                                              stockCode: action.body.stockCode,
+                                              stockPrice: tradedStock.price))
+                                      .then((response) {
+                                    store.dispatch(
+                                        CreateTransactionSuccessAction(
+                                      stockCode: action.stockCode,
+                                    ));
+                                    store
+                                            .state
+                                            .allTickerData
+                                            .data[action.stockCode]!
+                                            .currentLocalMaximumPrice =
+                                        tradedStock.price;
+                                    store
+                                            .state
+                                            .allTickerData
+                                            .data[action.stockCode]!
+                                            .currentLocalMinimumPrice =
+                                        tradedStock.price;
+                                    store.dispatch(
+                                        GetAllTickerDataSuccessAction(
+                                            allTickerData: store
+                                                .state.allTickerData.data));
+                                    DateTime transactionTime =
+                                        DateTime.fromMillisecondsSinceEpoch(
+                                            response.transactionTime.date);
+                                    String emailBodyLine1 =
+                                        'Transaction Type: ${response.type}, Transaction Price: ${response.stockPrice}, Number of Stocks: ${response.noOfStocks}';
+                                    String emailBodyLine2 =
+                                        'Transaction Time: ${transactionTime.hour}:${transactionTime.minute}:${transactionTime.second} ${transactionTime.day}/${transactionTime.month}/${transactionTime.year}';
+                                    String emailBodyLine3 =
+                                        'Total Amount: ${response.amount}';
+                                    store.dispatch(GetAllDynStocksAction(
+                                        userId: action.userId));
+                                    // EmailJSService()
+                                    //     .sendEmail(Email(
+                                    //         username: 'Myself',
+                                    //         subject: 'Transaction Made',
+                                    //         title: 'Transaction Made for ${action.body.stockCode}',
+                                    //         subtitle:
+                                    //             'Transaction has been made for ${action.body.stockCode} with the following params',
+                                    //         body:
+                                    //             '${emailBodyLine1} ${emailBodyLine2} ${emailBodyLine3}'))
+                                    //     .then((value) {
+                                    // }).catchError((error) {
+                                    //   placingOrder = false;
+                                    //   store.dispatch(CreateTransactionFailAction(error: error));
+                                    // });
+                                  }).catchError((error) {
+                                    store.dispatch(CreateTransactionFailAction(
+                                        stockCode: action.stockCode,
+                                        error: error));
+                                  });
+                                }
+                              }).catchError((error) {
+                                store.dispatch(CreateTransactionFailAction(
+                                    stockCode: action.stockCode, error: error));
+                              });
+                            });
+                          }
+                        }).catchError((error) {
+                          store.dispatch(CreateTransactionFailAction(
+                              stockCode: action.stockCode, error: error));
+                        });
+                      });
+                    }).catchError((error) {
+                      store.dispatch(CreateTransactionFailAction(
+                          stockCode: action.stockCode, error: error));
+                    });
+                  }).catchError((error) {
+                    store.dispatch(CreateTransactionFailAction(
+                        stockCode: action.stockCode, error: error));
+                  });
+                }).catchError((error) {
+                  store.dispatch(CreateTransactionFailAction(
+                      stockCode: action.stockCode, error: error));
                 });
               }
+            } else if (action.body.type == ETransactionType.SELL.name) {
+              // Force SELL is initiated. If there is any open transaction for SELL, cancel it
+              // If there is a partial transaction for BUY,Modify it such that it becomes a full transaction, change noOfStocks to the traded stocks
+              // For the remaining stocks that are not bought in above, BUY it at the market price
+              if (orderReport.statusInfo == EStockTradeStatusInfo.Open.name) {
+                thereAreNoIncompleteOrders = false;
+                KotakStockAPIService()
+                    .cancelOrder(action.userId, store.state.accessCode,
+                        orderReport.orderId.toString())
+                    .then((cancelledOrder) {
+                  store.dispatch(CreateTransactionSuccessAction(
+                      stockCode: action.stockCode));
+                  store.dispatch(GetAllTickerDataSuccessAction(
+                      allTickerData: store.state.allTickerData.data));
+                }).catchError((error) {
+                  store.dispatch(CreateTransactionFailAction(
+                      stockCode: action.stockCode, error: error));
+                });
+              } else if (orderReport.statusInfo ==
+                  EStockTradeStatusInfo.Partially_Traded.name) {
+                // Modify the order first such that , partially traded transaction becomes Fully Traded transaction
+                thereAreNoIncompleteOrders = false;
+                int quantityBoughtSold =
+                    orderReport.orderQuantity - orderReport.pendingQuantity;
+                KotakStockAPIService()
+                    .modifyOrder(
+                        action.userId,
+                        store.state.accessCode,
+                        orderReport.orderId.toString(),
+                        KotakStockAPIPlaceOrderBody(
+                            orderType: 'N',
+                            instrumentToken: action.instrumentToken,
+                            transactionType: ETransactionType.BUY.name,
+                            quantity: quantityBoughtSold))
+                    .then((modifiedOrder) {
+                  bool orderPlacedInNSE =
+                      modifiedOrder!.success!.nse != null ? true : false;
+                  TransactionsService()
+                      .createTransaction(
+                          action.userId,
+                          action.dynStockId,
+                          TransactionBody(
+                              transactionId: orderPlacedInNSE
+                                  ? modifiedOrder.success!.nse!.orderId
+                                      .toString()
+                                  : modifiedOrder.success!.bse!.orderId
+                                      .toString(),
+                              type: action.body.type,
+                              noOfStocks: action.body.noOfStocks,
+                              stockCode: action.body.stockCode,
+                              stockPrice: orderReport.price))
+                      .then((response) {
+                    KotakStockAPIService()
+                        .placeOrder(
+                            action.userId,
+                            store.state.accessCode,
+                            KotakStockAPIPlaceOrderBody(
+                                orderType: 'N',
+                                instrumentToken: action.instrumentToken,
+                                transactionType: ETransactionType.SELL.name,
+                                quantity: orderReport.pendingQuantity))
+                        .then((newOrder) {
+                      bool orderPlacedInNSE =
+                          newOrder!.success!.nse != null ? true : false;
+                      Future.delayed(Duration(milliseconds: 200), () {
+                        KotakStockAPIService()
+                            .getOrderReport(
+                                action.userId,
+                                store.state.accessCode,
+                                (orderPlacedInNSE
+                                    ? newOrder.success!.nse!.orderId
+                                    : newOrder.success!.bse!.orderId),
+                                action.instrumentToken)
+                            .then((position) {
+                          OrderReportsSuccess tradedStock = position!.success
+                              .firstWhere((element) =>
+                                  element.orderId ==
+                                  (orderPlacedInNSE
+                                      ? newOrder.success!.nse!.orderId
+                                      : newOrder.success!.bse!.orderId));
+                          int orderId = orderPlacedInNSE
+                              ? newOrder.success!.nse!.orderId
+                              : newOrder.success!.bse!.orderId;
+                          if (tradedStock.statusInfo ==
+                              EStockTradeStatusInfo.Traded.name) {
+                            TransactionsService()
+                                .createTransaction(
+                                    action.userId,
+                                    action.dynStockId,
+                                    TransactionBody(
+                                        transactionId: orderPlacedInNSE
+                                            ? newOrder.success!.nse!.orderId
+                                                .toString()
+                                            : newOrder.success!.bse!.orderId
+                                                .toString(),
+                                        type: action.body.type,
+                                        noOfStocks: action.body.noOfStocks,
+                                        stockCode: action.body.stockCode,
+                                        stockPrice: tradedStock.price))
+                                .then((response) {
+                              store.dispatch(CreateTransactionSuccessAction(
+                                  stockCode: action.stockCode));
+                              store.state.allTickerData.data[action.stockCode]!
+                                  .currentLocalMaximumPrice = tradedStock.price;
+                              store.state.allTickerData.data[action.stockCode]!
+                                  .currentLocalMinimumPrice = tradedStock.price;
+                              store.dispatch(GetAllTickerDataSuccessAction(
+                                  allTickerData:
+                                      store.state.allTickerData.data));
+                              DateTime transactionTime =
+                                  DateTime.fromMillisecondsSinceEpoch(
+                                      response.transactionTime.date);
+                              String emailBodyLine1 =
+                                  'Transaction Type: ${response.type}, Transaction Price: ${response.stockPrice}, Number of Stocks: ${response.noOfStocks}';
+                              String emailBodyLine2 =
+                                  'Transaction Time: ${transactionTime.hour}:${transactionTime.minute}:${transactionTime.second} ${transactionTime.day}/${transactionTime.month}/${transactionTime.year}';
+                              String emailBodyLine3 =
+                                  'Total Amount: ${response.amount}';
+                              store.dispatch(
+                                  GetAllDynStocksAction(userId: action.userId));
+                              // EmailJSService()
+                              //     .sendEmail(Email(
+                              //         username: 'Myself',
+                              //         subject: 'Transaction Made',
+                              //         title: 'Transaction Made for ${action.body.stockCode}',
+                              //         subtitle:
+                              //             'Transaction has been made for ${action.body.stockCode} with the following params',
+                              //         body:
+                              //             '${emailBodyLine1} ${emailBodyLine2} ${emailBodyLine3}'))
+                              //     .then((value) {
+                              // }).catchError((error) {
+                              //   placingOrder = false;
+                              //   store.dispatch(CreateTransactionFailAction(error: error));
+                              // });
+                            }).catchError((error) {
+                              store.dispatch(CreateTransactionFailAction(
+                                  stockCode: action.stockCode, error: error));
+                            });
+                          } else {
+                            Timer.periodic(Duration(seconds: 3), (timer) {
+                              KotakStockAPIService()
+                                  .getOrderReport(
+                                      action.userId,
+                                      store.state.accessCode,
+                                      (orderPlacedInNSE
+                                          ? newOrder.success!.nse!.orderId
+                                          : newOrder.success!.bse!.orderId),
+                                      action.instrumentToken)
+                                  .then((position) {
+                                OrderReportsSuccess tradedStock =
+                                    position!.success.firstWhere((element) =>
+                                        element.orderId ==
+                                        (orderPlacedInNSE
+                                            ? newOrder.success!.nse!.orderId
+                                            : newOrder.success!.bse!.orderId));
+                                int orderId = orderPlacedInNSE
+                                    ? newOrder.success!.nse!.orderId
+                                    : newOrder.success!.bse!.orderId;
+                                if (tradedStock.statusInfo ==
+                                    EStockTradeStatusInfo.Traded.name) {
+                                  timer.cancel();
+                                  TransactionsService()
+                                      .createTransaction(
+                                          action.userId,
+                                          action.dynStockId,
+                                          TransactionBody(
+                                              transactionId: orderPlacedInNSE
+                                                  ? newOrder
+                                                      .success!.nse!.orderId
+                                                      .toString()
+                                                  : newOrder
+                                                      .success!.bse!.orderId
+                                                      .toString(),
+                                              type: action.body.type,
+                                              noOfStocks:
+                                                  action.body.noOfStocks,
+                                              stockCode: action.body.stockCode,
+                                              stockPrice: tradedStock.price))
+                                      .then((response) {
+                                    store.dispatch(
+                                        CreateTransactionSuccessAction(
+                                      stockCode: action.stockCode,
+                                    ));
+                                    store
+                                            .state
+                                            .allTickerData
+                                            .data[action.stockCode]!
+                                            .currentLocalMaximumPrice =
+                                        tradedStock.price;
+                                    store
+                                            .state
+                                            .allTickerData
+                                            .data[action.stockCode]!
+                                            .currentLocalMinimumPrice =
+                                        tradedStock.price;
+                                    store.dispatch(
+                                        GetAllTickerDataSuccessAction(
+                                            allTickerData: store
+                                                .state.allTickerData.data));
+                                    DateTime transactionTime =
+                                        DateTime.fromMillisecondsSinceEpoch(
+                                            response.transactionTime.date);
+                                    String emailBodyLine1 =
+                                        'Transaction Type: ${response.type}, Transaction Price: ${response.stockPrice}, Number of Stocks: ${response.noOfStocks}';
+                                    String emailBodyLine2 =
+                                        'Transaction Time: ${transactionTime.hour}:${transactionTime.minute}:${transactionTime.second} ${transactionTime.day}/${transactionTime.month}/${transactionTime.year}';
+                                    String emailBodyLine3 =
+                                        'Total Amount: ${response.amount}';
+                                    store.dispatch(GetAllDynStocksAction(
+                                        userId: action.userId));
+                                    // EmailJSService()
+                                    //     .sendEmail(Email(
+                                    //         username: 'Myself',
+                                    //         subject: 'Transaction Made',
+                                    //         title: 'Transaction Made for ${action.body.stockCode}',
+                                    //         subtitle:
+                                    //             'Transaction has been made for ${action.body.stockCode} with the following params',
+                                    //         body:
+                                    //             '${emailBodyLine1} ${emailBodyLine2} ${emailBodyLine3}'))
+                                    //     .then((value) {
+                                    // }).catchError((error) {
+                                    //   placingOrder = false;
+                                    //   store.dispatch(CreateTransactionFailAction(error: error));
+                                    // });
+                                  }).catchError((error) {
+                                    store.dispatch(CreateTransactionFailAction(
+                                        stockCode: action.stockCode,
+                                        error: error));
+                                  });
+                                }
+                              }).catchError((error) {
+                                store.dispatch(CreateTransactionFailAction(
+                                    stockCode: action.stockCode, error: error));
+                              });
+                            });
+                          }
+                        }).catchError((error) {
+                          store.dispatch(CreateTransactionFailAction(
+                              stockCode: action.stockCode, error: error));
+                        });
+                      });
+                    }).catchError((error) {
+                      store.dispatch(CreateTransactionFailAction(
+                          stockCode: action.stockCode, error: error));
+                    });
+                  }).catchError((error) {
+                    store.dispatch(CreateTransactionFailAction(
+                        stockCode: action.stockCode, error: error));
+                  });
+                }).catchError((error) {
+                  store.dispatch(CreateTransactionFailAction(
+                      stockCode: action.stockCode, error: error));
+                });
+                // Then place a BUY order for remaining stocks that are not bought
+                {}
+              }
+            }
+          }
+          if (thereAreNoIncompleteOrders) {
+            // All orders are traded only, so we place a direct BUY or SELL transaction, at market price
+            KotakStockAPIService()
+                .placeOrder(
+                    action.userId,
+                    store.state.accessCode,
+                    KotakStockAPIPlaceOrderBody(
+                        orderType: 'N',
+                        instrumentToken: action.instrumentToken,
+                        transactionType: action.body.type,
+                        quantity: action.body.noOfStocks,
+                        price:
+                            action.stockOrderType == EStockOrderType.Limit.name
+                                ? action.body.stockPrice
+                                : 0.0))
+                .then((order) {
+              bool orderPlacedInNSE =
+                  order!.success!.nse != null ? true : false;
+              ///////
+              Future.delayed(Duration(milliseconds: 200), () {
+                KotakStockAPIService()
+                    .getOrderReport(
+                        action.userId,
+                        store.state.accessCode,
+                        (orderPlacedInNSE
+                            ? order.success!.nse!.orderId
+                            : order.success!.bse!.orderId),
+                        action.instrumentToken)
+                    .then((position) {
+                  OrderReportsSuccess tradedStock = position!.success
+                      .firstWhere((element) =>
+                          element.orderId ==
+                          (orderPlacedInNSE
+                              ? order.success!.nse!.orderId
+                              : order.success!.bse!.orderId));
+                  int orderId = orderPlacedInNSE
+                      ? order.success!.nse!.orderId
+                      : order.success!.bse!.orderId;
+                  if (tradedStock.statusInfo ==
+                      EStockTradeStatusInfo.Traded.name) {
+                    TransactionsService()
+                        .createTransaction(
+                            action.userId,
+                            action.dynStockId,
+                            TransactionBody(
+                                transactionId: orderPlacedInNSE
+                                    ? order.success!.nse!.orderId.toString()
+                                    : order.success!.bse!.orderId.toString(),
+                                type: action.body.type,
+                                noOfStocks: action.body.noOfStocks,
+                                stockCode: action.body.stockCode,
+                                stockPrice: tradedStock.price))
+                        .then((response) {
+                      store.dispatch(CreateTransactionSuccessAction(
+                          stockCode: action.stockCode));
+                      store.state.allTickerData.data[action.stockCode]!
+                          .currentLocalMaximumPrice = tradedStock.price;
+                      store.state.allTickerData.data[action.stockCode]!
+                          .currentLocalMinimumPrice = tradedStock.price;
+                      store.dispatch(GetAllTickerDataSuccessAction(
+                          allTickerData: store.state.allTickerData.data));
+                      DateTime transactionTime =
+                          DateTime.fromMillisecondsSinceEpoch(
+                              response.transactionTime.date);
+                      String emailBodyLine1 =
+                          'Transaction Type: ${response.type}, Transaction Price: ${response.stockPrice}, Number of Stocks: ${response.noOfStocks}';
+                      String emailBodyLine2 =
+                          'Transaction Time: ${transactionTime.hour}:${transactionTime.minute}:${transactionTime.second} ${transactionTime.day}/${transactionTime.month}/${transactionTime.year}';
+                      String emailBodyLine3 =
+                          'Total Amount: ${response.amount}';
+                      store.dispatch(
+                          GetAllDynStocksAction(userId: action.userId));
+                      // EmailJSService()
+                      //     .sendEmail(Email(
+                      //         username: 'Myself',
+                      //         subject: 'Transaction Made',
+                      //         title: 'Transaction Made for ${action.body.stockCode}',
+                      //         subtitle:
+                      //             'Transaction has been made for ${action.body.stockCode} with the following params',
+                      //         body:
+                      //             '${emailBodyLine1} ${emailBodyLine2} ${emailBodyLine3}'))
+                      //     .then((value) {
+                      // }).catchError((error) {
+                      //   placingOrder = false;
+                      //   store.dispatch(CreateTransactionFailAction(error: error));
+                      // });
+                    }).catchError((error) {
+                      store.dispatch(CreateTransactionFailAction(
+                          stockCode: action.stockCode, error: error));
+                    });
+                  } else {
+                    Timer.periodic(Duration(seconds: 3), (timer) {
+                      KotakStockAPIService()
+                          .getOrderReport(
+                              action.userId,
+                              store.state.accessCode,
+                              (orderPlacedInNSE
+                                  ? order.success!.nse!.orderId
+                                  : order.success!.bse!.orderId),
+                              action.instrumentToken)
+                          .then((position) {
+                        OrderReportsSuccess tradedStock = position!.success
+                            .firstWhere((element) =>
+                                element.orderId ==
+                                (orderPlacedInNSE
+                                    ? order.success!.nse!.orderId
+                                    : order.success!.bse!.orderId));
+                        int orderId = orderPlacedInNSE
+                            ? order.success!.nse!.orderId
+                            : order.success!.bse!.orderId;
+                        if (tradedStock.statusInfo ==
+                            EStockTradeStatusInfo.Traded.name) {
+                          timer.cancel();
+                          TransactionsService()
+                              .createTransaction(
+                                  action.userId,
+                                  action.dynStockId,
+                                  TransactionBody(
+                                      transactionId: orderPlacedInNSE
+                                          ? order.success!.nse!.orderId
+                                              .toString()
+                                          : order.success!.bse!.orderId
+                                              .toString(),
+                                      type: action.body.type,
+                                      noOfStocks: action.body.noOfStocks,
+                                      stockCode: action.body.stockCode,
+                                      stockPrice: tradedStock.price))
+                              .then((response) {
+                            store.dispatch(CreateTransactionSuccessAction(
+                              stockCode: action.stockCode,
+                            ));
+                            store.state.allTickerData.data[action.stockCode]!
+                                .currentLocalMaximumPrice = tradedStock.price;
+                            store.state.allTickerData.data[action.stockCode]!
+                                .currentLocalMinimumPrice = tradedStock.price;
+                            store.dispatch(GetAllTickerDataSuccessAction(
+                                allTickerData: store.state.allTickerData.data));
+                            DateTime transactionTime =
+                                DateTime.fromMillisecondsSinceEpoch(
+                                    response.transactionTime.date);
+                            String emailBodyLine1 =
+                                'Transaction Type: ${response.type}, Transaction Price: ${response.stockPrice}, Number of Stocks: ${response.noOfStocks}';
+                            String emailBodyLine2 =
+                                'Transaction Time: ${transactionTime.hour}:${transactionTime.minute}:${transactionTime.second} ${transactionTime.day}/${transactionTime.month}/${transactionTime.year}';
+                            String emailBodyLine3 =
+                                'Total Amount: ${response.amount}';
+                            store.dispatch(
+                                GetAllDynStocksAction(userId: action.userId));
+                            // EmailJSService()
+                            //     .sendEmail(Email(
+                            //         username: 'Myself',
+                            //         subject: 'Transaction Made',
+                            //         title: 'Transaction Made for ${action.body.stockCode}',
+                            //         subtitle:
+                            //             'Transaction has been made for ${action.body.stockCode} with the following params',
+                            //         body:
+                            //             '${emailBodyLine1} ${emailBodyLine2} ${emailBodyLine3}'))
+                            //     .then((value) {
+                            // }).catchError((error) {
+                            //   placingOrder = false;
+                            //   store.dispatch(CreateTransactionFailAction(error: error));
+                            // });
+                          }).catchError((error) {
+                            store.dispatch(CreateTransactionFailAction(
+                                stockCode: action.stockCode, error: error));
+                          });
+                        }
+                      }).catchError((error) {
+                        store.dispatch(CreateTransactionFailAction(
+                            stockCode: action.stockCode, error: error));
+                      });
+                    });
+                  }
+                }).catchError((error) {
+                  store.dispatch(CreateTransactionFailAction(
+                      stockCode: action.stockCode, error: error));
+                });
+              });
+
+              ///////
             }).catchError((error) {
               store.dispatch(CreateTransactionFailAction(
                   stockCode: action.stockCode, error: error));
             });
-          });
-
-          ///////
+          }
         }).catchError((error) {
           store.dispatch(CreateTransactionFailAction(
               stockCode: action.stockCode, error: error));

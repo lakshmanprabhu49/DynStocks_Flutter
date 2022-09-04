@@ -33,6 +33,29 @@ class KotakStockAPIService {
     }
   }
 
+  Future<KotakStockApiPlaceOrderResponse?> modifyOrder(
+    String userId,
+    String accessCode,
+    String orderId,
+    KotakStockAPIPlaceOrderBody body,
+  ) async {
+    Uri url = Uri.parse(
+        '${dotenv.env["DYNSTOCKS_API_ENDPOINT_PROD"]}/$userId/kotakStock/modifyOrder/${orderId}?accessCode=$accessCode');
+    var client = http.Client();
+    var response = await client.post(url, body: jsonEncode(body), headers: {
+      HttpHeaders.authorizationHeader:
+          'Bearer ${appStore.state.kotakStockAPI.jwtToken}',
+      HttpHeaders.contentTypeHeader: 'application/json',
+      'x-request-id': appStore.state.DYNSTOCKS_X_REQUEST_ID
+    });
+    String res = response.body;
+    if (response.statusCode < 400) {
+      return kotakStockApiPlaceOrderResponseFromJson(res);
+    } else {
+      throw Exception(ErrorClass.fromJson(jsonDecode(res)).message);
+    }
+  }
+
   Future<KotakStockApiPlaceOrderResponse?> cancelOrder(
     String userId,
     String accessCode,

@@ -74,7 +74,7 @@ class PostMarketTimer {
                           body: TransactionBody(
                             transactionId:
                                 DateTime.now().microsecond.toString(),
-                            type: ETransactionType.BUY.name,
+                            type: ETransactionType.SELL.name,
                             noOfStocks: B,
                             stockCode: dynStock.stockCode,
                             stockPrice: orderReport.price,

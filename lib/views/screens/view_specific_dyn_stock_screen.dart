@@ -286,7 +286,7 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
 
   String userId = appStore.state.userId;
 
-  Future<String?> showForceSellDialog(DynStock currentDynStock) {
+  Future<String?> showForceTransactionDialog(DynStock currentDynStock) {
     return showDialog<String>(
       context: context,
       builder: (BuildContext context) => AlertDialog(
@@ -333,7 +333,8 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
             ),
             onPressed: () {
               if (mounted) {
-                setState(() {
+                if (currentDynStock.lastTransactionType ==
+                    ETransactionType.BUY.name) {
                   StoreProvider.of<AppState>(context).dispatch(
                       CreateTransactionAction(
                           userId: userId,
@@ -350,13 +351,33 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                                   currentDynStock.stocksAvailableForTrade),
                           stockOrderType: EStockOrderType.Market.name));
                   errorMessageShown = false;
-                });
+                } else {
+                  StoreProvider.of<AppState>(context).dispatch(
+                      CreateTransactionAction(
+                          userId: userId,
+                          instrumentToken: currentDynStock.instrumentToken,
+                          dynStockId: currentDynStock.dynStockId.uuid,
+                          stockCode: currentDynStock.stockCode,
+                          body: TRANSACTIONS.TransactionBody(
+                              transactionId:
+                                  DateTime.now().microsecond.toString(),
+                              stockCode: currentDynStock.stockCode,
+                              type: 'BUY',
+                              stockPrice: 0,
+                              noOfStocks:
+                                  currentDynStock.stocksAvailableForTrade),
+                          stockOrderType: EStockOrderType.Market.name,
+                          forcedTransaction: true));
+                }
               }
             },
             child: Container(
                 padding: EdgeInsets.fromLTRB(10, 10, 10, 10),
                 child: Text(
-                  'Force Cell',
+                  currentDynStock.lastTransactionType ==
+                          ETransactionType.BUY.name
+                      ? 'Force Sell'
+                      : 'Force Buy',
                   style: GoogleFonts.lusitana(
                     fontSize: 15,
                     color: Colors.white,
@@ -1462,6 +1483,37 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                                         ],
                                       )),
                                 ),
+                                Container(
+                                  child: Container(
+                                      width: screenSize.width * 0.35,
+                                      height: screenSize.height * 0.075,
+                                      decoration: BoxDecoration(
+                                          color: PaletteColors.purple2,
+                                          borderRadius:
+                                              BorderRadius.circular(15)),
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            currentDynStock.lastTradedPrice
+                                                .toStringAsFixed(2),
+                                            style: GoogleFonts.daysOne(
+                                              color: PaletteColors.blue2,
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          Text(
+                                            'Last Traded Price',
+                                            style: GoogleFonts.outfit(
+                                              color: PaletteColors.blue4,
+                                              fontSize: 15,
+                                            ),
+                                          )
+                                        ],
+                                      )),
+                                ),
                               ]),
                         ),
                       ]),
@@ -1942,7 +1994,10 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                                           Colors.transparent,
                                         )),
                                     child: Text(
-                                      'Force Sell',
+                                      currentDynStock.lastTransactionType ==
+                                              ETransactionType.BUY.name
+                                          ? 'Force Sell'
+                                          : 'Force Buy',
                                       style: GoogleFonts.outfit(
                                           fontWeight: FontWeight.bold,
                                           color: Colors.white,
@@ -1950,7 +2005,8 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                                       textAlign: TextAlign.center,
                                     ),
                                     onPressed: () {
-                                      showForceSellDialog(currentDynStock);
+                                      showForceTransactionDialog(
+                                          currentDynStock);
                                     })),
                           ],
                         ))

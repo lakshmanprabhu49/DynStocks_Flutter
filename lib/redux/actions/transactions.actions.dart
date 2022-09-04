@@ -41,6 +41,7 @@ class CreateTransactionAction {
   TransactionBody body;
   String stockOrderType = EStockOrderType.Market.name;
   bool placeKotakAPIStockOrder = true;
+  bool forcedTransaction = false;
   CreateTransactionAction(
       {required this.userId,
       required this.instrumentToken,
@@ -48,7 +49,8 @@ class CreateTransactionAction {
       required this.stockCode,
       required this.body,
       required this.stockOrderType,
-      this.placeKotakAPIStockOrder = true});
+      this.placeKotakAPIStockOrder = true,
+      this.forcedTransaction = false});
 }
 
 class CreateTransactionSuccessAction {
