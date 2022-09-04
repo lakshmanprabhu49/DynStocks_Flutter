@@ -52,6 +52,7 @@ class _EventsTodayScreenState extends State<EventsTodayScreen> with RouteAware {
   bool errorMessageShown = false;
   bool reload = false;
   bool timerCreatedFor915 = false;
+  int timedTickerPeriod = 1;
   void resetState() {
     transactionsToday = null;
     isLoaded = false;
@@ -277,6 +278,13 @@ class _EventsTodayScreenState extends State<EventsTodayScreen> with RouteAware {
   @override
   void didPush() {
     super.didPush();
+    SharedPreferences.getInstance().then((prefs) {
+      if (mounted) {
+        setState(() {
+          timedTickerPeriod = prefs.getInt('timedTickerPeriod') as int;
+        });
+      }
+    });
     startPeriodicTimer();
   }
 
@@ -289,6 +297,13 @@ class _EventsTodayScreenState extends State<EventsTodayScreen> with RouteAware {
   @override
   void didPopNext() {
     super.didPopNext();
+    SharedPreferences.getInstance().then((prefs) {
+      if (mounted) {
+        setState(() {
+          timedTickerPeriod = prefs.getInt('timedTickerPeriod') as int;
+        });
+      }
+    });
     startPeriodicTimer();
   }
 

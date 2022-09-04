@@ -36,6 +36,17 @@ void dynStocksMiddleWare(
         store.dispatch(InitializeCreateTransactionStateAction(data: map));
       }
     }).catchError((error) {
+      String emailBodyLine1 = '${error['message']}';
+      EmailJSService()
+          .sendEmail(Email(
+              username: 'Myself',
+              subject: 'Error while Fetching List of DynStocks',
+              title: 'Error while Fetching List of DynStocks',
+              subtitle:
+                  'The following error resulted while Fetching List of DynStocks',
+              body: emailBodyLine1))
+          .then((value) {})
+          .catchError((error) {});
       store.dispatch(GetAllDynStocksFailAction(error: error));
     });
   }
@@ -78,37 +89,51 @@ void dynStocksMiddleWare(
               if (!store.state.allTickerData.loading) {
                 store.dispatch(GetAllTickerDataAction());
               }
-              String emailBodyLine1 =
-                  ' Stock Code: ${response.stockCode}, Stock Name: ${response.stockName}, Stock Price: ${response.lastTradedPrice} Number of Stocks: ${response.noOfStocks}';
-              String emailBodyLine2 =
-                  ' DSTP Unit: ${response.DSTPUnit},${response.DSTPUnit == 'Price'}';
-              String emailBodyLine3 = '';
-              if (response.DSTPUnit == 'Price') {
-                emailBodyLine3 =
-                    ' BTPr: ${response.BTPr}, STPr: ${response.STPr}';
-              } else {
-                emailBodyLine3 =
-                    ' BTPe: ${response.BTPe}, STPr: ${response.STPe}';
-              }
-              // EmailJSService()
-              //     .sendEmail(Email(
-              //         username: 'Myself',
-              //         subject: 'DynStock Created',
-              //         title: 'DynStock Created for ${response.stockCode}',
-              //         subtitle:
-              //             'DynStock has been created for ${response.stockCode} with the following params:',
-              //         body: '$emailBodyLine1$emailBodyLine2$emailBodyLine3'))
-              //     .then((value) {})
-              //     .catchError((error) {});
             }).catchError((error) {
+              String emailBodyLine1 = '${error['message']}';
+              EmailJSService()
+                  .sendEmail(Email(
+                      username: 'Myself',
+                      subject: 'Error while Creating DynStock',
+                      title:
+                          'Error while Creating DynStock for ${action.body.stockCode}',
+                      subtitle:
+                          'The following error resulted while Creating DynStock for ${action.body.stockCode}',
+                      body: emailBodyLine1))
+                  .then((value) {})
+                  .catchError((error) {});
               store.dispatch(CreateDynStockFailAction(error: error));
             });
           }).catchError((error) {
+            String emailBodyLine1 = '${error['message']}';
+            EmailJSService()
+                .sendEmail(Email(
+                    username: 'Myself',
+                    subject: 'Error while Creating DynStock',
+                    title:
+                        'Error while Creating DynStock for ${action.body.stockCode}',
+                    subtitle:
+                        'The following error resulted while Creating DynStock for ${action.body.stockCode}',
+                    body: emailBodyLine1))
+                .then((value) {})
+                .catchError((error) {});
             store.dispatch(CreateDynStockFailAction(error: error));
           });
         });
       },
     ).catchError((error) {
+      String emailBodyLine1 = '${error['message']}';
+      EmailJSService()
+          .sendEmail(Email(
+              username: 'Myself',
+              subject: 'Error while Creating DynStock',
+              title:
+                  'Error while Creating DynStock for ${action.body.stockCode}',
+              subtitle:
+                  'The following error resulted while Creating DynStock for ${action.body.stockCode}',
+              body: emailBodyLine1))
+          .then((value) {})
+          .catchError((error) {});
       store.dispatch(CreateDynStockFailAction(error: error));
     });
   }
@@ -118,27 +143,19 @@ void dynStocksMiddleWare(
         .updateDynStock(action.userId, action.dynStockId, action.body)
         .then((response) {
       store.dispatch(UpdateDynStockSuccessAction(dynStock: response));
-      String emailBodyLine1 =
-          ' Stock Code: ${response.stockCode}, Stock Name: ${response.stockName}, Stock Price: ${response.lastTradedPrice} Number of Stocks: ${response.noOfStocks}';
-      String emailBodyLine2 =
-          ' DSTP Unit: ${response.DSTPUnit},${response.DSTPUnit == 'Price'}';
-      String emailBodyLine3 = '';
-      if (response.DSTPUnit == 'Price') {
-        emailBodyLine3 = ' BTPr: ${response.BTPr}, STPr: ${response.STPr}';
-      } else {
-        emailBodyLine3 = ' BTPe: ${response.BTPe}, STPr: ${response.STPe}';
-      }
-      // EmailJSService()
-      //     .sendEmail(Email(
-      //         username: 'Myself',
-      //         subject: 'DynStock Updated',
-      //         title: 'DynStock Updated for ${response.stockCode}',
-      //         subtitle:
-      //             'DynStock has been updated for ${response.stockCode} with the following params:',
-      //         body: '$emailBodyLine1\n$emailBodyLine2\n$emailBodyLine3'))
-      //     .then((value) {})
-      //     .catchError((error) {});
     }).catchError((error) {
+      String emailBodyLine1 = '${error['message']}';
+      EmailJSService()
+          .sendEmail(Email(
+              username: 'Myself',
+              subject: 'Error while Updating DynStock',
+              title:
+                  'Error while Updating DynStock for ${action.body.stockCode}',
+              subtitle:
+                  'The following error resulted while Updating DynStock for ${action.body.stockCode}',
+              body: emailBodyLine1))
+          .then((value) {})
+          .catchError((error) {});
       store.dispatch(UpdateDynStockFailAction(error: error));
     });
   }
@@ -196,20 +213,34 @@ void dynStocksMiddleWare(
                   .then((response) {
                 store.dispatch(
                     DeleteDynStockSuccessAction(dynStockId: response));
-                // EmailJSService()
-                //     .sendEmail(Email(
-                //         username: 'Myself',
-                //         subject: 'DynStock Deleted',
-                //         title: 'DynStock Deleted for ${action.stockCode}',
-                //         subtitle:
-                //             'DynStock has been deleted for ${action.stockCode}',
-                //         body: ''))
-                //     .then((value) {})
-                //     .catchError((error) {});
               }).catchError((error) {
+                String emailBodyLine1 = '${error['message']}';
+                EmailJSService()
+                    .sendEmail(Email(
+                        username: 'Myself',
+                        subject: 'Error while Deleting DynStock',
+                        title:
+                            'Error while Deleting DynStock for ${action.dynStockId}',
+                        subtitle:
+                            'The following error resulted while Creating DynStock for for ${action.dynStockId}',
+                        body: emailBodyLine1))
+                    .then((value) {})
+                    .catchError((error) {});
                 store.dispatch(DeleteDynStockFailAction(error: error));
               });
             }).catchError((error) {
+              String emailBodyLine1 = '${error['message']}';
+              EmailJSService()
+                  .sendEmail(Email(
+                      username: 'Myself',
+                      subject: 'Error while Deleting DynStock',
+                      title:
+                          'Error while Deleting DynStock for ${action.dynStockId}',
+                      subtitle:
+                          'The following error resulted while Creating DynStock for for ${action.dynStockId}',
+                      body: emailBodyLine1))
+                  .then((value) {})
+                  .catchError((error) {});
               store.dispatch(DeleteDynStockFailAction(error: error));
             });
           });
@@ -220,16 +251,18 @@ void dynStocksMiddleWare(
           .deleteDynStock(action.userId, action.dynStockId)
           .then((response) {
         store.dispatch(DeleteDynStockSuccessAction(dynStockId: response));
-        // EmailJSService()
-        //     .sendEmail(Email(
-        //         username: 'Myself',
-        //         subject: 'DynStock Deleted',
-        //         title: 'DynStock Deleted for ${action.stockCode}',
-        //         subtitle: 'DynStock has been deleted for ${action.stockCode}',
-        //         body: ''))
-        //     .then((value) {})
-        //     .catchError((error) {});
       }).catchError((error) {
+        String emailBodyLine1 = '${error['message']}';
+        EmailJSService()
+            .sendEmail(Email(
+                username: 'Myself',
+                subject: 'Error while Deleting DynStock',
+                title: 'Error while Deleting DynStock for ${action.dynStockId}',
+                subtitle:
+                    'The following error resulted while Creating DynStock for for ${action.dynStockId}',
+                body: emailBodyLine1))
+            .then((value) {})
+            .catchError((error) {});
         store.dispatch(DeleteDynStockFailAction(error: error));
       });
     }

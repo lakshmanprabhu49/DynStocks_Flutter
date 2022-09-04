@@ -13,3 +13,10 @@ String accessCodeReducer(String state, dynamic action) {
   }
   return state;
 }
+
+int timedTickerPeriodReducer(int state, dynamic action) {
+  if (action is SetTimedTickerPeriodAction) {
+    return action.timedTickerPeriod;
+  }
+  return state;
+}

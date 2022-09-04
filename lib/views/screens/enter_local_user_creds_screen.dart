@@ -54,6 +54,7 @@ class _EnterLocalUserCredsScreenState extends State<EnterLocalUserCredsScreen>
   bool errorMessageShown = true;
   _EnterLocalUserCredsScreenState(
       {required this.shouldAskForUsernameAndPassword});
+  TextEditingController accessCodeController = TextEditingController();
   @override
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
@@ -73,6 +74,18 @@ class _EnterLocalUserCredsScreenState extends State<EnterLocalUserCredsScreen>
         }
       });
     }
+    accessCodeController = TextEditingController(
+      text: accessCode,
+    );
+    accessCodeController.selection =
+        TextSelection.collapsed(offset: accessCodeController.text.length);
+    SharedPreferences.getInstance().then((prefs) {
+      if (mounted) {
+        int? timedTickerPeriod = prefs.getInt('timedTickerPeriod');
+        StoreProvider.of<AppState>(context).dispatch(SetTimedTickerPeriodAction(
+            timedTickerPeriod: timedTickerPeriod as int));
+      }
+    });
   }
 
   // Stops the periodic timer, possibly invoked when the screen goes out of focus
@@ -210,7 +223,7 @@ class _EnterLocalUserCredsScreenState extends State<EnterLocalUserCredsScreen>
                           padding: EdgeInsets.fromLTRB(15, 0, 15, 0),
                           decoration: BoxDecoration(color: PaletteColors.blue3),
                           child: TextFormField(
-                            initialValue: accessCode,
+                            controller: accessCodeController,
                             keyboardType: TextInputType.number,
                             onChanged: (newValue) {
                               if (mounted) {

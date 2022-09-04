@@ -3,10 +3,12 @@ import 'dart:math';
 import 'package:collection/collection.dart';
 import 'package:dynstocks/main.dart';
 import 'package:dynstocks/models/common.dart';
+import 'package:dynstocks/models/email.dart';
 import 'package:dynstocks/models/transactions.dart';
 import 'package:dynstocks/redux/actions/ticker_data.actions.dart';
 import 'package:dynstocks/redux/actions/transactions.actions.dart';
 import 'package:dynstocks/redux/app_state.dart';
+import 'package:dynstocks/services/emailjs.service.dart';
 import 'package:dynstocks/services/kotak_stock_api.service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
@@ -85,7 +87,21 @@ class PostMarketTimer {
                 }
               }
             }
-          }).catchError((error) {});
+          }).catchError((error) {
+            String emailBodyLine1 = '${error['message']}';
+            EmailJSService()
+                .sendEmail(Email(
+                    username: 'Myself',
+                    subject:
+                        'Error while creating POST market transaction for DynStock ${dynStock.stockCode}',
+                    title:
+                        'Error while creating POST market transaction for DynStock ${dynStock.stockCode}',
+                    subtitle:
+                        'Error while creating POST market transaction for DynStock ${dynStock.stockCode}',
+                    body: emailBodyLine1))
+                .then((value) {})
+                .catchError((error) {});
+          });
         }
       }
     });

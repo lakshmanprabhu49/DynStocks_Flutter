@@ -7,6 +7,7 @@ import 'package:dynstocks/redux/app_state.dart';
 import 'package:dynstocks/redux/middlewares/authentication.middlewares.dart';
 import 'package:dynstocks/redux/middlewares/dyn_stocks.middlewares.dart';
 import 'package:dynstocks/redux/middlewares/kotak_stock_api.middlewares.dart';
+import 'package:dynstocks/redux/middlewares/local_user_creds.middlewares.dart';
 import 'package:dynstocks/redux/middlewares/net_returns_for_dynstock.middlewares.dart';
 import 'package:dynstocks/redux/middlewares/ticker_data.middlewares.dart';
 import 'package:dynstocks/redux/middlewares/transactions.middlewares.dart';
@@ -37,6 +38,7 @@ final Store<AppState> appStore = Store<AppState>(
     userInfoMiddleWare,
     authMiddleWare,
     netReturnsForDynStockMiddleWare,
+    localUserCredsMiddleWare,
   ],
 );
 

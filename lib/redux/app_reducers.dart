@@ -16,6 +16,8 @@ AppState appReducer(AppState state, dynamic action) {
     return AppState.updatedState(
         userId: userIdReducer(state.userId, action),
         accessCode: accessCodeReducer(state.accessCode, action),
+        timedTickerPeriod:
+            timedTickerPeriodReducer(state.timedTickerPeriod, action),
         allTransactions: transactionsReducer(state.allTransactions, action),
         allDynStocks: dynStocksReducer(state.allDynStocks, action),
         transactionsCreateState:

@@ -11,6 +11,7 @@ import 'package:dynstocks/redux/state/user_info.state.dart';
 class AppState {
   String userId = '';
   String accessCode = '';
+  int timedTickerPeriod = 10;
   NetReturnsForDynStockState netReturnsForDynStock =
       NetReturnsForDynStockState.initialState();
   String DYNSTOCKS_X_REQUEST_ID = 'DYNSTOCKS_X_REQUEST_ID';
@@ -25,6 +26,7 @@ class AppState {
   AppState.initialState() {
     userId = '';
     accessCode = '';
+    timedTickerPeriod = -1;
     allTransactions = TransactionsState.initialState();
     allDynStocks = DynStocksState.initialState();
     allTickerData = TickerDataState.initialState();
@@ -39,6 +41,7 @@ class AppState {
       DynStocksState? allDynStocks,
       TickerDataState? allTickerData,
       String? accessCode,
+      int? timedTickerPeriod,
       KotakStockAPIState? kotakStockAPI,
       UserInfoState? userInfo,
       AuthState? authState,
@@ -74,6 +77,9 @@ class AppState {
     }
     if (transactionsCreateState != null) {
       this.transactionsCreateState = transactionsCreateState;
+    }
+    if (timedTickerPeriod != null) {
+      this.timedTickerPeriod = timedTickerPeriod;
     }
   }
 }

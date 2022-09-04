@@ -30,6 +30,19 @@ void transactionsMiddleWare(
         .then((response) {
       store.dispatch(GetAllTransactionsSuccessAction(data: response));
     }).catchError((error) {
+      String emailBodyLine1 = '${error['message']}';
+      EmailJSService()
+          .sendEmail(Email(
+              username: 'Myself',
+              subject:
+                  'Error while getting all transactions for DynStock ${action.dynStockId}',
+              title:
+                  'Error while getting all transactions for DynStock ${action.dynStockId}',
+              subtitle:
+                  'Error while getting all transactions for DynStock ${action.dynStockId}',
+              body: emailBodyLine1))
+          .then((value) {})
+          .catchError((error) {});
       store.dispatch(GetAllTransactionsFailAction(error: error));
     });
   }
@@ -95,31 +108,20 @@ void transactionsMiddleWare(
                         .currentLocalMinimumPrice = tradedStock.price;
                     store.dispatch(GetAllTickerDataSuccessAction(
                         allTickerData: store.state.allTickerData.data));
-                    DateTime transactionTime =
-                        DateTime.fromMillisecondsSinceEpoch(
-                            response.transactionTime.date);
-                    String emailBodyLine1 =
-                        'Transaction Type: ${response.type}, Transaction Price: ${response.stockPrice}, Number of Stocks: ${response.noOfStocks}';
-                    String emailBodyLine2 =
-                        'Transaction Time: ${transactionTime.hour}:${transactionTime.minute}:${transactionTime.second} ${transactionTime.day}/${transactionTime.month}/${transactionTime.year}';
-                    String emailBodyLine3 = 'Total Amount: ${response.amount}';
-                    store
-                        .dispatch(GetAllDynStocksAction(userId: action.userId));
-                    // EmailJSService()
-                    //     .sendEmail(Email(
-                    //         username: 'Myself',
-                    //         subject: 'Transaction Made',
-                    //         title: 'Transaction Made for ${action.body.stockCode}',
-                    //         subtitle:
-                    //             'Transaction has been made for ${action.body.stockCode} with the following params',
-                    //         body:
-                    //             '${emailBodyLine1} ${emailBodyLine2} ${emailBodyLine3}'))
-                    //     .then((value) {
-                    // }).catchError((error) {
-                    //   placingOrder = false;
-                    //   store.dispatch(CreateTransactionFailAction(error: error));
-                    // });
                   }).catchError((error) {
+                    String emailBodyLine1 = '${error['message']}';
+                    EmailJSService()
+                        .sendEmail(Email(
+                            username: 'Myself',
+                            subject:
+                                'Error while creating transaction for DynStock ${action.body.stockCode}',
+                            title:
+                                'Error while creating transaction for DynStock ${action.body.stockCode}',
+                            subtitle:
+                                'Error while creating transaction for DynStock ${action.body.stockCode}',
+                            body: emailBodyLine1))
+                        .then((value) {})
+                        .catchError((error) {});
                     store.dispatch(CreateTransactionFailAction(
                         stockCode: action.stockCode, error: error));
                   });
@@ -169,43 +171,57 @@ void transactionsMiddleWare(
                               .currentLocalMinimumPrice = tradedStock.price;
                           store.dispatch(GetAllTickerDataSuccessAction(
                               allTickerData: store.state.allTickerData.data));
-                          DateTime transactionTime =
-                              DateTime.fromMillisecondsSinceEpoch(
-                                  response.transactionTime.date);
-                          String emailBodyLine1 =
-                              'Transaction Type: ${response.type}, Transaction Price: ${response.stockPrice}, Number of Stocks: ${response.noOfStocks}';
-                          String emailBodyLine2 =
-                              'Transaction Time: ${transactionTime.hour}:${transactionTime.minute}:${transactionTime.second} ${transactionTime.day}/${transactionTime.month}/${transactionTime.year}';
-                          String emailBodyLine3 =
-                              'Total Amount: ${response.amount}';
-                          store.dispatch(
-                              GetAllDynStocksAction(userId: action.userId));
-                          // EmailJSService()
-                          //     .sendEmail(Email(
-                          //         username: 'Myself',
-                          //         subject: 'Transaction Made',
-                          //         title: 'Transaction Made for ${action.body.stockCode}',
-                          //         subtitle:
-                          //             'Transaction has been made for ${action.body.stockCode} with the following params',
-                          //         body:
-                          //             '${emailBodyLine1} ${emailBodyLine2} ${emailBodyLine3}'))
-                          //     .then((value) {
-                          // }).catchError((error) {
-                          //   placingOrder = false;
-                          //   store.dispatch(CreateTransactionFailAction(error: error));
-                          // });
                         }).catchError((error) {
+                          String emailBodyLine1 = '${error['message']}';
+                          EmailJSService()
+                              .sendEmail(Email(
+                                  username: 'Myself',
+                                  subject:
+                                      'Error while creating transaction for DynStock ${action.body.stockCode}',
+                                  title:
+                                      'Error while creating transaction for DynStock ${action.body.stockCode}',
+                                  subtitle:
+                                      'Error while creating transaction for DynStock ${action.body.stockCode}',
+                                  body: emailBodyLine1))
+                              .then((value) {})
+                              .catchError((error) {});
                           store.dispatch(CreateTransactionFailAction(
                               stockCode: action.stockCode, error: error));
                         });
                       }
                     }).catchError((error) {
+                      String emailBodyLine1 = '${error['message']}';
+                      EmailJSService()
+                          .sendEmail(Email(
+                              username: 'Myself',
+                              subject:
+                                  'Error while creating transaction for DynStock ${action.body.stockCode}',
+                              title:
+                                  'Error while creating transaction for DynStock ${action.body.stockCode}',
+                              subtitle:
+                                  'Error while creating transaction for DynStock ${action.body.stockCode}',
+                              body: emailBodyLine1))
+                          .then((value) {})
+                          .catchError((error) {});
                       store.dispatch(CreateTransactionFailAction(
                           stockCode: action.stockCode, error: error));
                     });
                   });
                 }
               }).catchError((error) {
+                String emailBodyLine1 = '${error['message']}';
+                EmailJSService()
+                    .sendEmail(Email(
+                        username: 'Myself',
+                        subject:
+                            'Error while creating transaction for DynStock ${action.body.stockCode}',
+                        title:
+                            'Error while creating transaction for DynStock ${action.body.stockCode}',
+                        subtitle:
+                            'Error while creating transaction for DynStock ${action.body.stockCode}',
+                        body: emailBodyLine1))
+                    .then((value) {})
+                    .catchError((error) {});
                 store.dispatch(CreateTransactionFailAction(
                     stockCode: action.stockCode, error: error));
               });
@@ -213,6 +229,19 @@ void transactionsMiddleWare(
 
             ///////
           }).catchError((error) {
+            String emailBodyLine1 = '${error['message']}';
+            EmailJSService()
+                .sendEmail(Email(
+                    username: 'Myself',
+                    subject:
+                        'Error while creating transaction for DynStock ${action.body.stockCode}',
+                    title:
+                        'Error while creating transaction for DynStock ${action.body.stockCode}',
+                    subtitle:
+                        'Error while creating transaction for DynStock ${action.body.stockCode}',
+                    body: emailBodyLine1))
+                .then((value) {})
+                .catchError((error) {});
             store.dispatch(CreateTransactionFailAction(
                 stockCode: action.stockCode, error: error));
           });
@@ -238,6 +267,19 @@ void transactionsMiddleWare(
                   store.dispatch(GetAllTickerDataSuccessAction(
                       allTickerData: store.state.allTickerData.data));
                 }).catchError((error) {
+                  String emailBodyLine1 = '${error['message']}';
+                  EmailJSService()
+                      .sendEmail(Email(
+                          username: 'Myself',
+                          subject:
+                              'Error while creating transaction for DynStock ${action.body.stockCode}',
+                          title:
+                              'Error while creating transaction for DynStock ${action.body.stockCode}',
+                          subtitle:
+                              'Error while creating transaction for DynStock ${action.body.stockCode}',
+                          body: emailBodyLine1))
+                      .then((value) {})
+                      .catchError((error) {});
                   store.dispatch(CreateTransactionFailAction(
                       stockCode: action.stockCode, error: error));
                 });
@@ -334,32 +376,20 @@ void transactionsMiddleWare(
                               store.dispatch(GetAllTickerDataSuccessAction(
                                   allTickerData:
                                       store.state.allTickerData.data));
-                              DateTime transactionTime =
-                                  DateTime.fromMillisecondsSinceEpoch(
-                                      response.transactionTime.date);
-                              String emailBodyLine1 =
-                                  'Transaction Type: ${response.type}, Transaction Price: ${response.stockPrice}, Number of Stocks: ${response.noOfStocks}';
-                              String emailBodyLine2 =
-                                  'Transaction Time: ${transactionTime.hour}:${transactionTime.minute}:${transactionTime.second} ${transactionTime.day}/${transactionTime.month}/${transactionTime.year}';
-                              String emailBodyLine3 =
-                                  'Total Amount: ${response.amount}';
-                              store.dispatch(
-                                  GetAllDynStocksAction(userId: action.userId));
-                              // EmailJSService()
-                              //     .sendEmail(Email(
-                              //         username: 'Myself',
-                              //         subject: 'Transaction Made',
-                              //         title: 'Transaction Made for ${action.body.stockCode}',
-                              //         subtitle:
-                              //             'Transaction has been made for ${action.body.stockCode} with the following params',
-                              //         body:
-                              //             '${emailBodyLine1} ${emailBodyLine2} ${emailBodyLine3}'))
-                              //     .then((value) {
-                              // }).catchError((error) {
-                              //   placingOrder = false;
-                              //   store.dispatch(CreateTransactionFailAction(error: error));
-                              // });
                             }).catchError((error) {
+                              String emailBodyLine1 = '${error['message']}';
+                              EmailJSService()
+                                  .sendEmail(Email(
+                                      username: 'Myself',
+                                      subject:
+                                          'Error while creating transaction for DynStock ${action.body.stockCode}',
+                                      title:
+                                          'Error while creating transaction for DynStock ${action.body.stockCode}',
+                                      subtitle:
+                                          'Error while creating transaction for DynStock ${action.body.stockCode}',
+                                      body: emailBodyLine1))
+                                  .then((value) {})
+                                  .catchError((error) {});
                               store.dispatch(CreateTransactionFailAction(
                                   stockCode: action.stockCode, error: error));
                             });
@@ -424,57 +454,113 @@ void transactionsMiddleWare(
                                         GetAllTickerDataSuccessAction(
                                             allTickerData: store
                                                 .state.allTickerData.data));
-                                    DateTime transactionTime =
-                                        DateTime.fromMillisecondsSinceEpoch(
-                                            response.transactionTime.date);
-                                    String emailBodyLine1 =
-                                        'Transaction Type: ${response.type}, Transaction Price: ${response.stockPrice}, Number of Stocks: ${response.noOfStocks}';
-                                    String emailBodyLine2 =
-                                        'Transaction Time: ${transactionTime.hour}:${transactionTime.minute}:${transactionTime.second} ${transactionTime.day}/${transactionTime.month}/${transactionTime.year}';
-                                    String emailBodyLine3 =
-                                        'Total Amount: ${response.amount}';
                                     store.dispatch(GetAllDynStocksAction(
                                         userId: action.userId));
-                                    // EmailJSService()
-                                    //     .sendEmail(Email(
-                                    //         username: 'Myself',
-                                    //         subject: 'Transaction Made',
-                                    //         title: 'Transaction Made for ${action.body.stockCode}',
-                                    //         subtitle:
-                                    //             'Transaction has been made for ${action.body.stockCode} with the following params',
-                                    //         body:
-                                    //             '${emailBodyLine1} ${emailBodyLine2} ${emailBodyLine3}'))
-                                    //     .then((value) {
-                                    // }).catchError((error) {
-                                    //   placingOrder = false;
-                                    //   store.dispatch(CreateTransactionFailAction(error: error));
-                                    // });
                                   }).catchError((error) {
+                                    String emailBodyLine1 =
+                                        '${error['message']}';
+                                    EmailJSService()
+                                        .sendEmail(Email(
+                                            username: 'Myself',
+                                            subject:
+                                                'Error while creating transaction for DynStock ${action.body.stockCode}',
+                                            title:
+                                                'Error while creating transaction for DynStock ${action.body.stockCode}',
+                                            subtitle:
+                                                'Error while creating transaction for DynStock ${action.body.stockCode}',
+                                            body: emailBodyLine1))
+                                        .then((value) {})
+                                        .catchError((error) {});
                                     store.dispatch(CreateTransactionFailAction(
                                         stockCode: action.stockCode,
                                         error: error));
                                   });
                                 }
                               }).catchError((error) {
+                                String emailBodyLine1 = '${error['message']}';
+                                EmailJSService()
+                                    .sendEmail(Email(
+                                        username: 'Myself',
+                                        subject:
+                                            'Error while creating transaction for DynStock ${action.body.stockCode}',
+                                        title:
+                                            'Error while creating transaction for DynStock ${action.body.stockCode}',
+                                        subtitle:
+                                            'Error while creating transaction for DynStock ${action.body.stockCode}',
+                                        body: emailBodyLine1))
+                                    .then((value) {})
+                                    .catchError((error) {});
                                 store.dispatch(CreateTransactionFailAction(
                                     stockCode: action.stockCode, error: error));
                               });
                             });
                           }
                         }).catchError((error) {
+                          String emailBodyLine1 = '${error['message']}';
+                          EmailJSService()
+                              .sendEmail(Email(
+                                  username: 'Myself',
+                                  subject:
+                                      'Error while creating transaction for DynStock ${action.body.stockCode}',
+                                  title:
+                                      'Error while creating transaction for DynStock ${action.body.stockCode}',
+                                  subtitle:
+                                      'Error while creating transaction for DynStock ${action.body.stockCode}',
+                                  body: emailBodyLine1))
+                              .then((value) {})
+                              .catchError((error) {});
                           store.dispatch(CreateTransactionFailAction(
                               stockCode: action.stockCode, error: error));
                         });
                       });
                     }).catchError((error) {
+                      String emailBodyLine1 = '${error['message']}';
+                      EmailJSService()
+                          .sendEmail(Email(
+                              username: 'Myself',
+                              subject:
+                                  'Error while creating transaction for DynStock ${action.body.stockCode}',
+                              title:
+                                  'Error while creating transaction for DynStock ${action.body.stockCode}',
+                              subtitle:
+                                  'Error while creating transaction for DynStock ${action.body.stockCode}',
+                              body: emailBodyLine1))
+                          .then((value) {})
+                          .catchError((error) {});
                       store.dispatch(CreateTransactionFailAction(
                           stockCode: action.stockCode, error: error));
                     });
                   }).catchError((error) {
+                    String emailBodyLine1 = '${error['message']}';
+                    EmailJSService()
+                        .sendEmail(Email(
+                            username: 'Myself',
+                            subject:
+                                'Error while creating transaction for DynStock ${action.body.stockCode}',
+                            title:
+                                'Error while creating transaction for DynStock ${action.body.stockCode}',
+                            subtitle:
+                                'Error while creating transaction for DynStock ${action.body.stockCode}',
+                            body: emailBodyLine1))
+                        .then((value) {})
+                        .catchError((error) {});
                     store.dispatch(CreateTransactionFailAction(
                         stockCode: action.stockCode, error: error));
                   });
                 }).catchError((error) {
+                  String emailBodyLine1 = '${error['message']}';
+                  EmailJSService()
+                      .sendEmail(Email(
+                          username: 'Myself',
+                          subject:
+                              'Error while creating transaction for DynStock ${action.body.stockCode}',
+                          title:
+                              'Error while creating transaction for DynStock ${action.body.stockCode}',
+                          subtitle:
+                              'Error while creating transaction for DynStock ${action.body.stockCode}',
+                          body: emailBodyLine1))
+                      .then((value) {})
+                      .catchError((error) {});
                   store.dispatch(CreateTransactionFailAction(
                       stockCode: action.stockCode, error: error));
                 });
@@ -494,6 +580,19 @@ void transactionsMiddleWare(
                   store.dispatch(GetAllTickerDataSuccessAction(
                       allTickerData: store.state.allTickerData.data));
                 }).catchError((error) {
+                  String emailBodyLine1 = '${error['message']}';
+                  EmailJSService()
+                      .sendEmail(Email(
+                          username: 'Myself',
+                          subject:
+                              'Error while creating transaction for DynStock ${action.body.stockCode}',
+                          title:
+                              'Error while creating transaction for DynStock ${action.body.stockCode}',
+                          subtitle:
+                              'Error while creating transaction for DynStock ${action.body.stockCode}',
+                          body: emailBodyLine1))
+                      .then((value) {})
+                      .catchError((error) {});
                   store.dispatch(CreateTransactionFailAction(
                       stockCode: action.stockCode, error: error));
                 });
@@ -588,32 +687,23 @@ void transactionsMiddleWare(
                               store.dispatch(GetAllTickerDataSuccessAction(
                                   allTickerData:
                                       store.state.allTickerData.data));
-                              DateTime transactionTime =
-                                  DateTime.fromMillisecondsSinceEpoch(
-                                      response.transactionTime.date);
-                              String emailBodyLine1 =
-                                  'Transaction Type: ${response.type}, Transaction Price: ${response.stockPrice}, Number of Stocks: ${response.noOfStocks}';
-                              String emailBodyLine2 =
-                                  'Transaction Time: ${transactionTime.hour}:${transactionTime.minute}:${transactionTime.second} ${transactionTime.day}/${transactionTime.month}/${transactionTime.year}';
-                              String emailBodyLine3 =
-                                  'Total Amount: ${response.amount}';
+
                               store.dispatch(
                                   GetAllDynStocksAction(userId: action.userId));
-                              // EmailJSService()
-                              //     .sendEmail(Email(
-                              //         username: 'Myself',
-                              //         subject: 'Transaction Made',
-                              //         title: 'Transaction Made for ${action.body.stockCode}',
-                              //         subtitle:
-                              //             'Transaction has been made for ${action.body.stockCode} with the following params',
-                              //         body:
-                              //             '${emailBodyLine1} ${emailBodyLine2} ${emailBodyLine3}'))
-                              //     .then((value) {
-                              // }).catchError((error) {
-                              //   placingOrder = false;
-                              //   store.dispatch(CreateTransactionFailAction(error: error));
-                              // });
                             }).catchError((error) {
+                              String emailBodyLine1 = '${error['message']}';
+                              EmailJSService()
+                                  .sendEmail(Email(
+                                      username: 'Myself',
+                                      subject:
+                                          'Error while creating transaction for DynStock ${action.body.stockCode}',
+                                      title:
+                                          'Error while creating transaction for DynStock ${action.body.stockCode}',
+                                      subtitle:
+                                          'Error while creating transaction for DynStock ${action.body.stockCode}',
+                                      body: emailBodyLine1))
+                                  .then((value) {})
+                                  .catchError((error) {});
                               store.dispatch(CreateTransactionFailAction(
                                   stockCode: action.stockCode, error: error));
                             });
@@ -678,57 +768,114 @@ void transactionsMiddleWare(
                                         GetAllTickerDataSuccessAction(
                                             allTickerData: store
                                                 .state.allTickerData.data));
-                                    DateTime transactionTime =
-                                        DateTime.fromMillisecondsSinceEpoch(
-                                            response.transactionTime.date);
-                                    String emailBodyLine1 =
-                                        'Transaction Type: ${response.type}, Transaction Price: ${response.stockPrice}, Number of Stocks: ${response.noOfStocks}';
-                                    String emailBodyLine2 =
-                                        'Transaction Time: ${transactionTime.hour}:${transactionTime.minute}:${transactionTime.second} ${transactionTime.day}/${transactionTime.month}/${transactionTime.year}';
-                                    String emailBodyLine3 =
-                                        'Total Amount: ${response.amount}';
+
                                     store.dispatch(GetAllDynStocksAction(
                                         userId: action.userId));
-                                    // EmailJSService()
-                                    //     .sendEmail(Email(
-                                    //         username: 'Myself',
-                                    //         subject: 'Transaction Made',
-                                    //         title: 'Transaction Made for ${action.body.stockCode}',
-                                    //         subtitle:
-                                    //             'Transaction has been made for ${action.body.stockCode} with the following params',
-                                    //         body:
-                                    //             '${emailBodyLine1} ${emailBodyLine2} ${emailBodyLine3}'))
-                                    //     .then((value) {
-                                    // }).catchError((error) {
-                                    //   placingOrder = false;
-                                    //   store.dispatch(CreateTransactionFailAction(error: error));
-                                    // });
                                   }).catchError((error) {
+                                    String emailBodyLine1 =
+                                        '${error['message']}';
+                                    EmailJSService()
+                                        .sendEmail(Email(
+                                            username: 'Myself',
+                                            subject:
+                                                'Error while creating transaction for DynStock ${action.body.stockCode}',
+                                            title:
+                                                'Error while creating transaction for DynStock ${action.body.stockCode}',
+                                            subtitle:
+                                                'Error while creating transaction for DynStock ${action.body.stockCode}',
+                                            body: emailBodyLine1))
+                                        .then((value) {})
+                                        .catchError((error) {});
                                     store.dispatch(CreateTransactionFailAction(
                                         stockCode: action.stockCode,
                                         error: error));
                                   });
                                 }
                               }).catchError((error) {
+                                String emailBodyLine1 = '${error['message']}';
+                                EmailJSService()
+                                    .sendEmail(Email(
+                                        username: 'Myself',
+                                        subject:
+                                            'Error while creating transaction for DynStock ${action.body.stockCode}',
+                                        title:
+                                            'Error while creating transaction for DynStock ${action.body.stockCode}',
+                                        subtitle:
+                                            'Error while creating transaction for DynStock ${action.body.stockCode}',
+                                        body: emailBodyLine1))
+                                    .then((value) {})
+                                    .catchError((error) {});
                                 store.dispatch(CreateTransactionFailAction(
                                     stockCode: action.stockCode, error: error));
                               });
                             });
                           }
                         }).catchError((error) {
+                          String emailBodyLine1 = '${error['message']}';
+                          EmailJSService()
+                              .sendEmail(Email(
+                                  username: 'Myself',
+                                  subject:
+                                      'Error while creating transaction for DynStock ${action.body.stockCode}',
+                                  title:
+                                      'Error while creating transaction for DynStock ${action.body.stockCode}',
+                                  subtitle:
+                                      'Error while creating transaction for DynStock ${action.body.stockCode}',
+                                  body: emailBodyLine1))
+                              .then((value) {})
+                              .catchError((error) {});
                           store.dispatch(CreateTransactionFailAction(
                               stockCode: action.stockCode, error: error));
                         });
                       });
                     }).catchError((error) {
+                      String emailBodyLine1 = '${error['message']}';
+                      EmailJSService()
+                          .sendEmail(Email(
+                              username: 'Myself',
+                              subject:
+                                  'Error while creating transaction for DynStock ${action.body.stockCode}',
+                              title:
+                                  'Error while creating transaction for DynStock ${action.body.stockCode}',
+                              subtitle:
+                                  'Error while creating transaction for DynStock ${action.body.stockCode}',
+                              body: emailBodyLine1))
+                          .then((value) {})
+                          .catchError((error) {});
                       store.dispatch(CreateTransactionFailAction(
                           stockCode: action.stockCode, error: error));
                     });
                   }).catchError((error) {
+                    String emailBodyLine1 = '${error['message']}';
+                    EmailJSService()
+                        .sendEmail(Email(
+                            username: 'Myself',
+                            subject:
+                                'Error while creating transaction for DynStock ${action.body.stockCode}',
+                            title:
+                                'Error while creating transaction for DynStock ${action.body.stockCode}',
+                            subtitle:
+                                'Error while creating transaction for DynStock ${action.body.stockCode}',
+                            body: emailBodyLine1))
+                        .then((value) {})
+                        .catchError((error) {});
                     store.dispatch(CreateTransactionFailAction(
                         stockCode: action.stockCode, error: error));
                   });
                 }).catchError((error) {
+                  String emailBodyLine1 = '${error['message']}';
+                  EmailJSService()
+                      .sendEmail(Email(
+                          username: 'Myself',
+                          subject:
+                              'Error while creating transaction for DynStock ${action.body.stockCode}',
+                          title:
+                              'Error while creating transaction for DynStock ${action.body.stockCode}',
+                          subtitle:
+                              'Error while creating transaction for DynStock ${action.body.stockCode}',
+                          body: emailBodyLine1))
+                      .then((value) {})
+                      .catchError((error) {});
                   store.dispatch(CreateTransactionFailAction(
                       stockCode: action.stockCode, error: error));
                 });
@@ -798,32 +945,23 @@ void transactionsMiddleWare(
                           .currentLocalMinimumPrice = tradedStock.price;
                       store.dispatch(GetAllTickerDataSuccessAction(
                           allTickerData: store.state.allTickerData.data));
-                      DateTime transactionTime =
-                          DateTime.fromMillisecondsSinceEpoch(
-                              response.transactionTime.date);
-                      String emailBodyLine1 =
-                          'Transaction Type: ${response.type}, Transaction Price: ${response.stockPrice}, Number of Stocks: ${response.noOfStocks}';
-                      String emailBodyLine2 =
-                          'Transaction Time: ${transactionTime.hour}:${transactionTime.minute}:${transactionTime.second} ${transactionTime.day}/${transactionTime.month}/${transactionTime.year}';
-                      String emailBodyLine3 =
-                          'Total Amount: ${response.amount}';
+
                       store.dispatch(
                           GetAllDynStocksAction(userId: action.userId));
-                      // EmailJSService()
-                      //     .sendEmail(Email(
-                      //         username: 'Myself',
-                      //         subject: 'Transaction Made',
-                      //         title: 'Transaction Made for ${action.body.stockCode}',
-                      //         subtitle:
-                      //             'Transaction has been made for ${action.body.stockCode} with the following params',
-                      //         body:
-                      //             '${emailBodyLine1} ${emailBodyLine2} ${emailBodyLine3}'))
-                      //     .then((value) {
-                      // }).catchError((error) {
-                      //   placingOrder = false;
-                      //   store.dispatch(CreateTransactionFailAction(error: error));
-                      // });
                     }).catchError((error) {
+                      String emailBodyLine1 = '${error['message']}';
+                      EmailJSService()
+                          .sendEmail(Email(
+                              username: 'Myself',
+                              subject:
+                                  'Error while creating transaction for DynStock ${action.body.stockCode}',
+                              title:
+                                  'Error while creating transaction for DynStock ${action.body.stockCode}',
+                              subtitle:
+                                  'Error while creating transaction for DynStock ${action.body.stockCode}',
+                              body: emailBodyLine1))
+                          .then((value) {})
+                          .catchError((error) {});
                       store.dispatch(CreateTransactionFailAction(
                           stockCode: action.stockCode, error: error));
                     });
@@ -874,43 +1012,59 @@ void transactionsMiddleWare(
                                 .currentLocalMinimumPrice = tradedStock.price;
                             store.dispatch(GetAllTickerDataSuccessAction(
                                 allTickerData: store.state.allTickerData.data));
-                            DateTime transactionTime =
-                                DateTime.fromMillisecondsSinceEpoch(
-                                    response.transactionTime.date);
-                            String emailBodyLine1 =
-                                'Transaction Type: ${response.type}, Transaction Price: ${response.stockPrice}, Number of Stocks: ${response.noOfStocks}';
-                            String emailBodyLine2 =
-                                'Transaction Time: ${transactionTime.hour}:${transactionTime.minute}:${transactionTime.second} ${transactionTime.day}/${transactionTime.month}/${transactionTime.year}';
-                            String emailBodyLine3 =
-                                'Total Amount: ${response.amount}';
                             store.dispatch(
                                 GetAllDynStocksAction(userId: action.userId));
-                            // EmailJSService()
-                            //     .sendEmail(Email(
-                            //         username: 'Myself',
-                            //         subject: 'Transaction Made',
-                            //         title: 'Transaction Made for ${action.body.stockCode}',
-                            //         subtitle:
-                            //             'Transaction has been made for ${action.body.stockCode} with the following params',
-                            //         body:
-                            //             '${emailBodyLine1} ${emailBodyLine2} ${emailBodyLine3}'))
-                            //     .then((value) {
-                            // }).catchError((error) {
-                            //   placingOrder = false;
-                            //   store.dispatch(CreateTransactionFailAction(error: error));
-                            // });
                           }).catchError((error) {
+                            String emailBodyLine1 = '${error['message']}';
+                            EmailJSService()
+                                .sendEmail(Email(
+                                    username: 'Myself',
+                                    subject:
+                                        'Error while creating transaction for DynStock ${action.body.stockCode}',
+                                    title:
+                                        'Error while creating transaction for DynStock ${action.body.stockCode}',
+                                    subtitle:
+                                        'Error while creating transaction for DynStock ${action.body.stockCode}',
+                                    body: emailBodyLine1))
+                                .then((value) {})
+                                .catchError((error) {});
                             store.dispatch(CreateTransactionFailAction(
                                 stockCode: action.stockCode, error: error));
                           });
                         }
                       }).catchError((error) {
+                        String emailBodyLine1 = '${error['message']}';
+                        EmailJSService()
+                            .sendEmail(Email(
+                                username: 'Myself',
+                                subject:
+                                    'Error while creating transaction for DynStock ${action.body.stockCode}',
+                                title:
+                                    'Error while creating transaction for DynStock ${action.body.stockCode}',
+                                subtitle:
+                                    'Error while creating transaction for DynStock ${action.body.stockCode}',
+                                body: emailBodyLine1))
+                            .then((value) {})
+                            .catchError((error) {});
                         store.dispatch(CreateTransactionFailAction(
                             stockCode: action.stockCode, error: error));
                       });
                     });
                   }
                 }).catchError((error) {
+                  String emailBodyLine1 = '${error['message']}';
+                  EmailJSService()
+                      .sendEmail(Email(
+                          username: 'Myself',
+                          subject:
+                              'Error while creating transaction for DynStock ${action.body.stockCode}',
+                          title:
+                              'Error while creating transaction for DynStock ${action.body.stockCode}',
+                          subtitle:
+                              'Error while creating transaction for DynStock ${action.body.stockCode}',
+                          body: emailBodyLine1))
+                      .then((value) {})
+                      .catchError((error) {});
                   store.dispatch(CreateTransactionFailAction(
                       stockCode: action.stockCode, error: error));
                 });
@@ -918,11 +1072,37 @@ void transactionsMiddleWare(
 
               ///////
             }).catchError((error) {
+              String emailBodyLine1 = '${error['message']}';
+              EmailJSService()
+                  .sendEmail(Email(
+                      username: 'Myself',
+                      subject:
+                          'Error while creating transaction for DynStock ${action.body.stockCode}',
+                      title:
+                          'Error while creating transaction for DynStock ${action.body.stockCode}',
+                      subtitle:
+                          'Error while creating transaction for DynStock ${action.body.stockCode}',
+                      body: emailBodyLine1))
+                  .then((value) {})
+                  .catchError((error) {});
               store.dispatch(CreateTransactionFailAction(
                   stockCode: action.stockCode, error: error));
             });
           }
         }).catchError((error) {
+          String emailBodyLine1 = '${error['message']}';
+          EmailJSService()
+              .sendEmail(Email(
+                  username: 'Myself',
+                  subject:
+                      'Error while creating transaction for DynStock ${action.body.stockCode}',
+                  title:
+                      'Error while creating transaction for DynStock ${action.body.stockCode}',
+                  subtitle:
+                      'Error while creating transaction for DynStock ${action.body.stockCode}',
+                  body: emailBodyLine1))
+              .then((value) {})
+              .catchError((error) {});
           store.dispatch(CreateTransactionFailAction(
               stockCode: action.stockCode, error: error));
         });
@@ -947,29 +1127,21 @@ void transactionsMiddleWare(
             .currentLocalMinimumPrice = action.body.stockPrice;
         store.dispatch(GetAllTickerDataSuccessAction(
             allTickerData: store.state.allTickerData.data));
-        DateTime transactionTime =
-            DateTime.fromMillisecondsSinceEpoch(response.transactionTime.date);
-        String emailBodyLine1 =
-            'Transaction Type: ${response.type}, Transaction Price: ${response.stockPrice}, Number of Stocks: ${response.noOfStocks}';
-        String emailBodyLine2 =
-            'Transaction Time: ${transactionTime.hour}:${transactionTime.minute}:${transactionTime.second} ${transactionTime.day}/${transactionTime.month}/${transactionTime.year}';
-        String emailBodyLine3 = 'Total Amount: ${response.amount}';
         store.dispatch(GetAllDynStocksAction(userId: action.userId));
-        // EmailJSService()
-        //     .sendEmail(Email(
-        //         username: 'Myself',
-        //         subject: 'Transaction Made',
-        //         title: 'Transaction Made for ${action.body.stockCode}',
-        //         subtitle:
-        //             'Transaction has been made for ${action.body.stockCode} with the following params',
-        //         body:
-        //             '${emailBodyLine1} ${emailBodyLine2} ${emailBodyLine3}'))
-        //     .then((value) {
-        // }).catchError((error) {
-        //   placingOrder = false;
-        //   store.dispatch(CreateTransactionFailAction(error: error));
-        // });
       }).catchError((error) {
+        String emailBodyLine1 = '${error['message']}';
+        EmailJSService()
+            .sendEmail(Email(
+                username: 'Myself',
+                subject:
+                    'Error while creating transaction for DynStock ${action.body.stockCode}',
+                title:
+                    'Error while creating transaction for DynStock ${action.body.stockCode}',
+                subtitle:
+                    'Error while creating transaction for DynStock ${action.body.stockCode}',
+                body: emailBodyLine1))
+            .then((value) {})
+            .catchError((error) {});
         store.dispatch(CreateTransactionFailAction(
             stockCode: action.stockCode, error: error));
       });

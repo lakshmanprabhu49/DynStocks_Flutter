@@ -6,6 +6,7 @@ import 'package:dynstocks/redux/actions/ticker_data.actions.dart';
 import 'package:dynstocks/redux/app_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class TimedTickerCall {
   static List<Timer> timerQueueForDynStocks = List.empty(growable: true);
@@ -15,7 +16,8 @@ class TimedTickerCall {
     }
     if (appStore.state.allDynStocks.loaded &&
         !appStore.state.allDynStocks.loading &&
-        appStore.state.allDynStocks.data.isNotEmpty) {
+        appStore.state.allDynStocks.data.isNotEmpty &&
+        appStore.state.timedTickerPeriod != -1) {
       DateTime now = DateTime.now();
       bool sellCondition = (now.hour < 9) ||
           now.hour >= 16 ||
@@ -23,7 +25,8 @@ class TimedTickerCall {
           (now.hour == 15 && now.minute > 30) ||
           (now.weekday > 5);
       if (!sellCondition) {
-        Timer timer = Timer.periodic(Duration(seconds: 10), (timer) {
+        Timer timer = Timer.periodic(
+            Duration(seconds: appStore.state.timedTickerPeriod), (timer) {
           print('Here');
           if (!appStore.state.allTransactions.loading &&
               !appStore.state.allDynStocks.loading &&

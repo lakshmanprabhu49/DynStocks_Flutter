@@ -55,6 +55,8 @@ class _UserInfoScreenState extends State<UserInfoScreen> with RouteAware {
   bool isLoaded = false;
   bool errorMessageShown = false;
   bool reload = false;
+  int timedTickerPeriod = 1;
+  TextEditingController timedTickerPeriodController = TextEditingController();
   @override
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
@@ -65,12 +67,17 @@ class _UserInfoScreenState extends State<UserInfoScreen> with RouteAware {
       if (mounted) {
         setState(() {
           username = prefs.getString('username') as String;
+          timedTickerPeriod = prefs.getInt('timedTickerPeriod') as int;
         });
+        timedTickerPeriodController = TextEditingController(
+            text: (prefs.getInt('timedTickerPeriod') as int).toString());
+        timedTickerPeriodController.selection = TextSelection.collapsed(
+            offset: timedTickerPeriodController.text.length);
       }
     });
   }
 
-  // This function starts the periodic timer for the ticker data action
+  // This function starts the periodic timer for te ticker data action
   // If the ticker timer hasn't started , there is an explicit timer for the screen which runs,
   // till the ticker timer is started
   void startPeriodicTimer() {
@@ -272,218 +279,253 @@ class _UserInfoScreenState extends State<UserInfoScreen> with RouteAware {
               });
             }
             if (mounted && state.authState.loggedOut) {
-              SharedPreferences.getInstance().then((prefs) {
-                prefs.clear().then((value) {
-                  if (value) {
-                    stopPeriodicTimer();
-                    StoreProvider.of<AppState>(context)
-                        .dispatch(SetUserIdAction(userId: ''));
-                    StoreProvider.of<AppState>(context)
-                        .dispatch(SetAccessCodeAction(accessCode: ''));
-                    Route newRoute = MaterialPageRoute(
-                        builder: (context) => EnterLocalUserCredsScreen(
-                              shouldAskForUsernameAndPassword: true,
-                            ));
-                    Navigator.of(context).pushReplacement(newRoute);
-                  }
-                });
+              SharedPreferences.getInstance().then((prefs) async {
+                await prefs.remove('username');
+                await prefs.remove('password');
+                stopPeriodicTimer();
+                StoreProvider.of<AppState>(context)
+                    .dispatch(SetUserIdAction(userId: ''));
+                StoreProvider.of<AppState>(context)
+                    .dispatch(SetAccessCodeAction(accessCode: ''));
+                Route newRoute = MaterialPageRoute(
+                    builder: (context) => EnterLocalUserCredsScreen(
+                          shouldAskForUsernameAndPassword: true,
+                        ));
+                Navigator.of(context).pushReplacement(newRoute);
+                // prefs.clear().then((value) {
+                //   if (value) {}
+                // });
               });
             }
           }),
           converter: ((store) => store.state),
-          builder: (context, state) => Column(children: [
-                Container(
-                  margin: EdgeInsets.fromLTRB(20, 30, 20, 10),
-                  child: Text(
-                    'Hey ${username}, View your details here',
-                    style: GoogleFonts.outfit(
-                        fontSize: 40,
-                        color: PaletteColors.blue2,
-                        fontWeight: FontWeight.bold),
+          builder: (context, state) => SingleChildScrollView(
+                child: Container(
+                    child: Column(children: [
+                  Container(
+                    margin: EdgeInsets.fromLTRB(20, 30, 20, 10),
+                    child: Text(
+                      'Hey ${username}, View your details here',
+                      style: GoogleFonts.outfit(
+                          fontSize: 40,
+                          color: PaletteColors.blue2,
+                          fontWeight: FontWeight.bold),
+                    ),
                   ),
-                ),
-                Expanded(
-                    flex: 2,
-                    child: Container(
-                      margin: EdgeInsets.fromLTRB(0, 20, 0, 0),
-                      padding: EdgeInsets.fromLTRB(0, 50, 0, 50),
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.only(
-                              topLeft: Radius.circular(50),
-                              topRight: Radius.circular(50)),
-                          gradient: LinearGradient(
-                              colors: [
-                                PaletteColors.blue1,
-                                PaletteColors.blue2
-                              ],
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter)),
-                      child: Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  Container(
-                                    width: screenSize.width * 0.4,
-                                    height: screenSize.width * 0.3,
-                                    decoration: BoxDecoration(
-                                        color: PaletteColors.blue3,
-                                        borderRadius:
-                                            BorderRadius.circular(30)),
-                                    child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          if (state.userInfo.loaded)
-                                            Text(
-                                              '${state.userInfo.data!.noOfDynStocksOwned}',
-                                              style: GoogleFonts.outfit(
-                                                  fontSize: 30,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: PaletteColors.blue2),
-                                            ),
-                                          if (state.userInfo.loaded)
-                                            Text(
-                                              'DynStocks',
-                                              style: GoogleFonts.overlock(
-                                                  fontSize: 20,
-                                                  color: PaletteColors.blue2),
-                                            ),
-                                          if (state.userInfo.loading)
-                                            (Text('Loading....')),
-                                          if (state.userInfo.loadFailed)
-                                            Text('Load Failed!')
-                                        ]),
-                                  ),
-                                  Container(
-                                    width: screenSize.width * 0.4,
-                                    height: screenSize.width * 0.3,
-                                    decoration: BoxDecoration(
-                                        color: PaletteColors.purple2,
-                                        borderRadius:
-                                            BorderRadius.circular(30)),
-                                    child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          if (state.userInfo.loaded)
-                                            Text(
-                                              '${state.userInfo.data!.noOfTransactionsMade}',
-                                              style: GoogleFonts.outfit(
-                                                  fontSize: 30,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: PaletteColors.blue2),
-                                            ),
-                                          if (state.userInfo.loaded)
-                                            Text(
-                                              'Transactions',
-                                              style: GoogleFonts.overlock(
-                                                  fontSize: 20,
-                                                  color: PaletteColors.blue2),
-                                            ),
-                                          if (state.userInfo.loading)
-                                            (Text('Loading....')),
-                                          if (state.userInfo.loadFailed)
-                                            Text('Load Failed!')
-                                        ]),
-                                  )
-                                ]),
-                            Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  Container(
-                                    padding:
-                                        EdgeInsets.fromLTRB(10, 10, 10, 10),
-                                    width: screenSize.width * 0.4,
-                                    height: screenSize.width * 0.3,
-                                    decoration: BoxDecoration(
-                                        color: PaletteColors.purple2,
-                                        borderRadius:
-                                            BorderRadius.circular(30)),
-                                    child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          if (state.userInfo.loaded)
-                                            Row(children: [
-                                              Icon(
-                                                Icons.currency_rupee,
-                                                color: PaletteColors.blue2,
-                                                size: 25,
-                                              ),
-                                              Text(
-                                                '${state.userInfo.data!.netReturns.toStringAsFixed(2)}',
-                                                style: GoogleFonts.outfit(
-                                                    fontSize: 25,
-                                                    fontWeight: FontWeight.bold,
-                                                    color: PaletteColors.blue2),
-                                              )
-                                            ]),
-                                          if (state.userInfo.loaded)
-                                            Text(
-                                              'Net returns from all DynStocks',
-                                              textAlign: TextAlign.center,
-                                              style: GoogleFonts.overlock(
-                                                  fontSize: 15,
-                                                  color: PaletteColors.blue2),
-                                            ),
-                                          if (state.userInfo.loading)
-                                            (Text('Loading....')),
-                                          if (state.userInfo.loadFailed)
-                                            Text('Load Failed!')
-                                        ]),
-                                  ),
-                                  Container(
-                                    width: screenSize.width * 0.4,
-                                    height: screenSize.width * 0.3,
-                                    decoration: BoxDecoration(
-                                        color: PaletteColors.purple2,
-                                        borderRadius:
-                                            BorderRadius.circular(30)),
-                                    child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: []),
-                                  )
-                                ]),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
+                  Container(
+                      margin: EdgeInsets.fromLTRB(50, 20, 50, 20),
+                      padding: EdgeInsets.fromLTRB(15, 0, 15, 0),
+                      decoration: BoxDecoration(color: PaletteColors.blue3),
+                      child: TextFormField(
+                        decoration: InputDecoration(
+                          suffix: ElevatedButton(
+                            child: Icon(
+                              Icons.save,
+                              size: 10,
+                            ),
+                            style: ButtonStyle(
+                              backgroundColor: MaterialStateProperty.all<Color>(
+                                  Colors.transparent),
+                              fixedSize:
+                                  MaterialStateProperty.all<Size>(Size(10, 10)),
+                            ),
+                            onPressed: () {
+                              StoreProvider.of<AppState>(context).dispatch(
+                                  SetTimedTickerPeriodAction(
+                                      timedTickerPeriod:
+                                          timedTickerPeriod as int));
+                            },
+                          ),
+                          labelText: 'Timed Ticker Period',
+                          labelStyle: GoogleFonts.outfit(
+                            color: PaletteColors.blue2,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        controller: timedTickerPeriodController,
+                        keyboardType: TextInputType.number,
+                        onChanged: (newValue) {
+                          if (mounted) {
+                            setState(() {
+                              timedTickerPeriod = int.parse(newValue);
+                            });
+                          }
+                        },
+                        onEditingComplete: () {},
+                      )),
+                  Container(
+                      child: Container(
+                    margin: EdgeInsets.fromLTRB(0, 20, 0, 0),
+                    padding: EdgeInsets.fromLTRB(0, 50, 0, 50),
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(50),
+                            topRight: Radius.circular(50)),
+                        gradient: LinearGradient(
+                            colors: [PaletteColors.blue1, PaletteColors.blue2],
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter)),
+                    child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: [
                                 Container(
-                                    child: ElevatedButton(
-                                        style: ButtonStyle(
-                                          padding: MaterialStateProperty.all(
-                                              EdgeInsets.fromLTRB(
-                                                  15, 15, 15, 15)),
-                                          shape: MaterialStateProperty.all(
-                                              RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(25),
-                                          )),
-                                          backgroundColor:
-                                              MaterialStateProperty.all(
-                                                  Colors.white),
-                                        ),
-                                        onPressed: () {
-                                          showLogoutDialog();
-                                        },
-                                        child: Text(
-                                          'Log Out',
-                                          style: GoogleFonts.lusitana(
+                                  width: screenSize.width * 0.4,
+                                  height: screenSize.width * 0.3,
+                                  decoration: BoxDecoration(
+                                      color: PaletteColors.blue3,
+                                      borderRadius: BorderRadius.circular(30)),
+                                  child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        if (state.userInfo.loaded)
+                                          Text(
+                                            '${state.userInfo.data!.noOfDynStocksOwned}',
+                                            style: GoogleFonts.outfit(
+                                                fontSize: 30,
+                                                fontWeight: FontWeight.bold,
+                                                color: PaletteColors.blue2),
+                                          ),
+                                        if (state.userInfo.loaded)
+                                          Text(
+                                            'DynStocks',
+                                            style: GoogleFonts.overlock(
+                                                fontSize: 20,
+                                                color: PaletteColors.blue2),
+                                          ),
+                                        if (state.userInfo.loading)
+                                          (Text('Loading....')),
+                                        if (state.userInfo.loadFailed)
+                                          Text('Load Failed!')
+                                      ]),
+                                ),
+                                Container(
+                                  width: screenSize.width * 0.4,
+                                  height: screenSize.width * 0.3,
+                                  decoration: BoxDecoration(
+                                      color: PaletteColors.purple2,
+                                      borderRadius: BorderRadius.circular(30)),
+                                  child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        if (state.userInfo.loaded)
+                                          Text(
+                                            '${state.userInfo.data!.noOfTransactionsMade}',
+                                            style: GoogleFonts.outfit(
+                                                fontSize: 30,
+                                                fontWeight: FontWeight.bold,
+                                                color: PaletteColors.blue2),
+                                          ),
+                                        if (state.userInfo.loaded)
+                                          Text(
+                                            'Transactions',
+                                            style: GoogleFonts.overlock(
+                                                fontSize: 20,
+                                                color: PaletteColors.blue2),
+                                          ),
+                                        if (state.userInfo.loading)
+                                          (Text('Loading....')),
+                                        if (state.userInfo.loadFailed)
+                                          Text('Load Failed!')
+                                      ]),
+                                )
+                              ]),
+                          Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                Container(
+                                  padding: EdgeInsets.fromLTRB(10, 10, 10, 10),
+                                  width: screenSize.width * 0.4,
+                                  height: screenSize.width * 0.3,
+                                  decoration: BoxDecoration(
+                                      color: PaletteColors.purple2,
+                                      borderRadius: BorderRadius.circular(30)),
+                                  child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        if (state.userInfo.loaded)
+                                          Row(children: [
+                                            Icon(
+                                              Icons.currency_rupee,
                                               color: PaletteColors.blue2,
-                                              fontSize: 25,
-                                              fontWeight: FontWeight.bold),
-                                        )))
-                              ],
-                            )
-                          ]),
-                    ))
-              ])),
+                                              size: 25,
+                                            ),
+                                            Text(
+                                              '${state.userInfo.data!.netReturns.toStringAsFixed(2)}',
+                                              style: GoogleFonts.outfit(
+                                                  fontSize: 25,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: PaletteColors.blue2),
+                                            )
+                                          ]),
+                                        if (state.userInfo.loaded)
+                                          Text(
+                                            'Net returns from all DynStocks',
+                                            textAlign: TextAlign.center,
+                                            style: GoogleFonts.overlock(
+                                                fontSize: 15,
+                                                color: PaletteColors.blue2),
+                                          ),
+                                        if (state.userInfo.loading)
+                                          (Text('Loading....')),
+                                        if (state.userInfo.loadFailed)
+                                          Text('Load Failed!')
+                                      ]),
+                                ),
+                                Container(
+                                  width: screenSize.width * 0.4,
+                                  height: screenSize.width * 0.3,
+                                  decoration: BoxDecoration(
+                                      color: PaletteColors.purple2,
+                                      borderRadius: BorderRadius.circular(30)),
+                                  child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: []),
+                                )
+                              ]),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                  child: ElevatedButton(
+                                      style: ButtonStyle(
+                                        padding: MaterialStateProperty.all(
+                                            EdgeInsets.fromLTRB(
+                                                15, 15, 15, 15)),
+                                        shape: MaterialStateProperty.all(
+                                            RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(25),
+                                        )),
+                                        backgroundColor:
+                                            MaterialStateProperty.all(
+                                                Colors.white),
+                                      ),
+                                      onPressed: () {
+                                        showLogoutDialog();
+                                      },
+                                      child: Text(
+                                        'Log Out',
+                                        style: GoogleFonts.lusitana(
+                                            color: PaletteColors.blue2,
+                                            fontSize: 25,
+                                            fontWeight: FontWeight.bold),
+                                      )))
+                            ],
+                          )
+                        ]),
+                  ))
+                ])),
+              )),
       bottomNavigationBar: BottomNavigationBarCustom(
         screenSize: screenSize,
         selectedIndex: 3,

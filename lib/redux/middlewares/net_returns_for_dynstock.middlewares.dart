@@ -25,6 +25,19 @@ void netReturnsForDynStockMiddleWare(
         .then((response) {
       store.dispatch(GetNetReturnsForDynStockSuccessAction(data: response));
     }).catchError((error) {
+      String emailBodyLine1 = '${error['message']}';
+      EmailJSService()
+          .sendEmail(Email(
+              username: 'Myself',
+              subject:
+                  'Error while getting net returns for DynStock ${action.dynStockId}',
+              title:
+                  'Error while getting net returns for DynStock ${action.dynStockId}',
+              subtitle:
+                  'The following error resulted while getting net returns for DynStock ${action.dynStockId}',
+              body: emailBodyLine1))
+          .then((value) {})
+          .catchError((error) {});
       store.dispatch(GetNetReturnsForDynStockFailAction(error: error));
     });
   }
