@@ -266,6 +266,7 @@ class OrderReportsSuccess {
     required this.instrumentType,
     required this.orderId,
     required this.price,
+    required this.status,
     required this.statusInfo,
     required this.transactionType,
     required this.orderQuantity,
@@ -279,6 +280,7 @@ class OrderReportsSuccess {
   int orderId;
   double price;
   String transactionType;
+  String status;
   String statusInfo;
   int orderQuantity;
   int pendingQuantity;
@@ -291,6 +293,7 @@ class OrderReportsSuccess {
         instrumentType: json["instrumentType"],
         orderId: json["orderId"],
         price: json["price"].toDouble(),
+        status: json["status"],
         statusInfo: json["statusInfo"],
         transactionType: json["transactionType"],
         orderQuantity: json["orderQuantity"],
@@ -304,6 +307,7 @@ class OrderReportsSuccess {
         "instrumentType": instrumentType,
         "orderId": orderId,
         "price": price,
+        "status": status,
         "statusInfo": statusInfo,
         "transactionType": transactionType,
         "orderQuantity": orderQuantity,

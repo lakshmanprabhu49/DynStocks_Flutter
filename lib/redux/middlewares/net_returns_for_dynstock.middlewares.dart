@@ -25,6 +25,7 @@ void netReturnsForDynStockMiddleWare(
         .then((response) {
       store.dispatch(GetNetReturnsForDynStockSuccessAction(data: response));
     }).catchError((error) {
+      print(error);
       String emailBodyLine1 = '$error';
       EmailJSService()
           .sendEmail(Email(
@@ -37,7 +38,9 @@ void netReturnsForDynStockMiddleWare(
                   'The following error resulted while getting net returns for DynStock ${action.dynStockId}',
               body: emailBodyLine1))
           .then((value) {})
-          .catchError((error) {});
+          .catchError((error) {
+        print(error);
+      });
       store.dispatch(GetNetReturnsForDynStockFailAction(error: error));
     });
   }

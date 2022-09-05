@@ -111,7 +111,7 @@ class _EnterLocalUserCredsScreenState extends State<EnterLocalUserCredsScreen>
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(
             ToastMessageHandler.showErrorMessageSnackBar(
-                '${appStore.state.kotakStockAPI.error.message}'));
+                '${appStore.state.kotakStockAPI.error}'));
       });
       setState(() {
         errorMessageShown = true;
@@ -121,7 +121,7 @@ class _EnterLocalUserCredsScreenState extends State<EnterLocalUserCredsScreen>
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(
             ToastMessageHandler.showErrorMessageSnackBar(
-                '${appStore.state.authState.error.message}'));
+                '${appStore.state.authState.error}'));
       });
       setState(() {
         errorMessageShown = true;
@@ -134,7 +134,7 @@ class _EnterLocalUserCredsScreenState extends State<EnterLocalUserCredsScreen>
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   ScaffoldMessenger.of(context).showSnackBar(
                       ToastMessageHandler.showErrorMessageSnackBar(
-                          '${state.kotakStockAPI.error.message}'));
+                          '${state.kotakStockAPI.error}'));
                 });
                 setState(() {
                   errorMessageShown = true;
@@ -144,7 +144,7 @@ class _EnterLocalUserCredsScreenState extends State<EnterLocalUserCredsScreen>
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   ScaffoldMessenger.of(context).showSnackBar(
                       ToastMessageHandler.showErrorMessageSnackBar(
-                          '${state.authState.error.message}'));
+                          '${state.authState.error}'));
                 });
                 setState(() {
                   errorMessageShown = true;
@@ -180,7 +180,7 @@ class _EnterLocalUserCredsScreenState extends State<EnterLocalUserCredsScreen>
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   ScaffoldMessenger.of(context).showSnackBar(
                       ToastMessageHandler.showErrorMessageSnackBar(
-                          '${state.kotakStockAPI.error.message}'));
+                          '${state.kotakStockAPI.error}'));
                 });
                 setState(() {
                   errorMessageShown = true;

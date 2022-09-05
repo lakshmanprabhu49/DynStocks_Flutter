@@ -33,11 +33,13 @@ void dynStocksMiddleWare(
           map[dynStock.stockCode] = TransactionsCreate(
               creating: false, created: false, createFailed: false);
         }
+        pauseTransactions[dynStock.stockCode] = false;
       }
       if (mapAltered) {
         store.dispatch(InitializeCreateTransactionStateAction(data: map));
       }
     }).catchError((error) {
+      print(error);
       String emailBodyLine1 = '$error';
       EmailJSService()
           .sendEmail(Email(
@@ -48,7 +50,9 @@ void dynStocksMiddleWare(
                   'The following error resulted while Fetching List of DynStocks',
               body: emailBodyLine1))
           .then((value) {})
-          .catchError((error) {});
+          .catchError((error) {
+        print(error);
+      });
       store.dispatch(GetAllDynStocksFailAction(error: error));
     });
   }
@@ -92,6 +96,7 @@ void dynStocksMiddleWare(
                 store.dispatch(GetAllTickerDataAction());
               }
             }).catchError((error) {
+              print(error);
               String emailBodyLine1 = '$error';
               EmailJSService()
                   .sendEmail(Email(
@@ -103,10 +108,13 @@ void dynStocksMiddleWare(
                           'The following error resulted while Creating DynStock for ${action.body.stockCode}',
                       body: emailBodyLine1))
                   .then((value) {})
-                  .catchError((error) {});
+                  .catchError((error) {
+                print(error);
+              });
               store.dispatch(CreateDynStockFailAction(error: error));
             });
           }).catchError((error) {
+            print(error);
             String emailBodyLine1 = '$error';
             EmailJSService()
                 .sendEmail(Email(
@@ -118,12 +126,15 @@ void dynStocksMiddleWare(
                         'The following error resulted while Creating DynStock for ${action.body.stockCode}',
                     body: emailBodyLine1))
                 .then((value) {})
-                .catchError((error) {});
+                .catchError((error) {
+              print(error);
+            });
             store.dispatch(CreateDynStockFailAction(error: error));
           });
         });
       },
     ).catchError((error) {
+      print(error);
       String emailBodyLine1 = '$error';
       EmailJSService()
           .sendEmail(Email(
@@ -135,7 +146,9 @@ void dynStocksMiddleWare(
                   'The following error resulted while Creating DynStock for ${action.body.stockCode}',
               body: emailBodyLine1))
           .then((value) {})
-          .catchError((error) {});
+          .catchError((error) {
+        print(error);
+      });
       store.dispatch(CreateDynStockFailAction(error: error));
     });
   }
@@ -146,6 +159,7 @@ void dynStocksMiddleWare(
         .then((response) {
       store.dispatch(UpdateDynStockSuccessAction(dynStock: response));
     }).catchError((error) {
+      print(error);
       String emailBodyLine1 = '$error';
       EmailJSService()
           .sendEmail(Email(
@@ -157,7 +171,9 @@ void dynStocksMiddleWare(
                   'The following error resulted while Updating DynStock for ${action.body.stockCode}',
               body: emailBodyLine1))
           .then((value) {})
-          .catchError((error) {});
+          .catchError((error) {
+        print(error);
+      });
       store.dispatch(UpdateDynStockFailAction(error: error));
     });
   }
@@ -167,108 +183,1179 @@ void dynStocksMiddleWare(
         store.state.allDynStocks.data.firstWhere((element) {
       return element.dynStockId.uuid == action.dynStockId;
     });
-
+    pauseTransactions[dynStockToBeDeleted.stockCode] = true;
     if (dynStockToBeDeleted.lastTransactionType == 'BUY') {
-      // Last executed order was BUY, so we need to sell the stocks before deleting the dynstocks
+      // Need to Apply the SELL Logic
       KotakStockAPIService()
-          .placeOrder(
-        action.userId,
-        appStore.state.accessCode,
-        KotakStockAPIPlaceOrderBody(
-            orderType: 'N',
-            instrumentToken: dynStockToBeDeleted.instrumentToken,
-            transactionType: 'SELL',
-            quantity: dynStockToBeDeleted.stocksAvailableForTrade),
-      )
-          .then((order) {
-        bool orderPlacedInNSE = order!.success!.nse != null ? true : false;
-        Future.delayed(Duration(milliseconds: 200), () {
-          KotakStockAPIService()
-              .getOrderReport(
-                  action.userId,
-                  appStore.state.accessCode,
-                  (orderPlacedInNSE
-                      ? order.success!.nse!.orderId
-                      : order.success!.bse!.orderId),
-                  dynStockToBeDeleted.instrumentToken)
-              .then((orderReport) {
-            TransactionsService()
-                .createTransaction(
-                    action.userId,
-                    action.dynStockId,
-                    TransactionBody(
-                        transactionId: orderPlacedInNSE
-                            ? order.success!.nse!.orderId.toString()
-                            : order.success!.bse!.orderId.toString(),
-                        type: 'SELL',
-                        noOfStocks: dynStockToBeDeleted.stocksAvailableForTrade,
-                        stockCode: dynStockToBeDeleted.stockCode,
-                        stockPrice: orderReport!.success
-                            .firstWhere((element) =>
-                                element.orderId ==
-                                (orderPlacedInNSE
-                                    ? order.success!.nse!.orderId
-                                    : order.success!.bse!.orderId))
-                            .price))
-                .then((transaction) {
-              DynStocksService()
-                  .deleteDynStock(action.userId, action.dynStockId)
-                  .then((response) {
-                store.dispatch(
-                    DeleteDynStockSuccessAction(dynStockId: response));
-              }).catchError((error) {
-                String emailBodyLine1 = '$error';
-                EmailJSService()
-                    .sendEmail(Email(
-                        username: 'Myself',
-                        subject: 'Error while Deleting DynStock',
-                        title:
-                            'Error while Deleting DynStock for ${action.dynStockId}',
-                        subtitle:
-                            'The following error resulted while Creating DynStock for for ${action.dynStockId}',
-                        body: emailBodyLine1))
-                    .then((value) {})
-                    .catchError((error) {});
-                store.dispatch(DeleteDynStockFailAction(error: error));
-              });
-            }).catchError((error) {
+          .getAllOrderReport(action.userId, store.state.accessCode,
+              dynStockToBeDeleted.instrumentToken)
+          .then((orderReports) {
+        bool partiallyTradedOrderExists = false;
+        var orderReport = orderReports!.success[0];
+        {
+          if (orderReport.status == EStockTradeStatus.OPN.name) {
+            // If there is open SELL order, cancel it
+            KotakStockAPIService()
+                .cancelOrder(action.userId, store.state.accessCode,
+                    orderReport.orderId.toString())
+                .then((cancelledOrder) {})
+                .catchError((error) {
+              pauseTransactions[dynStockToBeDeleted.stockCode] = false;
+              print(error);
+              pauseTransactions[dynStockToBeDeleted.stockCode] = false;
               String emailBodyLine1 = '$error';
               EmailJSService()
                   .sendEmail(Email(
                       username: 'Myself',
-                      subject: 'Error while Deleting DynStock',
+                      subject:
+                          'Error while creating transaction while Deleting DynStock ${action.stockCode}',
                       title:
-                          'Error while Deleting DynStock for ${action.dynStockId}',
+                          'Error while creating transaction while Deleting DynStock ${action.stockCode}',
                       subtitle:
-                          'The following error resulted while Creating DynStock for for ${action.dynStockId}',
+                          'Error while creating transaction while Deleting DynStock ${action.stockCode}',
                       body: emailBodyLine1))
                   .then((value) {})
-                  .catchError((error) {});
+                  .catchError((error) {
+                pauseTransactions[dynStockToBeDeleted.stockCode] = false;
+                pauseTransactions[dynStockToBeDeleted.stockCode] = false;
+                print(error);
+              });
               store.dispatch(DeleteDynStockFailAction(error: error));
             });
+          } else if (orderReport.statusInfo == EStockTradeStatus.OPF.name) {
+            // Modify the existing order to make it fully traded
+            partiallyTradedOrderExists = true;
+            int quantitySoldAlready =
+                orderReport.orderQuantity - orderReport.pendingQuantity;
+            KotakStockAPIService()
+                .modifyOrder(
+                    action.userId,
+                    store.state.accessCode,
+                    orderReport.orderId.toString(),
+                    KotakStockAPIPlaceOrderBody(
+                        orderType: 'N',
+                        instrumentToken: dynStockToBeDeleted.instrumentToken,
+                        transactionType: ETransactionType.SELL.name,
+                        quantity: quantitySoldAlready))
+                .then((modifiedOrder) {
+              bool orderPlacedInNSE =
+                  modifiedOrder!.success!.nse != null ? true : false;
+              TransactionsService()
+                  .createTransaction(
+                      action.userId,
+                      action.dynStockId,
+                      TransactionBody(
+                          transactionId: orderPlacedInNSE
+                              ? modifiedOrder.success!.nse!.orderId.toString()
+                              : modifiedOrder.success!.bse!.orderId.toString(),
+                          type: ETransactionType.SELL.name,
+                          noOfStocks: quantitySoldAlready,
+                          stockCode: action.stockCode,
+                          stockPrice: orderReport.price))
+                  .then((response) {
+                // Place order to SELL the remaining quantity
+                // Then place the SELL order to SELL the remaining quantity at the market price
+                KotakStockAPIService()
+                    .placeOrder(
+                        action.userId,
+                        store.state.accessCode,
+                        KotakStockAPIPlaceOrderBody(
+                            orderType: 'N',
+                            instrumentToken:
+                                dynStockToBeDeleted.instrumentToken,
+                            transactionType: ETransactionType.BUY.name,
+                            quantity: orderReport.pendingQuantity))
+                    .then((newOrder) {
+                  bool orderPlacedInNSE =
+                      newOrder!.success!.nse != null ? true : false;
+                  Future.delayed(Duration(milliseconds: 200), () {
+                    KotakStockAPIService()
+                        .getOrderReport(
+                            action.userId,
+                            store.state.accessCode,
+                            (orderPlacedInNSE
+                                ? newOrder.success!.nse!.orderId
+                                : newOrder.success!.bse!.orderId),
+                            dynStockToBeDeleted.instrumentToken)
+                        .then((position) {
+                      OrderReportsSuccess tradedStock = position!.success
+                          .firstWhere((element) =>
+                              element.orderId ==
+                              (orderPlacedInNSE
+                                  ? newOrder.success!.nse!.orderId
+                                  : newOrder.success!.bse!.orderId));
+                      int orderId = orderPlacedInNSE
+                          ? newOrder.success!.nse!.orderId
+                          : newOrder.success!.bse!.orderId;
+                      if (tradedStock.status == EStockTradeStatus.TRAD.name) {
+                        TransactionsService()
+                            .createTransaction(
+                                action.userId,
+                                action.dynStockId,
+                                TransactionBody(
+                                    transactionId: orderPlacedInNSE
+                                        ? newOrder.success!.nse!.orderId
+                                            .toString()
+                                        : newOrder.success!.bse!.orderId
+                                            .toString(),
+                                    type: ETransactionType.SELL.name,
+                                    noOfStocks: orderReport.pendingQuantity,
+                                    stockCode: action.stockCode,
+                                    stockPrice: tradedStock.price))
+                            .then((response) {
+                          DynStocksService()
+                              .deleteDynStock(action.userId, action.dynStockId)
+                              .then((response) {
+                            pauseTransactions[dynStockToBeDeleted.stockCode] =
+                                false;
+                            store.dispatch(DeleteDynStockSuccessAction(
+                                dynStockId: response));
+                          }).catchError((error) {
+                            pauseTransactions[dynStockToBeDeleted.stockCode] =
+                                false;
+                            pauseTransactions[dynStockToBeDeleted.stockCode] =
+                                false;
+                            print(error);
+                            String emailBodyLine1 = '$error';
+                            EmailJSService()
+                                .sendEmail(Email(
+                                    username: 'Myself',
+                                    subject: 'Error while Deleting DynStock',
+                                    title:
+                                        'Error while Deleting DynStock for ${action.dynStockId}',
+                                    subtitle:
+                                        'The following error resulted while Creating DynStock for for ${action.dynStockId}',
+                                    body: emailBodyLine1))
+                                .then((value) {})
+                                .catchError((error) {
+                              pauseTransactions[dynStockToBeDeleted.stockCode] =
+                                  false;
+                              pauseTransactions[dynStockToBeDeleted.stockCode] =
+                                  false;
+                              print(error);
+                            });
+                            store.dispatch(
+                                DeleteDynStockFailAction(error: error));
+                          });
+                        }).catchError((error) {
+                          pauseTransactions[dynStockToBeDeleted.stockCode] =
+                              false;
+                          pauseTransactions[dynStockToBeDeleted.stockCode] =
+                              false;
+                          print(error);
+                          String emailBodyLine1 = '$error';
+                          EmailJSService()
+                              .sendEmail(Email(
+                                  username: 'Myself',
+                                  subject:
+                                      'Error while creating transaction while Deleting DynStock ${action.stockCode}',
+                                  title:
+                                      'Error while creating transaction while Deleting DynStock ${action.stockCode}',
+                                  subtitle:
+                                      'Error while creating transaction while Deleting DynStock ${action.stockCode}',
+                                  body: emailBodyLine1))
+                              .then((value) {})
+                              .catchError((error) {
+                            pauseTransactions[dynStockToBeDeleted.stockCode] =
+                                false;
+                            pauseTransactions[dynStockToBeDeleted.stockCode] =
+                                false;
+                            print(error);
+                          });
+                          store
+                              .dispatch(DeleteDynStockFailAction(error: error));
+                        });
+                      } else {
+                        Timer.periodic(Duration(seconds: 3), (timer) {
+                          KotakStockAPIService()
+                              .getOrderReport(
+                                  action.userId,
+                                  store.state.accessCode,
+                                  (orderPlacedInNSE
+                                      ? newOrder.success!.nse!.orderId
+                                      : newOrder.success!.bse!.orderId),
+                                  dynStockToBeDeleted.instrumentToken)
+                              .then((position) {
+                            OrderReportsSuccess tradedStock = position!.success
+                                .firstWhere((element) =>
+                                    element.orderId ==
+                                    (orderPlacedInNSE
+                                        ? newOrder.success!.nse!.orderId
+                                        : newOrder.success!.bse!.orderId));
+                            int orderId = orderPlacedInNSE
+                                ? newOrder.success!.nse!.orderId
+                                : newOrder.success!.bse!.orderId;
+                            if (tradedStock.status ==
+                                EStockTradeStatus.TRAD.name) {
+                              timer.cancel();
+                              TransactionsService()
+                                  .createTransaction(
+                                      action.userId,
+                                      action.dynStockId,
+                                      TransactionBody(
+                                          transactionId: orderPlacedInNSE
+                                              ? newOrder.success!.nse!.orderId
+                                                  .toString()
+                                              : newOrder.success!.bse!.orderId
+                                                  .toString(),
+                                          type: ETransactionType.SELL.name,
+                                          noOfStocks:
+                                              orderReport.pendingQuantity,
+                                          stockCode: action.stockCode,
+                                          stockPrice: tradedStock.price))
+                                  .then((response) {
+                                DynStocksService()
+                                    .deleteDynStock(
+                                        action.userId, action.dynStockId)
+                                    .then((response) {
+                                  store.dispatch(DeleteDynStockSuccessAction(
+                                      dynStockId: response));
+                                }).catchError((error) {
+                                  pauseTransactions[
+                                      dynStockToBeDeleted.stockCode] = false;
+                                  pauseTransactions[
+                                      dynStockToBeDeleted.stockCode] = false;
+                                  print(error);
+                                  String emailBodyLine1 = '$error';
+                                  EmailJSService()
+                                      .sendEmail(Email(
+                                          username: 'Myself',
+                                          subject:
+                                              'Error while Deleting DynStock',
+                                          title:
+                                              'Error while Deleting DynStock for ${action.dynStockId}',
+                                          subtitle:
+                                              'The following error resulted while Creating DynStock for for ${action.dynStockId}',
+                                          body: emailBodyLine1))
+                                      .then((value) {})
+                                      .catchError((error) {
+                                    pauseTransactions[
+                                        dynStockToBeDeleted.stockCode] = false;
+                                    pauseTransactions[
+                                        dynStockToBeDeleted.stockCode] = false;
+                                    print(error);
+                                  });
+                                  store.dispatch(
+                                      DeleteDynStockFailAction(error: error));
+                                });
+                              }).catchError((error) {
+                                pauseTransactions[
+                                    dynStockToBeDeleted.stockCode] = false;
+                                pauseTransactions[
+                                    dynStockToBeDeleted.stockCode] = false;
+                                print(error);
+                                String emailBodyLine1 = '$error';
+                                EmailJSService()
+                                    .sendEmail(Email(
+                                        username: 'Myself',
+                                        subject:
+                                            'Error while creating transaction while Deleting DynStock ${action.stockCode}',
+                                        title:
+                                            'Error while creating transaction while Deleting DynStock ${action.stockCode}',
+                                        subtitle:
+                                            'Error while creating transaction while Deleting DynStock ${action.stockCode}',
+                                        body: emailBodyLine1))
+                                    .then((value) {})
+                                    .catchError((error) {
+                                  pauseTransactions[
+                                      dynStockToBeDeleted.stockCode] = false;
+                                  print(error);
+                                });
+                                store.dispatch(
+                                    DeleteDynStockFailAction(error: error));
+                              });
+                            } else if (tradedStock.status ==
+                                EStockTradeStatus.CANC.name) {
+                              timer.cancel();
+                              DynStocksService()
+                                  .deleteDynStock(
+                                      action.userId, action.dynStockId)
+                                  .then((response) {
+                                store.dispatch(DeleteDynStockSuccessAction(
+                                    dynStockId: response));
+                              }).catchError((error) {
+                                pauseTransactions[
+                                    dynStockToBeDeleted.stockCode] = false;
+                                print(error);
+                                String emailBodyLine1 = '$error';
+                                EmailJSService()
+                                    .sendEmail(Email(
+                                        username: 'Myself',
+                                        subject:
+                                            'Error while Deleting DynStock',
+                                        title:
+                                            'Error while Deleting DynStock for ${action.dynStockId}',
+                                        subtitle:
+                                            'The following error resulted while Creating DynStock for for ${action.dynStockId}',
+                                        body: emailBodyLine1))
+                                    .then((value) {})
+                                    .catchError((error) {
+                                  pauseTransactions[
+                                      dynStockToBeDeleted.stockCode] = false;
+                                  print(error);
+                                });
+                                store.dispatch(
+                                    DeleteDynStockFailAction(error: error));
+                              });
+                            }
+                          }).catchError((error) {
+                            pauseTransactions[dynStockToBeDeleted.stockCode] =
+                                false;
+                            print(error);
+                            String emailBodyLine1 = '$error';
+                            EmailJSService()
+                                .sendEmail(Email(
+                                    username: 'Myself',
+                                    subject:
+                                        'Error while creating transaction while Deleting DynStock ${action.stockCode}',
+                                    title:
+                                        'Error while creating transaction while Deleting DynStock ${action.stockCode}',
+                                    subtitle:
+                                        'Error while creating transaction while Deleting DynStock ${action.stockCode}',
+                                    body: emailBodyLine1))
+                                .then((value) {})
+                                .catchError((error) {
+                              pauseTransactions[dynStockToBeDeleted.stockCode] =
+                                  false;
+                              print(error);
+                            });
+                            store.dispatch(
+                                DeleteDynStockFailAction(error: error));
+                          });
+                        });
+                      }
+                    }).catchError((error) {
+                      pauseTransactions[dynStockToBeDeleted.stockCode] = false;
+                      print(error);
+                      String emailBodyLine1 = '$error';
+                      EmailJSService()
+                          .sendEmail(Email(
+                              username: 'Myself',
+                              subject:
+                                  'Error while creating transaction while Deleting DynStock ${action.stockCode}',
+                              title:
+                                  'Error while creating transaction while Deleting DynStock ${action.stockCode}',
+                              subtitle:
+                                  'Error while creating transaction while Deleting DynStock ${action.stockCode}',
+                              body: emailBodyLine1))
+                          .then((value) {})
+                          .catchError((error) {
+                        pauseTransactions[dynStockToBeDeleted.stockCode] =
+                            false;
+                        print(error);
+                      });
+                      store.dispatch(DeleteDynStockFailAction(error: error));
+                    });
+                  });
+                }).catchError((error) {
+                  pauseTransactions[dynStockToBeDeleted.stockCode] = false;
+                  print(error);
+                  String emailBodyLine1 = '$error';
+                  EmailJSService()
+                      .sendEmail(Email(
+                          username: 'Myself',
+                          subject:
+                              'Error while creating transaction while Deleting DynStock ${action.stockCode}',
+                          title:
+                              'Error while creating transaction while Deleting DynStock ${action.stockCode}',
+                          subtitle:
+                              'Error while creating transaction while Deleting DynStock ${action.stockCode}',
+                          body: emailBodyLine1))
+                      .then((value) {})
+                      .catchError((error) {
+                    pauseTransactions[dynStockToBeDeleted.stockCode] = false;
+                    print(error);
+                  });
+                  store.dispatch(DeleteDynStockFailAction(error: error));
+                });
+              }).catchError((error) {
+                pauseTransactions[dynStockToBeDeleted.stockCode] = false;
+                print(error);
+                String emailBodyLine1 = '$error';
+                EmailJSService()
+                    .sendEmail(Email(
+                        username: 'Myself',
+                        subject:
+                            'Error while creating transaction while Deleting DynStock ${action.stockCode}',
+                        title:
+                            'Error while creating transaction while Deleting DynStock ${action.stockCode}',
+                        subtitle:
+                            'Error while creating transaction while Deleting DynStock ${action.stockCode}',
+                        body: emailBodyLine1))
+                    .then((value) {})
+                    .catchError((error) {
+                  pauseTransactions[dynStockToBeDeleted.stockCode] = false;
+                  print(error);
+                });
+                store.dispatch(DeleteDynStockFailAction(error: error));
+              });
+            }).catchError((error) {
+              pauseTransactions[dynStockToBeDeleted.stockCode] = false;
+              print(error);
+              String emailBodyLine1 = '$error';
+              EmailJSService()
+                  .sendEmail(Email(
+                      username: 'Myself',
+                      subject:
+                          'Error while creating transaction while Deleting DynStock ${action.stockCode}',
+                      title:
+                          'Error while creating transaction while Deleting DynStock ${action.stockCode}',
+                      subtitle:
+                          'Error while creating transaction while Deleting DynStock ${action.stockCode}',
+                      body: emailBodyLine1))
+                  .then((value) {})
+                  .catchError((error) {
+                pauseTransactions[dynStockToBeDeleted.stockCode] = false;
+                print(error);
+              });
+              store.dispatch(DeleteDynStockFailAction(error: error));
+            });
+          }
+        }
+        if (!partiallyTradedOrderExists) {
+          // There are no partial orders, now we need to SELL all the quantity
+          KotakStockAPIService()
+              .placeOrder(
+                  action.userId,
+                  store.state.accessCode,
+                  KotakStockAPIPlaceOrderBody(
+                    orderType: 'N',
+                    instrumentToken: dynStockToBeDeleted.instrumentToken,
+                    transactionType: ETransactionType.SELL.name,
+                    quantity: dynStockToBeDeleted.stocksAvailableForTrade,
+                  ))
+              .then((order) {
+            bool orderPlacedInNSE = order!.success!.nse != null ? true : false;
+            ///////
+            Future.delayed(Duration(milliseconds: 200), () {
+              KotakStockAPIService()
+                  .getOrderReport(
+                      action.userId,
+                      store.state.accessCode,
+                      (orderPlacedInNSE
+                          ? order.success!.nse!.orderId
+                          : order.success!.bse!.orderId),
+                      dynStockToBeDeleted.instrumentToken)
+                  .then((position) {
+                OrderReportsSuccess tradedStock = position!.success.firstWhere(
+                    (element) =>
+                        element.orderId ==
+                        (orderPlacedInNSE
+                            ? order.success!.nse!.orderId
+                            : order.success!.bse!.orderId));
+                int orderId = orderPlacedInNSE
+                    ? order.success!.nse!.orderId
+                    : order.success!.bse!.orderId;
+                if (tradedStock.status == EStockTradeStatus.TRAD.name) {
+                  TransactionsService()
+                      .createTransaction(
+                          action.userId,
+                          action.dynStockId,
+                          TransactionBody(
+                              transactionId: orderPlacedInNSE
+                                  ? order.success!.nse!.orderId.toString()
+                                  : order.success!.bse!.orderId.toString(),
+                              type: ETransactionType.SELL.name,
+                              noOfStocks:
+                                  dynStockToBeDeleted.stocksAvailableForTrade,
+                              stockCode: action.stockCode,
+                              stockPrice: tradedStock.price))
+                      .then((response) {
+                    DynStocksService()
+                        .deleteDynStock(action.userId, action.dynStockId)
+                        .then((response) {
+                      store.dispatch(
+                          DeleteDynStockSuccessAction(dynStockId: response));
+                    }).catchError((error) {
+                      pauseTransactions[dynStockToBeDeleted.stockCode] = false;
+                      print(error);
+                      String emailBodyLine1 = '$error';
+                      EmailJSService()
+                          .sendEmail(Email(
+                              username: 'Myself',
+                              subject: 'Error while Deleting DynStock',
+                              title:
+                                  'Error while Deleting DynStock for ${action.dynStockId}',
+                              subtitle:
+                                  'The following error resulted while Creating DynStock for for ${action.dynStockId}',
+                              body: emailBodyLine1))
+                          .then((value) {})
+                          .catchError((error) {
+                        pauseTransactions[dynStockToBeDeleted.stockCode] =
+                            false;
+                        print(error);
+                      });
+                      store.dispatch(DeleteDynStockFailAction(error: error));
+                    });
+                  }).catchError((error) {
+                    pauseTransactions[dynStockToBeDeleted.stockCode] = false;
+                    print(error);
+                    String emailBodyLine1 = '$error';
+                    EmailJSService()
+                        .sendEmail(Email(
+                            username: 'Myself',
+                            subject:
+                                'Error while creating transaction while Deleting DynStock ${action.stockCode}',
+                            title:
+                                'Error while creating transaction while Deleting DynStock ${action.stockCode}',
+                            subtitle:
+                                'Error while creating transaction while Deleting DynStock ${action.stockCode}',
+                            body: emailBodyLine1))
+                        .then((value) {})
+                        .catchError((error) {
+                      pauseTransactions[dynStockToBeDeleted.stockCode] = false;
+                      print(error);
+                    });
+                    store.dispatch(DeleteDynStockFailAction(error: error));
+                  });
+                } else {
+                  Timer.periodic(Duration(seconds: 3), (timer) {
+                    KotakStockAPIService()
+                        .getOrderReport(
+                            action.userId,
+                            store.state.accessCode,
+                            (orderPlacedInNSE
+                                ? order.success!.nse!.orderId
+                                : order.success!.bse!.orderId),
+                            dynStockToBeDeleted.instrumentToken)
+                        .then((position) {
+                      OrderReportsSuccess tradedStock = position!.success
+                          .firstWhere((element) =>
+                              element.orderId ==
+                              (orderPlacedInNSE
+                                  ? order.success!.nse!.orderId
+                                  : order.success!.bse!.orderId));
+                      int orderId = orderPlacedInNSE
+                          ? order.success!.nse!.orderId
+                          : order.success!.bse!.orderId;
+                      if (tradedStock.status == EStockTradeStatus.TRAD.name) {
+                        timer.cancel();
+                        TransactionsService()
+                            .createTransaction(
+                                action.userId,
+                                action.dynStockId,
+                                TransactionBody(
+                                    transactionId: orderPlacedInNSE
+                                        ? order.success!.nse!.orderId.toString()
+                                        : order.success!.bse!.orderId
+                                            .toString(),
+                                    type: ETransactionType.SELL.name,
+                                    noOfStocks: dynStockToBeDeleted
+                                        .stocksAvailableForTrade,
+                                    stockCode: action.stockCode,
+                                    stockPrice: tradedStock.price))
+                            .then((response) {
+                          DynStocksService()
+                              .deleteDynStock(action.userId, action.dynStockId)
+                              .then((response) {
+                            store.dispatch(DeleteDynStockSuccessAction(
+                                dynStockId: response));
+                          }).catchError((error) {
+                            pauseTransactions[dynStockToBeDeleted.stockCode] =
+                                false;
+                            print(error);
+                            String emailBodyLine1 = '$error';
+                            EmailJSService()
+                                .sendEmail(Email(
+                                    username: 'Myself',
+                                    subject: 'Error while Deleting DynStock',
+                                    title:
+                                        'Error while Deleting DynStock for ${action.dynStockId}',
+                                    subtitle:
+                                        'The following error resulted while Creating DynStock for for ${action.dynStockId}',
+                                    body: emailBodyLine1))
+                                .then((value) {})
+                                .catchError((error) {
+                              pauseTransactions[dynStockToBeDeleted.stockCode] =
+                                  false;
+                              print(error);
+                            });
+                            store.dispatch(
+                                DeleteDynStockFailAction(error: error));
+                          });
+                        }).catchError((error) {
+                          pauseTransactions[dynStockToBeDeleted.stockCode] =
+                              false;
+                          print(error);
+                          String emailBodyLine1 = '$error';
+                          EmailJSService()
+                              .sendEmail(Email(
+                                  username: 'Myself',
+                                  subject:
+                                      'Error while creating transaction while Deleting DynStock ${action.stockCode}',
+                                  title:
+                                      'Error while creating transaction while Deleting DynStock ${action.stockCode}',
+                                  subtitle:
+                                      'Error while creating transaction while Deleting DynStock ${action.stockCode}',
+                                  body: emailBodyLine1))
+                              .then((value) {})
+                              .catchError((error) {
+                            pauseTransactions[dynStockToBeDeleted.stockCode] =
+                                false;
+                            print(error);
+                          });
+                          store
+                              .dispatch(DeleteDynStockFailAction(error: error));
+                        });
+                      } else if (tradedStock.status ==
+                          EStockTradeStatus.CANC.name) {
+                        timer.cancel();
+                        DynStocksService()
+                            .deleteDynStock(action.userId, action.dynStockId)
+                            .then((response) {
+                          store.dispatch(DeleteDynStockSuccessAction(
+                              dynStockId: response));
+                        }).catchError((error) {
+                          pauseTransactions[dynStockToBeDeleted.stockCode] =
+                              false;
+                          print(error);
+                          String emailBodyLine1 = '$error';
+                          EmailJSService()
+                              .sendEmail(Email(
+                                  username: 'Myself',
+                                  subject: 'Error while Deleting DynStock',
+                                  title:
+                                      'Error while Deleting DynStock for ${action.dynStockId}',
+                                  subtitle:
+                                      'The following error resulted while Creating DynStock for for ${action.dynStockId}',
+                                  body: emailBodyLine1))
+                              .then((value) {})
+                              .catchError((error) {
+                            pauseTransactions[dynStockToBeDeleted.stockCode] =
+                                false;
+                            print(error);
+                          });
+                          store
+                              .dispatch(DeleteDynStockFailAction(error: error));
+                        });
+                      }
+                    }).catchError((error) {
+                      pauseTransactions[dynStockToBeDeleted.stockCode] = false;
+                      print(error);
+                      String emailBodyLine1 = '$error';
+                      EmailJSService()
+                          .sendEmail(Email(
+                              username: 'Myself',
+                              subject:
+                                  'Error while creating transaction while Deleting DynStock ${action.stockCode}',
+                              title:
+                                  'Error while creating transaction while Deleting DynStock ${action.stockCode}',
+                              subtitle:
+                                  'Error while creating transaction while Deleting DynStock ${action.stockCode}',
+                              body: emailBodyLine1))
+                          .then((value) {})
+                          .catchError((error) {
+                        pauseTransactions[dynStockToBeDeleted.stockCode] =
+                            false;
+                        print(error);
+                      });
+                      store.dispatch(DeleteDynStockFailAction(error: error));
+                    });
+                  });
+                }
+              }).catchError((error) {
+                pauseTransactions[dynStockToBeDeleted.stockCode] = false;
+                print(error);
+                String emailBodyLine1 = '$error';
+                EmailJSService()
+                    .sendEmail(Email(
+                        username: 'Myself',
+                        subject:
+                            'Error while creating transaction while Deleting DynStock ${action.stockCode}',
+                        title:
+                            'Error while creating transaction while Deleting DynStock ${action.stockCode}',
+                        subtitle:
+                            'Error while creating transaction while Deleting DynStock ${action.stockCode}',
+                        body: emailBodyLine1))
+                    .then((value) {})
+                    .catchError((error) {
+                  pauseTransactions[dynStockToBeDeleted.stockCode] = false;
+                  print(error);
+                });
+                store.dispatch(DeleteDynStockFailAction(error: error));
+              });
+            });
+
+            ///////
+          }).catchError((error) {
+            pauseTransactions[dynStockToBeDeleted.stockCode] = false;
+            print(error);
+            String emailBodyLine1 = '$error';
+            EmailJSService()
+                .sendEmail(Email(
+                    username: 'Myself',
+                    subject:
+                        'Error while creating transaction while Deleting DynStock ${action.stockCode}',
+                    title:
+                        'Error while creating transaction while Deleting DynStock ${action.stockCode}',
+                    subtitle:
+                        'Error while creating transaction while Deleting DynStock ${action.stockCode}',
+                    body: emailBodyLine1))
+                .then((value) {})
+                .catchError((error) {
+              pauseTransactions[dynStockToBeDeleted.stockCode] = false;
+              print(error);
+            });
+            store.dispatch(DeleteDynStockFailAction(error: error));
           });
-        });
-      });
-    } else {
-      DynStocksService()
-          .deleteDynStock(action.userId, action.dynStockId)
-          .then((response) {
-        store.dispatch(DeleteDynStockSuccessAction(dynStockId: response));
+        }
       }).catchError((error) {
-        String emailBodyLine1 = '$error';
-        EmailJSService()
-            .sendEmail(Email(
-                username: 'Myself',
-                subject: 'Error while Deleting DynStock',
-                title: 'Error while Deleting DynStock for ${action.dynStockId}',
-                subtitle:
-                    'The following error resulted while Creating DynStock for for ${action.dynStockId}',
-                body: emailBodyLine1))
-            .then((value) {})
-            .catchError((error) {});
-        store.dispatch(DeleteDynStockFailAction(error: error));
+        pauseTransactions[dynStockToBeDeleted.stockCode] = false;
+        print(error);
+      });
+    } else if (dynStockToBeDeleted.lastTransactionType == 'SELL') {
+      // Need to Apply the BUY Logic
+      KotakStockAPIService()
+          .getAllOrderReport(action.userId, store.state.accessCode,
+              dynStockToBeDeleted.instrumentToken)
+          .then((orderReports) {
+        bool partiallyTradedOrderExists = false;
+        var orderReport = orderReports!.success[0];
+        {
+          if (orderReport.status == EStockTradeStatus.OPN.name) {
+            // If there is open BUY order, cancel it
+            KotakStockAPIService()
+                .cancelOrder(action.userId, store.state.accessCode,
+                    orderReport.orderId.toString())
+                .then((cancelledOrder) {})
+                .catchError((error) {
+              pauseTransactions[dynStockToBeDeleted.stockCode] = false;
+              print(error);
+              String emailBodyLine1 = '$error';
+              EmailJSService()
+                  .sendEmail(Email(
+                      username: 'Myself',
+                      subject:
+                          'Error while creating transaction while Deleting DynStock ${action.stockCode}',
+                      title:
+                          'Error while creating transaction while Deleting DynStock ${action.stockCode}',
+                      subtitle:
+                          'Error while creating transaction while Deleting DynStock ${action.stockCode}',
+                      body: emailBodyLine1))
+                  .then((value) {})
+                  .catchError((error) {
+                pauseTransactions[dynStockToBeDeleted.stockCode] = false;
+                print(error);
+              });
+              store.dispatch(DeleteDynStockFailAction(error: error));
+            });
+          } else if (orderReport.statusInfo == EStockTradeStatus.OPF.name) {
+            // Modify the existing order to make it fully traded
+            partiallyTradedOrderExists = true;
+            int quantityBoughtAlready =
+                orderReport.orderQuantity - orderReport.pendingQuantity;
+            KotakStockAPIService()
+                .modifyOrder(
+                    action.userId,
+                    store.state.accessCode,
+                    orderReport.orderId.toString(),
+                    KotakStockAPIPlaceOrderBody(
+                        orderType: 'N',
+                        instrumentToken: dynStockToBeDeleted.instrumentToken,
+                        transactionType: ETransactionType.BUY.name,
+                        quantity: quantityBoughtAlready))
+                .then((modifiedOrder) {
+              bool orderPlacedInNSE =
+                  modifiedOrder!.success!.nse != null ? true : false;
+              TransactionsService()
+                  .createTransaction(
+                      action.userId,
+                      action.dynStockId,
+                      TransactionBody(
+                          transactionId: orderPlacedInNSE
+                              ? modifiedOrder.success!.nse!.orderId.toString()
+                              : modifiedOrder.success!.bse!.orderId.toString(),
+                          type: ETransactionType.BUY.name,
+                          noOfStocks: quantityBoughtAlready,
+                          stockCode: action.stockCode,
+                          stockPrice: orderReport.price))
+                  .then((response) {
+                // Place order to SELL the already bought quantity above
+                KotakStockAPIService()
+                    .placeOrder(
+                        action.userId,
+                        store.state.accessCode,
+                        KotakStockAPIPlaceOrderBody(
+                            orderType: 'N',
+                            instrumentToken:
+                                dynStockToBeDeleted.instrumentToken,
+                            transactionType: ETransactionType.SELL.name,
+                            quantity: quantityBoughtAlready))
+                    .then((newOrder) {
+                  bool orderPlacedInNSE =
+                      newOrder!.success!.nse != null ? true : false;
+                  Future.delayed(Duration(milliseconds: 200), () {
+                    KotakStockAPIService()
+                        .getOrderReport(
+                            action.userId,
+                            store.state.accessCode,
+                            (orderPlacedInNSE
+                                ? newOrder.success!.nse!.orderId
+                                : newOrder.success!.bse!.orderId),
+                            dynStockToBeDeleted.instrumentToken)
+                        .then((position) {
+                      OrderReportsSuccess tradedStock = position!.success
+                          .firstWhere((element) =>
+                              element.orderId ==
+                              (orderPlacedInNSE
+                                  ? newOrder.success!.nse!.orderId
+                                  : newOrder.success!.bse!.orderId));
+                      int orderId = orderPlacedInNSE
+                          ? newOrder.success!.nse!.orderId
+                          : newOrder.success!.bse!.orderId;
+                      if (tradedStock.status == EStockTradeStatus.TRAD.name) {
+                        TransactionsService()
+                            .createTransaction(
+                                action.userId,
+                                action.dynStockId,
+                                TransactionBody(
+                                    transactionId: orderPlacedInNSE
+                                        ? newOrder.success!.nse!.orderId
+                                            .toString()
+                                        : newOrder.success!.bse!.orderId
+                                            .toString(),
+                                    type: ETransactionType.SELL.name,
+                                    noOfStocks: quantityBoughtAlready,
+                                    stockCode: action.stockCode,
+                                    stockPrice: tradedStock.price))
+                            .then((response) {
+                          DynStocksService()
+                              .deleteDynStock(action.userId, action.dynStockId)
+                              .then((response) {
+                            store.dispatch(DeleteDynStockSuccessAction(
+                                dynStockId: response));
+                          }).catchError((error) {
+                            pauseTransactions[dynStockToBeDeleted.stockCode] =
+                                false;
+                            print(error);
+                            String emailBodyLine1 = '$error';
+                            EmailJSService()
+                                .sendEmail(Email(
+                                    username: 'Myself',
+                                    subject: 'Error while Deleting DynStock',
+                                    title:
+                                        'Error while Deleting DynStock for ${action.dynStockId}',
+                                    subtitle:
+                                        'The following error resulted while Creating DynStock for for ${action.dynStockId}',
+                                    body: emailBodyLine1))
+                                .then((value) {})
+                                .catchError((error) {
+                              pauseTransactions[dynStockToBeDeleted.stockCode] =
+                                  false;
+                              print(error);
+                            });
+                            store.dispatch(
+                                DeleteDynStockFailAction(error: error));
+                          });
+                        }).catchError((error) {
+                          pauseTransactions[dynStockToBeDeleted.stockCode] =
+                              false;
+                          print(error);
+                          String emailBodyLine1 = '$error';
+                          EmailJSService()
+                              .sendEmail(Email(
+                                  username: 'Myself',
+                                  subject:
+                                      'Error while creating transaction while Deleting DynStock ${action.stockCode}',
+                                  title:
+                                      'Error while creating transaction while Deleting DynStock ${action.stockCode}',
+                                  subtitle:
+                                      'Error while creating transaction while Deleting DynStock ${action.stockCode}',
+                                  body: emailBodyLine1))
+                              .then((value) {})
+                              .catchError((error) {
+                            pauseTransactions[dynStockToBeDeleted.stockCode] =
+                                false;
+                            print(error);
+                          });
+                          store
+                              .dispatch(DeleteDynStockFailAction(error: error));
+                        });
+                      } else {
+                        Timer.periodic(Duration(seconds: 3), (timer) {
+                          KotakStockAPIService()
+                              .getOrderReport(
+                                  action.userId,
+                                  store.state.accessCode,
+                                  (orderPlacedInNSE
+                                      ? newOrder.success!.nse!.orderId
+                                      : newOrder.success!.bse!.orderId),
+                                  dynStockToBeDeleted.instrumentToken)
+                              .then((position) {
+                            OrderReportsSuccess tradedStock = position!.success
+                                .firstWhere((element) =>
+                                    element.orderId ==
+                                    (orderPlacedInNSE
+                                        ? newOrder.success!.nse!.orderId
+                                        : newOrder.success!.bse!.orderId));
+                            int orderId = orderPlacedInNSE
+                                ? newOrder.success!.nse!.orderId
+                                : newOrder.success!.bse!.orderId;
+                            if (tradedStock.status ==
+                                EStockTradeStatus.TRAD.name) {
+                              timer.cancel();
+                              TransactionsService()
+                                  .createTransaction(
+                                      action.userId,
+                                      action.dynStockId,
+                                      TransactionBody(
+                                          transactionId: orderPlacedInNSE
+                                              ? newOrder.success!.nse!.orderId
+                                                  .toString()
+                                              : newOrder.success!.bse!.orderId
+                                                  .toString(),
+                                          type: ETransactionType.SELL.name,
+                                          noOfStocks:
+                                              orderReport.pendingQuantity,
+                                          stockCode: action.stockCode,
+                                          stockPrice: tradedStock.price))
+                                  .then((response) {
+                                DynStocksService()
+                                    .deleteDynStock(
+                                        action.userId, action.dynStockId)
+                                    .then((response) {
+                                  store.dispatch(DeleteDynStockSuccessAction(
+                                      dynStockId: response));
+                                }).catchError((error) {
+                                  pauseTransactions[
+                                      dynStockToBeDeleted.stockCode] = false;
+                                  print(error);
+                                  String emailBodyLine1 = '$error';
+                                  EmailJSService()
+                                      .sendEmail(Email(
+                                          username: 'Myself',
+                                          subject:
+                                              'Error while Deleting DynStock',
+                                          title:
+                                              'Error while Deleting DynStock for ${action.dynStockId}',
+                                          subtitle:
+                                              'The following error resulted while Creating DynStock for for ${action.dynStockId}',
+                                          body: emailBodyLine1))
+                                      .then((value) {})
+                                      .catchError((error) {
+                                    pauseTransactions[
+                                        dynStockToBeDeleted.stockCode] = false;
+                                    print(error);
+                                  });
+                                  store.dispatch(
+                                      DeleteDynStockFailAction(error: error));
+                                });
+                              }).catchError((error) {
+                                pauseTransactions[
+                                    dynStockToBeDeleted.stockCode] = false;
+                                print(error);
+                                String emailBodyLine1 = '$error';
+                                EmailJSService()
+                                    .sendEmail(Email(
+                                        username: 'Myself',
+                                        subject:
+                                            'Error while creating transaction while Deleting DynStock ${action.stockCode}',
+                                        title:
+                                            'Error while creating transaction while Deleting DynStock ${action.stockCode}',
+                                        subtitle:
+                                            'Error while creating transaction while Deleting DynStock ${action.stockCode}',
+                                        body: emailBodyLine1))
+                                    .then((value) {})
+                                    .catchError((error) {
+                                  pauseTransactions[
+                                      dynStockToBeDeleted.stockCode] = false;
+                                  print(error);
+                                });
+                                store.dispatch(
+                                    DeleteDynStockFailAction(error: error));
+                              });
+                            } else if (tradedStock.status ==
+                                EStockTradeStatus.CANC.name) {
+                              timer.cancel();
+                              DynStocksService()
+                                  .deleteDynStock(
+                                      action.userId, action.dynStockId)
+                                  .then((response) {
+                                store.dispatch(DeleteDynStockSuccessAction(
+                                    dynStockId: response));
+                              }).catchError((error) {
+                                pauseTransactions[
+                                    dynStockToBeDeleted.stockCode] = false;
+                                print(error);
+                                String emailBodyLine1 = '$error';
+                                EmailJSService()
+                                    .sendEmail(Email(
+                                        username: 'Myself',
+                                        subject:
+                                            'Error while Deleting DynStock',
+                                        title:
+                                            'Error while Deleting DynStock for ${action.dynStockId}',
+                                        subtitle:
+                                            'The following error resulted while Creating DynStock for for ${action.dynStockId}',
+                                        body: emailBodyLine1))
+                                    .then((value) {})
+                                    .catchError((error) {
+                                  pauseTransactions[
+                                      dynStockToBeDeleted.stockCode] = false;
+                                  print(error);
+                                });
+                                store.dispatch(
+                                    DeleteDynStockFailAction(error: error));
+                              });
+                            }
+                          }).catchError((error) {
+                            pauseTransactions[dynStockToBeDeleted.stockCode] =
+                                false;
+                            print(error);
+                            String emailBodyLine1 = '$error';
+                            EmailJSService()
+                                .sendEmail(Email(
+                                    username: 'Myself',
+                                    subject:
+                                        'Error while creating transaction while Deleting DynStock ${action.stockCode}',
+                                    title:
+                                        'Error while creating transaction while Deleting DynStock ${action.stockCode}',
+                                    subtitle:
+                                        'Error while creating transaction while Deleting DynStock ${action.stockCode}',
+                                    body: emailBodyLine1))
+                                .then((value) {})
+                                .catchError((error) {
+                              pauseTransactions[dynStockToBeDeleted.stockCode] =
+                                  false;
+                              print(error);
+                            });
+                            store.dispatch(
+                                DeleteDynStockFailAction(error: error));
+                          });
+                        });
+                      }
+                    }).catchError((error) {
+                      pauseTransactions[dynStockToBeDeleted.stockCode] = false;
+                      print(error);
+                      String emailBodyLine1 = '$error';
+                      EmailJSService()
+                          .sendEmail(Email(
+                              username: 'Myself',
+                              subject:
+                                  'Error while creating transaction while Deleting DynStock ${action.stockCode}',
+                              title:
+                                  'Error while creating transaction while Deleting DynStock ${action.stockCode}',
+                              subtitle:
+                                  'Error while creating transaction while Deleting DynStock ${action.stockCode}',
+                              body: emailBodyLine1))
+                          .then((value) {})
+                          .catchError((error) {
+                        pauseTransactions[dynStockToBeDeleted.stockCode] =
+                            false;
+                        print(error);
+                      });
+                      store.dispatch(DeleteDynStockFailAction(error: error));
+                    });
+                  });
+                }).catchError((error) {
+                  pauseTransactions[dynStockToBeDeleted.stockCode] = false;
+                  print(error);
+                  String emailBodyLine1 = '$error';
+                  EmailJSService()
+                      .sendEmail(Email(
+                          username: 'Myself',
+                          subject:
+                              'Error while creating transaction while Deleting DynStock ${action.stockCode}',
+                          title:
+                              'Error while creating transaction while Deleting DynStock ${action.stockCode}',
+                          subtitle:
+                              'Error while creating transaction while Deleting DynStock ${action.stockCode}',
+                          body: emailBodyLine1))
+                      .then((value) {})
+                      .catchError((error) {
+                    pauseTransactions[dynStockToBeDeleted.stockCode] = false;
+                    print(error);
+                  });
+                  store.dispatch(DeleteDynStockFailAction(error: error));
+                });
+              }).catchError((error) {
+                pauseTransactions[dynStockToBeDeleted.stockCode] = false;
+                print(error);
+                String emailBodyLine1 = '$error';
+                EmailJSService()
+                    .sendEmail(Email(
+                        username: 'Myself',
+                        subject:
+                            'Error while creating transaction while Deleting DynStock ${action.stockCode}',
+                        title:
+                            'Error while creating transaction while Deleting DynStock ${action.stockCode}',
+                        subtitle:
+                            'Error while creating transaction while Deleting DynStock ${action.stockCode}',
+                        body: emailBodyLine1))
+                    .then((value) {})
+                    .catchError((error) {
+                  pauseTransactions[dynStockToBeDeleted.stockCode] = false;
+                  print(error);
+                });
+                store.dispatch(DeleteDynStockFailAction(error: error));
+              });
+            }).catchError((error) {
+              pauseTransactions[dynStockToBeDeleted.stockCode] = false;
+              print(error);
+              String emailBodyLine1 = '$error';
+              EmailJSService()
+                  .sendEmail(Email(
+                      username: 'Myself',
+                      subject:
+                          'Error while creating transaction while Deleting DynStock ${action.stockCode}',
+                      title:
+                          'Error while creating transaction while Deleting DynStock ${action.stockCode}',
+                      subtitle:
+                          'Error while creating transaction while Deleting DynStock ${action.stockCode}',
+                      body: emailBodyLine1))
+                  .then((value) {})
+                  .catchError((error) {
+                pauseTransactions[dynStockToBeDeleted.stockCode] = false;
+                print(error);
+              });
+              store.dispatch(DeleteDynStockFailAction(error: error));
+            });
+          }
+        }
+        if (!partiallyTradedOrderExists) {
+          // There are no partial orders, now we need to DELETE the DYNSTOCK
+          DynStocksService()
+              .deleteDynStock(action.userId, action.dynStockId)
+              .then((response) {
+            store.dispatch(DeleteDynStockSuccessAction(dynStockId: response));
+          }).catchError((error) {
+            pauseTransactions[dynStockToBeDeleted.stockCode] = false;
+            print(error);
+            String emailBodyLine1 = '$error';
+            EmailJSService()
+                .sendEmail(Email(
+                    username: 'Myself',
+                    subject: 'Error while Deleting DynStock',
+                    title:
+                        'Error while Deleting DynStock for ${action.dynStockId}',
+                    subtitle:
+                        'The following error resulted while Creating DynStock for for ${action.dynStockId}',
+                    body: emailBodyLine1))
+                .then((value) {})
+                .catchError((error) {
+              pauseTransactions[dynStockToBeDeleted.stockCode] = false;
+              print(error);
+            });
+            store.dispatch(DeleteDynStockFailAction(error: error));
+          });
+        }
+      }).catchError((error) {
+        pauseTransactions[dynStockToBeDeleted.stockCode] = false;
+        print(error);
       });
     }
+    /////////
+    ////////
+    ////////
+    /////
+    ////
+    ////
+    ////
+    ////
+    ////
+    ////
+    ////
+    ///
   }
   next(action);
 }

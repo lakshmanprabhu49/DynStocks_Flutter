@@ -236,7 +236,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> with RouteAware {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(
             ToastMessageHandler.showErrorMessageSnackBar(
-                '${appStore.state.userInfo.error.message}'));
+                '${appStore.state.userInfo.error}'));
       });
       setState(() {
         errorMessageShown = true;
@@ -247,7 +247,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> with RouteAware {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(
             ToastMessageHandler.showErrorMessageSnackBar(
-                '${appStore.state.authState.error.message}'));
+                '${appStore.state.authState.error}'));
       });
       setState(() {
         errorMessageShown = true;
@@ -261,7 +261,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> with RouteAware {
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 ScaffoldMessenger.of(context).showSnackBar(
                     ToastMessageHandler.showErrorMessageSnackBar(
-                        '${state.userInfo.error.message}'));
+                        '${state.userInfo.error}'));
               });
               setState(() {
                 errorMessageShown = true;
@@ -272,7 +272,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> with RouteAware {
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 ScaffoldMessenger.of(context).showSnackBar(
                     ToastMessageHandler.showErrorMessageSnackBar(
-                        '${state.authState.error.message}'));
+                        '${state.authState.error}'));
               });
               setState(() {
                 errorMessageShown = true;

@@ -13,6 +13,7 @@ void authMiddleWare(
         .then((response) {
       store.dispatch(LoginSuccessAction(authResponse: response));
     }).catchError((error) {
+      print(error);
       String emailBodyLine1 = '$error';
       EmailJSService()
           .sendEmail(Email(
@@ -23,7 +24,9 @@ void authMiddleWare(
                   'The following error resulted while logging in for ${action.authBody.username}',
               body: emailBodyLine1))
           .then((value) {})
-          .catchError((error) {});
+          .catchError((error) {
+        print(error);
+      });
       store.dispatch(LoginFailAction(error: error));
     });
   }
@@ -31,6 +34,7 @@ void authMiddleWare(
     AuthService().logout(action.userId).then((response) {
       store.dispatch(LogoutSuccessAction(authResponse: response));
     }).catchError((error) {
+      print(error);
       String emailBodyLine1 = '$error';
       EmailJSService()
           .sendEmail(Email(
@@ -40,7 +44,9 @@ void authMiddleWare(
               subtitle: 'The following error resulted while logging out',
               body: emailBodyLine1))
           .then((value) {})
-          .catchError((error) {});
+          .catchError((error) {
+        print(error);
+      });
       store.dispatch(LogoutFailAction(error: error));
     });
   }

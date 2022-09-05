@@ -291,7 +291,7 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
       context: context,
       builder: (BuildContext context) => AlertDialog(
         title: Text(
-          'Logout',
+          'Force ${currentDynStock.lastTransactionType == ETransactionType.BUY.name ? ETransactionType.SELL.name : ETransactionType.BUY.name}?',
           style: GoogleFonts.outfit(
             fontSize: 25,
             fontWeight: FontWeight.bold,
@@ -299,7 +299,7 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
           ),
         ),
         content: Text(
-          'Are you sure you want to force sell the stock at the market price?',
+          'Are you sure you want to force ${currentDynStock.lastTransactionType == ETransactionType.BUY.name ? ETransactionType.SELL.name : ETransactionType.BUY.name} the stock at the market price?',
           style: GoogleFonts.outfit(
             fontSize: 20,
             fontWeight: FontWeight.bold,
@@ -349,7 +349,8 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                               stockPrice: 0,
                               noOfStocks:
                                   currentDynStock.stocksAvailableForTrade),
-                          stockOrderType: EStockOrderType.Market.name, forcedTransaction: true));
+                          stockOrderType: EStockOrderType.Market.name,
+                          forcedTransaction: true));
                   errorMessageShown = false;
                 } else {
                   StoreProvider.of<AppState>(context).dispatch(
@@ -414,7 +415,7 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(
             ToastMessageHandler.showErrorMessageSnackBar(
-                '${appStore.state.allDynStocks.error.message}'));
+                '${appStore.state.allDynStocks.error}'));
       });
       setState(() {
         errorMessageShown = true;
@@ -424,7 +425,7 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(
             ToastMessageHandler.showErrorMessageSnackBar(
-                '${appStore.state.allDynStocks.error.message}'));
+                '${appStore.state.allDynStocks.error}'));
       });
       setState(() {
         errorMessageShown = true;
@@ -445,7 +446,7 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(
             ToastMessageHandler.showErrorMessageSnackBar(
-                '${appStore.state.allDynStocks.error.message}'));
+                '${appStore.state.allDynStocks.error}'));
       });
       setState(() {
         errorMessageShown = true;
@@ -457,7 +458,7 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(
             ToastMessageHandler.showErrorMessageSnackBar(
-                '${appStore.state.allTransactions.error.message}'));
+                '${appStore.state.allTransactions.error}'));
       });
       setState(() {
         errorMessageShown = true;
@@ -478,7 +479,7 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   ScaffoldMessenger.of(context).showSnackBar(
                       ToastMessageHandler.showErrorMessageSnackBar(
-                          '${state.allDynStocks.error.message}'));
+                          '${state.allDynStocks.error}'));
                 });
                 setState(() {
                   errorMessageShown = true;
@@ -489,7 +490,7 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   ScaffoldMessenger.of(context).showSnackBar(
                       ToastMessageHandler.showErrorMessageSnackBar(
-                          '${state.allDynStocks.error.message}'));
+                          '${state.allDynStocks.error}'));
                 });
                 setState(() {
                   errorMessageShown = true;
@@ -505,7 +506,7 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   ScaffoldMessenger.of(context).showSnackBar(
                       ToastMessageHandler.showErrorMessageSnackBar(
-                          '${state.allDynStocks.error.message}'));
+                          '${state.allDynStocks.error}'));
                 });
                 setState(() {
                   errorMessageShown = true;
@@ -1002,7 +1003,7 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   ScaffoldMessenger.of(context).showSnackBar(
                       ToastMessageHandler.showErrorMessageSnackBar(
-                          '${state.allDynStocks.error.message}'));
+                          '${state.allDynStocks.error}'));
                 });
                 setState(() {
                   errorMessageShown = true;
@@ -1014,7 +1015,7 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   ScaffoldMessenger.of(context).showSnackBar(
                       ToastMessageHandler.showErrorMessageSnackBar(
-                          '${state.allTransactions.error.message}'));
+                          '${state.allTransactions.error}'));
                 });
                 setState(() {
                   errorMessageShown = true;
@@ -1025,7 +1026,7 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   ScaffoldMessenger.of(context).showSnackBar(
                       ToastMessageHandler.showErrorMessageSnackBar(
-                          '${state.allDynStocks.error.message}'));
+                          '${state.allDynStocks.error}'));
                 });
                 setState(() {
                   errorMessageShown = true;
@@ -1041,7 +1042,7 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   ScaffoldMessenger.of(context).showSnackBar(
                       ToastMessageHandler.showErrorMessageSnackBar(
-                          '${state.allDynStocks.error.message}'));
+                          '${state.allDynStocks.error}'));
                 });
                 setState(() {
                   errorMessageShown = true;

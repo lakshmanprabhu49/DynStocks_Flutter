@@ -39,19 +39,6 @@ enum EChoice { Yes, No }
 
 enum ETransactionType { BUY, SELL }
 
-enum EStockTradeStatusInfo { Traded, Open, Partially_Traded }
+enum EStockTradeStatus { TRAD, OPN, OPF, CANC }
 
-extension EStockTradeStatusInfoExtension on EStockTradeStatusInfo {
-  String get name {
-    switch (this) {
-      case EStockTradeStatusInfo.Traded:
-        return 'Traded';
-      case EStockTradeStatusInfo.Open:
-        return 'Open';
-      case EStockTradeStatusInfo.Partially_Traded:
-        return 'Partially traded';
-      default:
-        return 'Open';
-    }
-  }
-}
+Map<String, bool> pauseTransactions = Map();

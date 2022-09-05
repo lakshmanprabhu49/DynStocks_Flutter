@@ -186,7 +186,8 @@ void tickerDataMiddleWare(
             (store.state.transactionsCreateState.data[dynStock.stockCode] !=
                 null) &&
             !(store.state.transactionsCreateState.data[dynStock.stockCode]!
-                .creating)) {
+                .creating) &&
+            !(pauseTransactions[dynStock.stockCode] == true)) {
           // SELL Logic
           if (dynStock.lastTransactionType == 'BUY' &&
               !(dynStock.stallTransactions)) {
@@ -394,6 +395,7 @@ void tickerDataMiddleWare(
         //       response.price.currentPrice!;
         // }
       }).catchError((error) {
+        print(error);
         store.dispatch(GetAllTickerDataFailAction(error: error));
       });
     });

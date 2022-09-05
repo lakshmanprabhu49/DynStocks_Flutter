@@ -174,7 +174,7 @@ class _ViewTransactionsScreenState extends State<ViewTransactionsScreen>
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(
             ToastMessageHandler.showErrorMessageSnackBar(
-                '${appStore.state.allTransactions.error.message}'));
+                '${appStore.state.allTransactions.error}'));
       });
       setState(() {
         errorMessageShown = true;
@@ -186,7 +186,7 @@ class _ViewTransactionsScreenState extends State<ViewTransactionsScreen>
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(
             ToastMessageHandler.showErrorMessageSnackBar(
-                '${appStore.state.allTransactions.error.message}'));
+                '${appStore.state.allTransactions.error}'));
       });
       setState(() {
         errorMessageShown = true;
@@ -200,7 +200,7 @@ class _ViewTransactionsScreenState extends State<ViewTransactionsScreen>
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   ScaffoldMessenger.of(context).showSnackBar(
                       ToastMessageHandler.showErrorMessageSnackBar(
-                          '${state.allTransactions.error.message}'));
+                          '${state.allTransactions.error}'));
                 });
                 setState(() {
                   errorMessageShown = true;
@@ -212,7 +212,7 @@ class _ViewTransactionsScreenState extends State<ViewTransactionsScreen>
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   ScaffoldMessenger.of(context).showSnackBar(
                       ToastMessageHandler.showErrorMessageSnackBar(
-                          '${state.allTransactions.error.message}'));
+                          '${state.allTransactions.error}'));
                 });
                 setState(() {
                   errorMessageShown = true;
@@ -404,7 +404,7 @@ class _ViewTransactionsScreenState extends State<ViewTransactionsScreen>
                                   ScaffoldMessenger.of(context).showSnackBar(
                                       ToastMessageHandler
                                           .showErrorMessageSnackBar(
-                                              '${state.error.message}'));
+                                              '${state.error}'));
                                 });
                                 setState(() {
                                   errorMessageShown = true;

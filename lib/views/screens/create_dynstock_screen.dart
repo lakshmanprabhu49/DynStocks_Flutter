@@ -64,6 +64,7 @@ class _CreateDynStockScreenState extends State<CreateDynStockScreen>
   String currentTolerance = '1.0';
   bool creatingDynStock = false;
   bool errorMessageShown = false;
+  bool creatingMessageShown = false;
   bool reload = false;
   @override
   void initState() {
@@ -170,7 +171,7 @@ class _CreateDynStockScreenState extends State<CreateDynStockScreen>
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(
             ToastMessageHandler.showErrorMessageSnackBar(
-                '${appStore.state.allDynStocks.error.message}'));
+                '${appStore.state.allDynStocks.error}'));
       });
       setState(() {
         errorMessageShown = true;
@@ -178,14 +179,16 @@ class _CreateDynStockScreenState extends State<CreateDynStockScreen>
     }
     if (mounted) {
       if (appStore.state.allDynStocks.creating &&
-          !appStore.state.allDynStocks.created) {
+          !appStore.state.allDynStocks.created &&
+          !creatingMessageShown) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           ScaffoldMessenger.of(context).showSnackBar(
               ToastMessageHandler.showInfoMessageSnackBar(
-                  '${appStore.state.allDynStocks.error.message}'));
+                  'Creating DynStock....'));
         });
         setState(() {
           creatingDynStock = true;
+          creatingMessageShown = true;
         });
       } else if (!appStore.state.allDynStocks.creating &&
           appStore.state.allDynStocks.created &&
@@ -1050,6 +1053,7 @@ class _CreateDynStockScreenState extends State<CreateDynStockScreen>
                               );
                               setState(() {
                                 errorMessageShown = false;
+                                creatingMessageShown = false;
                               });
                             },
                           ),

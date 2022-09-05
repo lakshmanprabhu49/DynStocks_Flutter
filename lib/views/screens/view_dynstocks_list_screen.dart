@@ -129,7 +129,7 @@ class _ViewDynStocksListScreenState extends State<ViewDynStocksListScreen>
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(
             ToastMessageHandler.showErrorMessageSnackBar(
-                '${appStore.state.allDynStocks.error.message}'));
+                '${appStore.state.allDynStocks.error}'));
       });
       setState(() {
         errorMessageShown = true;
@@ -141,7 +141,7 @@ class _ViewDynStocksListScreenState extends State<ViewDynStocksListScreen>
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(
             ToastMessageHandler.showErrorMessageSnackBar(
-                '${appStore.state.allTransactions.error.message}'));
+                '${appStore.state.allTransactions.error}'));
       });
       setState(() {
         errorMessageShown = true;
@@ -263,7 +263,7 @@ class _ViewDynStocksListScreenState extends State<ViewDynStocksListScreen>
                             WidgetsBinding.instance.addPostFrameCallback((_) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                   ToastMessageHandler.showErrorMessageSnackBar(
-                                      '${state.error.message}'));
+                                      '${state.error}'));
                             });
                             setState(() {
                               errorMessageShown = true;
@@ -276,7 +276,7 @@ class _ViewDynStocksListScreenState extends State<ViewDynStocksListScreen>
                             WidgetsBinding.instance.addPostFrameCallback((_) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                   ToastMessageHandler.showErrorMessageSnackBar(
-                                      '${appStore.state.allTransactions.error.message}'));
+                                      '${appStore.state.allTransactions.error}'));
                             });
                             setState(() {
                               errorMessageShown = true;

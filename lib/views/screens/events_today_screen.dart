@@ -384,7 +384,7 @@ class _EventsTodayScreenState extends State<EventsTodayScreen> with RouteAware {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(
             ToastMessageHandler.showErrorMessageSnackBar(
-                '${appStore.state.allDynStocks.error.message}'));
+                '${appStore.state.allDynStocks.error}'));
       });
       setState(() {
         errorMessageShown = true;
@@ -396,7 +396,7 @@ class _EventsTodayScreenState extends State<EventsTodayScreen> with RouteAware {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(
             ToastMessageHandler.showErrorMessageSnackBar(
-                '${appStore.state.allTransactions.error.message}'));
+                '${appStore.state.allTransactions.error}'));
       });
       setState(() {
         errorMessageShown = true;
@@ -412,7 +412,7 @@ class _EventsTodayScreenState extends State<EventsTodayScreen> with RouteAware {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               ScaffoldMessenger.of(context).showSnackBar(
                   ToastMessageHandler.showErrorMessageSnackBar(
-                      '${state.allDynStocks.error.message}'));
+                      '${state.allDynStocks.error}'));
             });
             setState(() {
               errorMessageShown = true;
@@ -424,7 +424,7 @@ class _EventsTodayScreenState extends State<EventsTodayScreen> with RouteAware {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               ScaffoldMessenger.of(context).showSnackBar(
                   ToastMessageHandler.showErrorMessageSnackBar(
-                      '${state.allTransactions.error.message}'));
+                      '${state.allTransactions.error}'));
             });
             setState(() {
               errorMessageShown = true;

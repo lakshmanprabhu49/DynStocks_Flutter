@@ -20,6 +20,7 @@ void kotakStockAPIMiddleWare(
       bool transactionHappenedInNSE =
           (response.success?.nse != null ? true : false);
     }).catchError((error) {
+      print(error);
       String emailBodyLine1 = '$error';
       EmailJSService()
           .sendEmail(Email(
@@ -32,7 +33,9 @@ void kotakStockAPIMiddleWare(
                   'The following error resulted while Placing Order for DynStock ${action.stockCode}',
               body: emailBodyLine1))
           .then((value) {})
-          .catchError((error) {});
+          .catchError((error) {
+        print(error);
+      });
       store.dispatch(KotakStockAPIPlaceOrderFailAction(error: error));
     });
   }
@@ -43,6 +46,7 @@ void kotakStockAPIMiddleWare(
       store.dispatch(KotakStockAPILoginSuccessAction(
           data: response as KotakStockApiLoginResponse));
     }).catchError((error) {
+      print(error);
       String emailBodyLine1 = '$error';
       EmailJSService()
           .sendEmail(Email(
@@ -53,7 +57,9 @@ void kotakStockAPIMiddleWare(
                   'The following error resulted while Logging in for KOTAK STOCK API',
               body: emailBodyLine1))
           .then((value) {})
-          .catchError((error) {});
+          .catchError((error) {
+        print(error);
+      });
       store.dispatch(KotakStockAPILoginFailAction(error: error));
     });
   }

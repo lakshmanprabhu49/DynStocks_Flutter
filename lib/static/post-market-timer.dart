@@ -35,8 +35,7 @@ class PostMarketTimer {
                   appStore.state.accessCode, dynStock.instrumentToken)
               .then((orderReports) async {
             for (var orderReport in orderReports!.success) {
-              if (orderReport.statusInfo ==
-                  EStockTradeStatusInfo.Partially_Traded.name) {
+              if (orderReport.statusInfo == EStockTradeStatus.OPF.name) {
                 if (orderReport.transactionType == ETransactionType.BUY.name) {
                   int A =
                       orderReport.orderQuantity; // Total Quantity to be bought
@@ -88,6 +87,7 @@ class PostMarketTimer {
               }
             }
           }).catchError((error) {
+            print(error);
             String emailBodyLine1 = '$error';
             EmailJSService()
                 .sendEmail(Email(
@@ -100,7 +100,9 @@ class PostMarketTimer {
                         'Error while creating POST market transaction for DynStock ${dynStock.stockCode}',
                     body: emailBodyLine1))
                 .then((value) {})
-                .catchError((error) {});
+                .catchError((error) {
+              print(error);
+            });
           });
         }
       }
