@@ -30,7 +30,7 @@ void transactionsMiddleWare(
         .then((response) {
       store.dispatch(GetAllTransactionsSuccessAction(data: response));
     }).catchError((error) {
-      String emailBodyLine1 = '${error['message']}';
+      String emailBodyLine1 = '$error';
       EmailJSService()
           .sendEmail(Email(
               username: 'Myself',
@@ -108,8 +108,10 @@ void transactionsMiddleWare(
                         .currentLocalMinimumPrice = tradedStock.price;
                     store.dispatch(GetAllTickerDataSuccessAction(
                         allTickerData: store.state.allTickerData.data));
+                    store
+                        .dispatch(GetAllDynStocksAction(userId: action.userId));
                   }).catchError((error) {
-                    String emailBodyLine1 = '${error['message']}';
+                    String emailBodyLine1 = '$error';
                     EmailJSService()
                         .sendEmail(Email(
                             username: 'Myself',
@@ -171,8 +173,10 @@ void transactionsMiddleWare(
                               .currentLocalMinimumPrice = tradedStock.price;
                           store.dispatch(GetAllTickerDataSuccessAction(
                               allTickerData: store.state.allTickerData.data));
+                          store.dispatch(
+                              GetAllDynStocksAction(userId: action.userId));
                         }).catchError((error) {
-                          String emailBodyLine1 = '${error['message']}';
+                          String emailBodyLine1 = '$error';
                           EmailJSService()
                               .sendEmail(Email(
                                   username: 'Myself',
@@ -190,7 +194,7 @@ void transactionsMiddleWare(
                         });
                       }
                     }).catchError((error) {
-                      String emailBodyLine1 = '${error['message']}';
+                      String emailBodyLine1 = '$error';
                       EmailJSService()
                           .sendEmail(Email(
                               username: 'Myself',
@@ -209,7 +213,7 @@ void transactionsMiddleWare(
                   });
                 }
               }).catchError((error) {
-                String emailBodyLine1 = '${error['message']}';
+                String emailBodyLine1 = '$error';
                 EmailJSService()
                     .sendEmail(Email(
                         username: 'Myself',
@@ -229,7 +233,7 @@ void transactionsMiddleWare(
 
             ///////
           }).catchError((error) {
-            String emailBodyLine1 = '${error['message']}';
+            String emailBodyLine1 = '$error';
             EmailJSService()
                 .sendEmail(Email(
                     username: 'Myself',
@@ -266,8 +270,9 @@ void transactionsMiddleWare(
                       stockCode: action.stockCode));
                   store.dispatch(GetAllTickerDataSuccessAction(
                       allTickerData: store.state.allTickerData.data));
+                  store.dispatch(GetAllDynStocksAction(userId: action.userId));
                 }).catchError((error) {
-                  String emailBodyLine1 = '${error['message']}';
+                  String emailBodyLine1 = '$error';
                   EmailJSService()
                       .sendEmail(Email(
                           username: 'Myself',
@@ -377,7 +382,7 @@ void transactionsMiddleWare(
                                   allTickerData:
                                       store.state.allTickerData.data));
                             }).catchError((error) {
-                              String emailBodyLine1 = '${error['message']}';
+                              String emailBodyLine1 = '$error';
                               EmailJSService()
                                   .sendEmail(Email(
                                       username: 'Myself',
@@ -477,7 +482,7 @@ void transactionsMiddleWare(
                                   });
                                 }
                               }).catchError((error) {
-                                String emailBodyLine1 = '${error['message']}';
+                                String emailBodyLine1 = '$error';
                                 EmailJSService()
                                     .sendEmail(Email(
                                         username: 'Myself',
@@ -496,7 +501,7 @@ void transactionsMiddleWare(
                             });
                           }
                         }).catchError((error) {
-                          String emailBodyLine1 = '${error['message']}';
+                          String emailBodyLine1 = '$error';
                           EmailJSService()
                               .sendEmail(Email(
                                   username: 'Myself',
@@ -514,7 +519,7 @@ void transactionsMiddleWare(
                         });
                       });
                     }).catchError((error) {
-                      String emailBodyLine1 = '${error['message']}';
+                      String emailBodyLine1 = '$error';
                       EmailJSService()
                           .sendEmail(Email(
                               username: 'Myself',
@@ -531,7 +536,7 @@ void transactionsMiddleWare(
                           stockCode: action.stockCode, error: error));
                     });
                   }).catchError((error) {
-                    String emailBodyLine1 = '${error['message']}';
+                    String emailBodyLine1 = '$error';
                     EmailJSService()
                         .sendEmail(Email(
                             username: 'Myself',
@@ -548,7 +553,7 @@ void transactionsMiddleWare(
                         stockCode: action.stockCode, error: error));
                   });
                 }).catchError((error) {
-                  String emailBodyLine1 = '${error['message']}';
+                  String emailBodyLine1 = '$error';
                   EmailJSService()
                       .sendEmail(Email(
                           username: 'Myself',
@@ -579,8 +584,9 @@ void transactionsMiddleWare(
                       stockCode: action.stockCode));
                   store.dispatch(GetAllTickerDataSuccessAction(
                       allTickerData: store.state.allTickerData.data));
+                  store.dispatch(GetAllDynStocksAction(userId: action.userId));
                 }).catchError((error) {
-                  String emailBodyLine1 = '${error['message']}';
+                  String emailBodyLine1 = '$error';
                   EmailJSService()
                       .sendEmail(Email(
                           username: 'Myself',
@@ -687,11 +693,10 @@ void transactionsMiddleWare(
                               store.dispatch(GetAllTickerDataSuccessAction(
                                   allTickerData:
                                       store.state.allTickerData.data));
-
                               store.dispatch(
                                   GetAllDynStocksAction(userId: action.userId));
                             }).catchError((error) {
-                              String emailBodyLine1 = '${error['message']}';
+                              String emailBodyLine1 = '$error';
                               EmailJSService()
                                   .sendEmail(Email(
                                       username: 'Myself',
@@ -792,7 +797,7 @@ void transactionsMiddleWare(
                                   });
                                 }
                               }).catchError((error) {
-                                String emailBodyLine1 = '${error['message']}';
+                                String emailBodyLine1 = '$error';
                                 EmailJSService()
                                     .sendEmail(Email(
                                         username: 'Myself',
@@ -811,7 +816,7 @@ void transactionsMiddleWare(
                             });
                           }
                         }).catchError((error) {
-                          String emailBodyLine1 = '${error['message']}';
+                          String emailBodyLine1 = '$error';
                           EmailJSService()
                               .sendEmail(Email(
                                   username: 'Myself',
@@ -829,7 +834,7 @@ void transactionsMiddleWare(
                         });
                       });
                     }).catchError((error) {
-                      String emailBodyLine1 = '${error['message']}';
+                      String emailBodyLine1 = '$error';
                       EmailJSService()
                           .sendEmail(Email(
                               username: 'Myself',
@@ -846,7 +851,7 @@ void transactionsMiddleWare(
                           stockCode: action.stockCode, error: error));
                     });
                   }).catchError((error) {
-                    String emailBodyLine1 = '${error['message']}';
+                    String emailBodyLine1 = '$error';
                     EmailJSService()
                         .sendEmail(Email(
                             username: 'Myself',
@@ -863,7 +868,7 @@ void transactionsMiddleWare(
                         stockCode: action.stockCode, error: error));
                   });
                 }).catchError((error) {
-                  String emailBodyLine1 = '${error['message']}';
+                  String emailBodyLine1 = '$error';
                   EmailJSService()
                       .sendEmail(Email(
                           username: 'Myself',
@@ -945,11 +950,10 @@ void transactionsMiddleWare(
                           .currentLocalMinimumPrice = tradedStock.price;
                       store.dispatch(GetAllTickerDataSuccessAction(
                           allTickerData: store.state.allTickerData.data));
-
                       store.dispatch(
                           GetAllDynStocksAction(userId: action.userId));
                     }).catchError((error) {
-                      String emailBodyLine1 = '${error['message']}';
+                      String emailBodyLine1 = '$error';
                       EmailJSService()
                           .sendEmail(Email(
                               username: 'Myself',
@@ -1015,7 +1019,7 @@ void transactionsMiddleWare(
                             store.dispatch(
                                 GetAllDynStocksAction(userId: action.userId));
                           }).catchError((error) {
-                            String emailBodyLine1 = '${error['message']}';
+                            String emailBodyLine1 = '$error';
                             EmailJSService()
                                 .sendEmail(Email(
                                     username: 'Myself',
@@ -1033,7 +1037,7 @@ void transactionsMiddleWare(
                           });
                         }
                       }).catchError((error) {
-                        String emailBodyLine1 = '${error['message']}';
+                        String emailBodyLine1 = '$error';
                         EmailJSService()
                             .sendEmail(Email(
                                 username: 'Myself',
@@ -1052,7 +1056,7 @@ void transactionsMiddleWare(
                     });
                   }
                 }).catchError((error) {
-                  String emailBodyLine1 = '${error['message']}';
+                  String emailBodyLine1 = '$error';
                   EmailJSService()
                       .sendEmail(Email(
                           username: 'Myself',
@@ -1072,7 +1076,7 @@ void transactionsMiddleWare(
 
               ///////
             }).catchError((error) {
-              String emailBodyLine1 = '${error['message']}';
+              String emailBodyLine1 = '$error';
               EmailJSService()
                   .sendEmail(Email(
                       username: 'Myself',
@@ -1090,7 +1094,7 @@ void transactionsMiddleWare(
             });
           }
         }).catchError((error) {
-          String emailBodyLine1 = '${error['message']}';
+          String emailBodyLine1 = '$error';
           EmailJSService()
               .sendEmail(Email(
                   username: 'Myself',
@@ -1129,7 +1133,7 @@ void transactionsMiddleWare(
             allTickerData: store.state.allTickerData.data));
         store.dispatch(GetAllDynStocksAction(userId: action.userId));
       }).catchError((error) {
-        String emailBodyLine1 = '${error['message']}';
+        String emailBodyLine1 = '$error';
         EmailJSService()
             .sendEmail(Email(
                 username: 'Myself',

@@ -25,7 +25,7 @@ void netReturnsForDynStockMiddleWare(
         .then((response) {
       store.dispatch(GetNetReturnsForDynStockSuccessAction(data: response));
     }).catchError((error) {
-      String emailBodyLine1 = '${error['message']}';
+      String emailBodyLine1 = '$error';
       EmailJSService()
           .sendEmail(Email(
               username: 'Myself',

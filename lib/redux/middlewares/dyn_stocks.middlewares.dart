@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dynstocks/main.dart';
 import 'package:dynstocks/models/common.dart';
 import 'package:dynstocks/models/dyn_stocks.dart';
@@ -36,7 +38,7 @@ void dynStocksMiddleWare(
         store.dispatch(InitializeCreateTransactionStateAction(data: map));
       }
     }).catchError((error) {
-      String emailBodyLine1 = '${error['message']}';
+      String emailBodyLine1 = '$error';
       EmailJSService()
           .sendEmail(Email(
               username: 'Myself',
@@ -90,7 +92,7 @@ void dynStocksMiddleWare(
                 store.dispatch(GetAllTickerDataAction());
               }
             }).catchError((error) {
-              String emailBodyLine1 = '${error['message']}';
+              String emailBodyLine1 = '$error';
               EmailJSService()
                   .sendEmail(Email(
                       username: 'Myself',
@@ -105,7 +107,7 @@ void dynStocksMiddleWare(
               store.dispatch(CreateDynStockFailAction(error: error));
             });
           }).catchError((error) {
-            String emailBodyLine1 = '${error['message']}';
+            String emailBodyLine1 = '$error';
             EmailJSService()
                 .sendEmail(Email(
                     username: 'Myself',
@@ -122,7 +124,7 @@ void dynStocksMiddleWare(
         });
       },
     ).catchError((error) {
-      String emailBodyLine1 = '${error['message']}';
+      String emailBodyLine1 = '$error';
       EmailJSService()
           .sendEmail(Email(
               username: 'Myself',
@@ -144,7 +146,7 @@ void dynStocksMiddleWare(
         .then((response) {
       store.dispatch(UpdateDynStockSuccessAction(dynStock: response));
     }).catchError((error) {
-      String emailBodyLine1 = '${error['message']}';
+      String emailBodyLine1 = '$error';
       EmailJSService()
           .sendEmail(Email(
               username: 'Myself',
@@ -165,6 +167,7 @@ void dynStocksMiddleWare(
         store.state.allDynStocks.data.firstWhere((element) {
       return element.dynStockId.uuid == action.dynStockId;
     });
+
     if (dynStockToBeDeleted.lastTransactionType == 'BUY') {
       // Last executed order was BUY, so we need to sell the stocks before deleting the dynstocks
       KotakStockAPIService()
@@ -214,7 +217,7 @@ void dynStocksMiddleWare(
                 store.dispatch(
                     DeleteDynStockSuccessAction(dynStockId: response));
               }).catchError((error) {
-                String emailBodyLine1 = '${error['message']}';
+                String emailBodyLine1 = '$error';
                 EmailJSService()
                     .sendEmail(Email(
                         username: 'Myself',
@@ -229,7 +232,7 @@ void dynStocksMiddleWare(
                 store.dispatch(DeleteDynStockFailAction(error: error));
               });
             }).catchError((error) {
-              String emailBodyLine1 = '${error['message']}';
+              String emailBodyLine1 = '$error';
               EmailJSService()
                   .sendEmail(Email(
                       username: 'Myself',
@@ -252,7 +255,7 @@ void dynStocksMiddleWare(
           .then((response) {
         store.dispatch(DeleteDynStockSuccessAction(dynStockId: response));
       }).catchError((error) {
-        String emailBodyLine1 = '${error['message']}';
+        String emailBodyLine1 = '$error';
         EmailJSService()
             .sendEmail(Email(
                 username: 'Myself',

@@ -349,7 +349,7 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                               stockPrice: 0,
                               noOfStocks:
                                   currentDynStock.stocksAvailableForTrade),
-                          stockOrderType: EStockOrderType.Market.name));
+                          stockOrderType: EStockOrderType.Market.name, forcedTransaction: true));
                   errorMessageShown = false;
                 } else {
                   StoreProvider.of<AppState>(context).dispatch(
@@ -364,8 +364,7 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                               stockCode: currentDynStock.stockCode,
                               type: 'BUY',
                               stockPrice: 0,
-                              noOfStocks:
-                                  currentDynStock.stocksAvailableForTrade),
+                              noOfStocks: currentDynStock.noOfStocks),
                           stockOrderType: EStockOrderType.Market.name,
                           forcedTransaction: true));
                 }

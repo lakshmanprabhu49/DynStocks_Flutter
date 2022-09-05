@@ -13,7 +13,7 @@ void authMiddleWare(
         .then((response) {
       store.dispatch(LoginSuccessAction(authResponse: response));
     }).catchError((error) {
-      String emailBodyLine1 = '${error['message']}';
+      String emailBodyLine1 = '$error';
       EmailJSService()
           .sendEmail(Email(
               username: 'Myself',
@@ -31,7 +31,7 @@ void authMiddleWare(
     AuthService().logout(action.userId).then((response) {
       store.dispatch(LogoutSuccessAction(authResponse: response));
     }).catchError((error) {
-      String emailBodyLine1 = '${error['message']}';
+      String emailBodyLine1 = '$error';
       EmailJSService()
           .sendEmail(Email(
               username: 'Myself',

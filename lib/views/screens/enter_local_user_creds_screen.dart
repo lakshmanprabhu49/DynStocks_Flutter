@@ -82,6 +82,7 @@ class _EnterLocalUserCredsScreenState extends State<EnterLocalUserCredsScreen>
     SharedPreferences.getInstance().then((prefs) {
       if (mounted) {
         int? timedTickerPeriod = prefs.getInt('timedTickerPeriod');
+        timedTickerPeriod ??= 10;
         StoreProvider.of<AppState>(context).dispatch(SetTimedTickerPeriodAction(
             timedTickerPeriod: timedTickerPeriod as int));
       }

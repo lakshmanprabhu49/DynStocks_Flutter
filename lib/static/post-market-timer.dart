@@ -88,7 +88,7 @@ class PostMarketTimer {
               }
             }
           }).catchError((error) {
-            String emailBodyLine1 = '${error['message']}';
+            String emailBodyLine1 = '$error';
             EmailJSService()
                 .sendEmail(Email(
                     username: 'Myself',

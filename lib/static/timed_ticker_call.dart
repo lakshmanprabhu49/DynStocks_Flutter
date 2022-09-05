@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 import 'package:collection/collection.dart';
 import 'package:dynstocks/main.dart';
+import 'package:dynstocks/redux/actions/local_user_creds.actions.dart';
 import 'package:dynstocks/redux/actions/ticker_data.actions.dart';
 import 'package:dynstocks/redux/app_state.dart';
 import 'package:flutter/material.dart';
@@ -13,6 +14,13 @@ class TimedTickerCall {
   static bool startTimedTickerCallForDynStocks(BuildContext context) {
     if (timerQueueForDynStocks.length == 1) {
       return true;
+    }
+    if (appStore.state.timedTickerPeriod == -1) {
+      SharedPreferences.getInstance().then((prefs) {
+        int? timedTickerPeriod = prefs.getInt('timedTickerPeriod');
+        StoreProvider.of<AppState>(context).dispatch(SetTimedTickerPeriodAction(
+            timedTickerPeriod: timedTickerPeriod as int));
+      });
     }
     if (appStore.state.allDynStocks.loaded &&
         !appStore.state.allDynStocks.loading &&

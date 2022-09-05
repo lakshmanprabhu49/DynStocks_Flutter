@@ -280,21 +280,20 @@ class _UserInfoScreenState extends State<UserInfoScreen> with RouteAware {
             }
             if (mounted && state.authState.loggedOut) {
               SharedPreferences.getInstance().then((prefs) async {
-                await prefs.remove('username');
-                await prefs.remove('password');
-                stopPeriodicTimer();
-                StoreProvider.of<AppState>(context)
-                    .dispatch(SetUserIdAction(userId: ''));
-                StoreProvider.of<AppState>(context)
-                    .dispatch(SetAccessCodeAction(accessCode: ''));
-                Route newRoute = MaterialPageRoute(
-                    builder: (context) => EnterLocalUserCredsScreen(
-                          shouldAskForUsernameAndPassword: true,
-                        ));
-                Navigator.of(context).pushReplacement(newRoute);
-                // prefs.clear().then((value) {
-                //   if (value) {}
-                // });
+                prefs.clear().then((value) {
+                  if (value) {
+                    stopPeriodicTimer();
+                    StoreProvider.of<AppState>(context)
+                        .dispatch(SetUserIdAction(userId: ''));
+                    StoreProvider.of<AppState>(context)
+                        .dispatch(SetAccessCodeAction(accessCode: ''));
+                    Route newRoute = MaterialPageRoute(
+                        builder: (context) => EnterLocalUserCredsScreen(
+                              shouldAskForUsernameAndPassword: true,
+                            ));
+                    Navigator.of(context).pushReplacement(newRoute);
+                  }
+                });
               });
             }
           }),

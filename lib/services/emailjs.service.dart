@@ -12,7 +12,7 @@ class EmailJSService {
     String serviceId = dotenv.env["EMAILJS_SERVICE_ID"] as String;
     String templateId = dotenv.env["EMAILJS_TEMPLATE_ID"] as String;
     String userId = dotenv.env["EMAILJS_USER_ID"] as String;
-    final url = Uri.parse('https://api.emailjs.com/api/v1.0/email/send');
+    final url = Uri.parse(dotenv.env["EMAILJS_API_ENDPOINT"] as String);
     var client = http.Client();
     var response = await client.post(url,
         body: json.encode({

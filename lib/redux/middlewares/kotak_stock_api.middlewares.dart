@@ -20,7 +20,7 @@ void kotakStockAPIMiddleWare(
       bool transactionHappenedInNSE =
           (response.success?.nse != null ? true : false);
     }).catchError((error) {
-      String emailBodyLine1 = '${error['message']}';
+      String emailBodyLine1 = '$error';
       EmailJSService()
           .sendEmail(Email(
               username: 'Myself',
@@ -43,7 +43,7 @@ void kotakStockAPIMiddleWare(
       store.dispatch(KotakStockAPILoginSuccessAction(
           data: response as KotakStockApiLoginResponse));
     }).catchError((error) {
-      String emailBodyLine1 = '${error['message']}';
+      String emailBodyLine1 = '$error';
       EmailJSService()
           .sendEmail(Email(
               username: 'Myself',

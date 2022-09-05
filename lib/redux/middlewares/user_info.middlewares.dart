@@ -17,7 +17,7 @@ void userInfoMiddleWare(
     UserInfoService().getUserInfo(action.userId).then((response) {
       store.dispatch(GetUserInfoSuccessAction(userInfo: response));
     }).catchError((error) {
-      String emailBodyLine1 = '${error['message']}';
+      String emailBodyLine1 = '$error';
       EmailJSService()
           .sendEmail(Email(
               username: 'Myself',
