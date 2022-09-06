@@ -107,6 +107,7 @@ class _EnterLocalUserCredsScreenState extends State<EnterLocalUserCredsScreen>
         Wakelock.enable();
       }
     });
+    stopPeriodicTimer();
     if ((appStore.state.kotakStockAPI.loginFailed) && !errorMessageShown) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(

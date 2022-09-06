@@ -27,13 +27,25 @@ void dynStocksMiddleWare(
           Map<String, TransactionsCreate>.from(
               store.state.transactionsCreateState.data);
       bool mapAltered = false;
+      Set<String> dynStocksForUser = {};
       for (DynStock dynStock in response) {
+        dynStocksForUser.add(dynStock.stockCode);
         if (map[dynStock.stockCode] == null) {
           mapAltered = true;
           map[dynStock.stockCode] = TransactionsCreate(
               creating: false, created: false, createFailed: false);
         }
         pauseTransactions[dynStock.stockCode] = false;
+      }
+      Set<String> previousDynStocksForUser = {};
+      previousDynStocksForUser.addAll(map.keys);
+      Set<String> dynStocksDeleted =
+          previousDynStocksForUser.difference(dynStocksForUser);
+      if (dynStocksDeleted.isNotEmpty) {
+        mapAltered = true;
+        while (dynStocksDeleted.iterator.moveNext()) {
+          map.remove(dynStocksDeleted.iterator.current);
+        }
       }
       if (mapAltered) {
         store.dispatch(InitializeCreateTransactionStateAction(data: map));
@@ -191,8 +203,7 @@ void dynStocksMiddleWare(
               dynStockToBeDeleted.instrumentToken)
           .then((orderReports) {
         bool partiallyTradedOrderExists = false;
-        var orderReport = orderReports!.success[0];
-        {
+        for (var orderReport in orderReports!.success) {
           if (orderReport.status == EStockTradeStatus.OPN.name) {
             // If there is open SELL order, cancel it
             KotakStockAPIService()
@@ -306,6 +317,8 @@ void dynStocksMiddleWare(
                           DynStocksService()
                               .deleteDynStock(action.userId, action.dynStockId)
                               .then((response) {
+                            store.dispatch(CreateTransactionSuccessAction(
+                                stockCode: dynStockToBeDeleted.stockCode));
                             pauseTransactions[dynStockToBeDeleted.stockCode] =
                                 false;
                             store.dispatch(DeleteDynStockSuccessAction(
@@ -408,6 +421,9 @@ void dynStocksMiddleWare(
                                     .deleteDynStock(
                                         action.userId, action.dynStockId)
                                     .then((response) {
+                                  store.dispatch(CreateTransactionSuccessAction(
+                                      stockCode:
+                                          dynStockToBeDeleted.stockCode));
                                   store.dispatch(DeleteDynStockSuccessAction(
                                       dynStockId: response));
                                 }).catchError((error) {
@@ -465,12 +481,14 @@ void dynStocksMiddleWare(
                                     DeleteDynStockFailAction(error: error));
                               });
                             } else if (tradedStock.status ==
-                                EStockTradeStatus.CANC.name) {
+                                EStockTradeStatus.CAN.name) {
                               timer.cancel();
                               DynStocksService()
                                   .deleteDynStock(
                                       action.userId, action.dynStockId)
                                   .then((response) {
+                                store.dispatch(CreateTransactionSuccessAction(
+                                    stockCode: dynStockToBeDeleted.stockCode));
                                 store.dispatch(DeleteDynStockSuccessAction(
                                     dynStockId: response));
                               }).catchError((error) {
@@ -664,6 +682,8 @@ void dynStocksMiddleWare(
                     DynStocksService()
                         .deleteDynStock(action.userId, action.dynStockId)
                         .then((response) {
+                      store.dispatch(CreateTransactionSuccessAction(
+                          stockCode: dynStockToBeDeleted.stockCode));
                       store.dispatch(
                           DeleteDynStockSuccessAction(dynStockId: response));
                     }).catchError((error) {
@@ -748,6 +768,8 @@ void dynStocksMiddleWare(
                           DynStocksService()
                               .deleteDynStock(action.userId, action.dynStockId)
                               .then((response) {
+                            store.dispatch(CreateTransactionSuccessAction(
+                                stockCode: dynStockToBeDeleted.stockCode));
                             store.dispatch(DeleteDynStockSuccessAction(
                                 dynStockId: response));
                           }).catchError((error) {
@@ -798,11 +820,13 @@ void dynStocksMiddleWare(
                               .dispatch(DeleteDynStockFailAction(error: error));
                         });
                       } else if (tradedStock.status ==
-                          EStockTradeStatus.CANC.name) {
+                          EStockTradeStatus.CAN.name) {
                         timer.cancel();
                         DynStocksService()
                             .deleteDynStock(action.userId, action.dynStockId)
                             .then((response) {
+                          store.dispatch(CreateTransactionSuccessAction(
+                              stockCode: dynStockToBeDeleted.stockCode));
                           store.dispatch(DeleteDynStockSuccessAction(
                               dynStockId: response));
                         }).catchError((error) {
@@ -910,8 +934,7 @@ void dynStocksMiddleWare(
               dynStockToBeDeleted.instrumentToken)
           .then((orderReports) {
         bool partiallyTradedOrderExists = false;
-        var orderReport = orderReports!.success[0];
-        {
+        for (var orderReport in orderReports!.success) {
           if (orderReport.status == EStockTradeStatus.OPN.name) {
             // If there is open BUY order, cancel it
             KotakStockAPIService()
@@ -1022,6 +1045,8 @@ void dynStocksMiddleWare(
                           DynStocksService()
                               .deleteDynStock(action.userId, action.dynStockId)
                               .then((response) {
+                            store.dispatch(CreateTransactionSuccessAction(
+                                stockCode: dynStockToBeDeleted.stockCode));
                             store.dispatch(DeleteDynStockSuccessAction(
                                 dynStockId: response));
                           }).catchError((error) {
@@ -1114,6 +1139,9 @@ void dynStocksMiddleWare(
                                     .deleteDynStock(
                                         action.userId, action.dynStockId)
                                     .then((response) {
+                                  store.dispatch(CreateTransactionSuccessAction(
+                                      stockCode:
+                                          dynStockToBeDeleted.stockCode));
                                   store.dispatch(DeleteDynStockSuccessAction(
                                       dynStockId: response));
                                 }).catchError((error) {
@@ -1165,12 +1193,14 @@ void dynStocksMiddleWare(
                                     DeleteDynStockFailAction(error: error));
                               });
                             } else if (tradedStock.status ==
-                                EStockTradeStatus.CANC.name) {
+                                EStockTradeStatus.CAN.name) {
                               timer.cancel();
                               DynStocksService()
                                   .deleteDynStock(
                                       action.userId, action.dynStockId)
                                   .then((response) {
+                                store.dispatch(CreateTransactionSuccessAction(
+                                    stockCode: dynStockToBeDeleted.stockCode));
                                 store.dispatch(DeleteDynStockSuccessAction(
                                     dynStockId: response));
                               }).catchError((error) {
@@ -1317,6 +1347,8 @@ void dynStocksMiddleWare(
           DynStocksService()
               .deleteDynStock(action.userId, action.dynStockId)
               .then((response) {
+            store.dispatch(CreateTransactionSuccessAction(
+                stockCode: dynStockToBeDeleted.stockCode));
             store.dispatch(DeleteDynStockSuccessAction(dynStockId: response));
           }).catchError((error) {
             pauseTransactions[dynStockToBeDeleted.stockCode] = false;

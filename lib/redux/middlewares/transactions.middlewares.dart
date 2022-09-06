@@ -200,7 +200,7 @@ void transactionsMiddleWare(
                               stockCode: action.stockCode, error: error));
                         });
                       } else if (tradedStock.status ==
-                          EStockTradeStatus.CANC.name) {
+                          EStockTradeStatus.CAN.name) {
                         timer.cancel();
                         store.dispatch(CreateTransactionSuccessAction(
                           stockCode: action.stockCode,
@@ -280,8 +280,7 @@ void transactionsMiddleWare(
                 action.userId, store.state.accessCode, action.instrumentToken)
             .then((orderReports) {
           bool thereAreNoIncompleteOrders = true;
-          var orderReport = orderReports!.success[0];
-          {
+          for (var orderReport in orderReports!.success) {
             if (action.body.type == ETransactionType.BUY.name) {
               // Force BUY is initiated. If there is any open transaction for BUY, cancel it
               // If there is a partial transaction for BUY,Modify it such that it becomes a full transaction, change noOfStocks to the traded stocks
@@ -514,7 +513,7 @@ void transactionsMiddleWare(
                                         error: error));
                                   });
                                 } else if (tradedStock.status ==
-                                    EStockTradeStatus.CANC.name) {
+                                    EStockTradeStatus.CAN.name) {
                                   timer.cancel();
                                   store.dispatch(CreateTransactionSuccessAction(
                                     stockCode: action.stockCode,
@@ -860,7 +859,7 @@ void transactionsMiddleWare(
                                         error: error));
                                   });
                                 } else if (tradedStock.status ==
-                                    EStockTradeStatus.CANC.name) {
+                                    EStockTradeStatus.CAN.name) {
                                   timer.cancel();
                                   store.dispatch(CreateTransactionSuccessAction(
                                     stockCode: action.stockCode,
@@ -1127,7 +1126,7 @@ void transactionsMiddleWare(
                                 stockCode: action.stockCode, error: error));
                           });
                         } else if (tradedStock.status ==
-                            EStockTradeStatus.CANC.name) {
+                            EStockTradeStatus.CAN.name) {
                           timer.cancel();
                           store.dispatch(CreateTransactionSuccessAction(
                             stockCode: action.stockCode,

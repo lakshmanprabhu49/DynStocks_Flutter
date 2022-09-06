@@ -39,6 +39,6 @@ enum EChoice { Yes, No }
 
 enum ETransactionType { BUY, SELL }
 
-enum EStockTradeStatus { TRAD, OPN, OPF, CANC }
+enum EStockTradeStatus { TRAD, OPN, OPF, CAN }
 
 Map<String, bool> pauseTransactions = Map();
