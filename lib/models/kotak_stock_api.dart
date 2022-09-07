@@ -314,3 +314,38 @@ class OrderReportsSuccess {
         "pendingQuantity": pendingQuantity,
       };
 }
+
+OrderCategories orderCategoriesFromJson(String str) =>
+    OrderCategories.fromJson(json.decode(str));
+
+String orderCategoriesToJson(OrderCategories data) =>
+    json.encode(data.toJson());
+
+class OrderCategories {
+  OrderCategories({
+    required this.OPN,
+    required this.OPF,
+    required this.CAN,
+    required this.TRAD,
+  });
+
+  List<int> OPN;
+  List<int> OPF;
+  List<int> CAN;
+  List<int> TRAD;
+
+  factory OrderCategories.fromJson(Map<String, dynamic> json) =>
+      OrderCategories(
+        OPN: List<int>.from(json["OPN"].map((x) => x)),
+        OPF: List<int>.from(json["OPF"].map((x) => x)),
+        CAN: List<int>.from(json["CAN"].map((x) => x)),
+        TRAD: List<int>.from(json["TRAD"].map((x) => x)),
+      );
+
+  Map<String, dynamic> toJson() => {
+        "OPN": List<dynamic>.from(OPN.map((x) => x)),
+        "OPF": List<dynamic>.from(OPF.map((x) => x)),
+        "CAN": List<dynamic>.from(CAN.map((x) => x)),
+        "TRAD": List<dynamic>.from(TRAD.map((x) => x)),
+      };
+}

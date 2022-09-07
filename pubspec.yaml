@@ -61,9 +61,9 @@ dev_dependencies:
 flutter_icons:
   android: true
   ios: true
-  image_path: "assets/images/logo_foreground.jpg"
-  adaptive_icon_background: "#000000"
-  adaptive_icon_foreground: "assets/images/logo_foreground.jpg"
+  image_path: "assets/images/logo_foreground.png"
+  adaptive_icon_background: "#2661d9"
+  adaptive_icon_foreground: "assets/images/logo_foreground.png"
 # The following section is specific to Flutter packages.
 flutter:
 
