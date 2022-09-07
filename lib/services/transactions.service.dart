@@ -19,10 +19,10 @@ class TransactionsService {
       String filterCriterionStocks = '',
       String filterCriterionDay = ''}) async {
     String urlEndPoint =
-        '${dotenv.env["DYNSTOCKS_API_ENDPOINT_LOCAL"]}/$userId/transactions?accessCode=${appStore.state.accessCode}';
+        '${dotenv.env["DYNSTOCKS_API_ENDPOINT_PROD"]}/$userId/transactions?accessCode=${appStore.state.accessCode}';
     if (dynStockId.isNotEmpty) {
       urlEndPoint =
-          '${dotenv.env["DYNSTOCKS_API_ENDPOINT_LOCAL"]}/$userId/dynStocks/$dynStockId/transactions?accessCode=${appStore.state.accessCode}';
+          '${dotenv.env["DYNSTOCKS_API_ENDPOINT_PROD"]}/$userId/dynStocks/$dynStockId/transactions?accessCode=${appStore.state.accessCode}';
     }
     String urlParams =
         '&limit=$limit&offset=$offset&sortCriterion=$sortCriterion&sortDirection=$sortDirection';
@@ -55,7 +55,7 @@ class TransactionsService {
   Future<Transaction> createTransaction(
       String userId, String dynStockId, TransactionBody body) async {
     Uri url = Uri.parse(
-        '${dotenv.env["DYNSTOCKS_API_ENDPOINT_LOCAL"]}/$userId/dynStocks/$dynStockId/transactions?accessCode=${appStore.state.accessCode}');
+        '${dotenv.env["DYNSTOCKS_API_ENDPOINT_PROD"]}/$userId/dynStocks/$dynStockId/transactions?accessCode=${appStore.state.accessCode}');
     var client = http.Client();
     var response = await client.post(url, body: jsonEncode(body), headers: {
       HttpHeaders.authorizationHeader:

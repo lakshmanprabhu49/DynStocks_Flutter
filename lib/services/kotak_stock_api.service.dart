@@ -17,7 +17,7 @@ class KotakStockAPIService {
     KotakStockAPIPlaceOrderBody body,
   ) async {
     Uri url = Uri.parse(
-        '${dotenv.env["DYNSTOCKS_API_ENDPOINT_LOCAL"]}/$userId/kotakStock/placeOrder?accessCode=$accessCode');
+        '${dotenv.env["DYNSTOCKS_API_ENDPOINT_PROD"]}/$userId/kotakStock/placeOrder?accessCode=$accessCode');
     var client = http.Client();
     var response = await client.post(url, body: jsonEncode(body), headers: {
       HttpHeaders.authorizationHeader:
@@ -40,7 +40,7 @@ class KotakStockAPIService {
     KotakStockAPIPlaceOrderBody body,
   ) async {
     Uri url = Uri.parse(
-        '${dotenv.env["DYNSTOCKS_API_ENDPOINT_LOCAL"]}/$userId/kotakStock/modifyOrder/${orderId}?accessCode=$accessCode');
+        '${dotenv.env["DYNSTOCKS_API_ENDPOINT_PROD"]}/$userId/kotakStock/modifyOrder/${orderId}?accessCode=$accessCode');
     var client = http.Client();
     var response = await client.post(url, body: jsonEncode(body), headers: {
       HttpHeaders.authorizationHeader:
@@ -62,7 +62,7 @@ class KotakStockAPIService {
     int orderId,
   ) async {
     Uri url = Uri.parse(
-        '${dotenv.env["DYNSTOCKS_API_ENDPOINT_LOCAL"]}/$userId/kotakStock/cancelOrder/$orderId?accessCode=$accessCode');
+        '${dotenv.env["DYNSTOCKS_API_ENDPOINT_PROD"]}/$userId/kotakStock/cancelOrder/$orderId?accessCode=$accessCode');
     var client = http.Client();
     var response = await client.post(url, body: jsonEncode('body'), headers: {
       HttpHeaders.authorizationHeader:
@@ -81,7 +81,7 @@ class KotakStockAPIService {
   Future<KotakStockApiPositionsResponse?> getPositions(String userId,
       String accessCode, EPositions position, String instrumentToken) async {
     Uri url = Uri.parse(
-        '${dotenv.env["DYNSTOCKS_API_ENDPOINT_LOCAL"]}/$userId/kotakStock/positions/${position.name}?accessCode=$accessCode');
+        '${dotenv.env["DYNSTOCKS_API_ENDPOINT_PROD"]}/$userId/kotakStock/positions/${position.name}?accessCode=$accessCode');
     var client = http.Client();
     var response = await client.get(url, headers: {
       HttpHeaders.authorizationHeader:
@@ -99,7 +99,7 @@ class KotakStockAPIService {
   Future<KotakStockApiOrderReportsResponse?> getAllOrderReport(
       String userId, String accessCode, String instrumentToken) async {
     String urlString =
-        '${dotenv.env["DYNSTOCKS_API_ENDPOINT_LOCAL"]}/$userId/kotakStock/orderReport?accessCode=$accessCode';
+        '${dotenv.env["DYNSTOCKS_API_ENDPOINT_PROD"]}/$userId/kotakStock/orderReport?accessCode=$accessCode';
     if (instrumentToken.isNotEmpty) {
       urlString = '$urlString&instrumentToken=$instrumentToken';
     }
@@ -121,7 +121,7 @@ class KotakStockAPIService {
   Future<KotakStockApiOrderReportsResponse?> getOrderReport(String userId,
       String accessCode, int orderId, String instrumentToken) async {
     String urlString =
-        '${dotenv.env["DYNSTOCKS_API_ENDPOINT_LOCAL"]}/$userId/kotakStock/orderReport/$orderId?accessCode=$accessCode';
+        '${dotenv.env["DYNSTOCKS_API_ENDPOINT_PROD"]}/$userId/kotakStock/orderReport/$orderId?accessCode=$accessCode';
     if (instrumentToken.isNotEmpty) {
       urlString = '$urlString&instrumentToken=$instrumentToken';
     }
@@ -143,7 +143,7 @@ class KotakStockAPIService {
   Future<String?> getOrderStatus(
       String userId, String accessCode, int orderId) async {
     String urlString =
-        '${dotenv.env["DYNSTOCKS_API_ENDPOINT_LOCAL"]}/$userId/kotakStock/orderStatus/$orderId?accessCode=$accessCode';
+        '${dotenv.env["DYNSTOCKS_API_ENDPOINT_PROD"]}/$userId/kotakStock/orderStatus/$orderId?accessCode=$accessCode';
     Uri url = Uri.parse(urlString);
     var client = http.Client();
     var response = await client.get(url, headers: {
@@ -162,7 +162,7 @@ class KotakStockAPIService {
   Future<OrderCategories?> getOrderCategories(
       String userId, String accessCode, String instrumentToken) async {
     String urlString =
-        '${dotenv.env["DYNSTOCKS_API_ENDPOINT_LOCAL"]}/$userId/kotakStock/orderCategories?accessCode=$accessCode&instrumentToken=$instrumentToken';
+        '${dotenv.env["DYNSTOCKS_API_ENDPOINT_PROD"]}/$userId/kotakStock/orderCategories?accessCode=$accessCode&instrumentToken=$instrumentToken';
     Uri url = Uri.parse(urlString);
     var client = http.Client();
     var response = await client.get(url, headers: {
@@ -181,7 +181,7 @@ class KotakStockAPIService {
   Future<KotakStockApiLoginResponse?> login(
       String userId, String accessCode) async {
     Uri url = Uri.parse(
-        '${dotenv.env["DYNSTOCKS_API_ENDPOINT_LOCAL"]}/$userId/kotakStock/login?accessCode=$accessCode');
+        '${dotenv.env["DYNSTOCKS_API_ENDPOINT_PROD"]}/$userId/kotakStock/login?accessCode=$accessCode');
     var client = http.Client();
     var response = await client.post(url,
         headers: {'x-request-id': appStore.state.DYNSTOCKS_X_REQUEST_ID});
