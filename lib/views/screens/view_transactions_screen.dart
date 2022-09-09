@@ -50,6 +50,7 @@ class _ViewTransactionsScreenState extends State<ViewTransactionsScreen>
   int limit = 50;
   int offset = 0;
   bool reload = false;
+
   @override
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
@@ -170,7 +171,9 @@ class _ViewTransactionsScreenState extends State<ViewTransactionsScreen>
       });
     }
     Size screenSize = MediaQuery.of(context).size;
-    if (appStore.state.allTransactions.loadFailed && !errorMessageShown) {
+    if (appStore.state.allTransactions.loadFailed &&
+        !errorMessageShown &&
+        mounted) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(
             ToastMessageHandler.showErrorMessageSnackBar(
@@ -181,7 +184,8 @@ class _ViewTransactionsScreenState extends State<ViewTransactionsScreen>
       });
     }
     if (appStore.state.transactionsCreateState.error != null &&
-        !errorMessageShown) {
+        !errorMessageShown &&
+        mounted) {
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -196,7 +200,9 @@ class _ViewTransactionsScreenState extends State<ViewTransactionsScreen>
         resizeToAvoidBottomInset: false,
         body: StoreConnector<AppState, AppState>(
             onDidChange: (previousState, state) {
-              if (state.allTransactions.loadFailed && !errorMessageShown) {
+              if (state.allTransactions.loadFailed &&
+                  !errorMessageShown &&
+                  mounted) {
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   ScaffoldMessenger.of(context).showSnackBar(
                       ToastMessageHandler.showErrorMessageSnackBar(
@@ -207,7 +213,8 @@ class _ViewTransactionsScreenState extends State<ViewTransactionsScreen>
                 });
               }
               if (state.transactionsCreateState.error != null &&
-                  !errorMessageShown) {
+                  !errorMessageShown &&
+                  mounted) {
                 ScaffoldMessenger.of(context).hideCurrentSnackBar();
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   ScaffoldMessenger.of(context).showSnackBar(

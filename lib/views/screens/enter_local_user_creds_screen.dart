@@ -107,8 +107,12 @@ class _EnterLocalUserCredsScreenState extends State<EnterLocalUserCredsScreen>
         Wakelock.enable();
       }
     });
-    stopPeriodicTimer();
-    if ((appStore.state.kotakStockAPI.loginFailed) && !errorMessageShown) {
+    if (mounted) {
+      stopPeriodicTimer();
+    }
+    if ((appStore.state.kotakStockAPI.loginFailed) &&
+        !errorMessageShown &&
+        mounted) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(
             ToastMessageHandler.showErrorMessageSnackBar(
@@ -118,7 +122,9 @@ class _EnterLocalUserCredsScreenState extends State<EnterLocalUserCredsScreen>
         errorMessageShown = true;
       });
     }
-    if ((appStore.state.authState.loginFailed) && !errorMessageShown) {
+    if ((appStore.state.authState.loginFailed) &&
+        !errorMessageShown &&
+        mounted) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(
             ToastMessageHandler.showErrorMessageSnackBar(
@@ -131,7 +137,9 @@ class _EnterLocalUserCredsScreenState extends State<EnterLocalUserCredsScreen>
     return Scaffold(
         body: StoreConnector<AppState, AppState>(
             onDidChange: (previousState, state) {
-              if ((state.kotakStockAPI.loginFailed) && !errorMessageShown) {
+              if ((state.kotakStockAPI.loginFailed) &&
+                  !errorMessageShown &&
+                  mounted) {
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   ScaffoldMessenger.of(context).showSnackBar(
                       ToastMessageHandler.showErrorMessageSnackBar(
@@ -141,7 +149,9 @@ class _EnterLocalUserCredsScreenState extends State<EnterLocalUserCredsScreen>
                   errorMessageShown = true;
                 });
               }
-              if ((state.authState.loginFailed) && !errorMessageShown) {
+              if ((state.authState.loginFailed) &&
+                  !errorMessageShown &&
+                  mounted) {
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   ScaffoldMessenger.of(context).showSnackBar(
                       ToastMessageHandler.showErrorMessageSnackBar(

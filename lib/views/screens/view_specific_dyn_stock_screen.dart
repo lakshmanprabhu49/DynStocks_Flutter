@@ -61,6 +61,9 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
   _ViewSpecificDynStockScreenState(
       {Key? key, required this.currentDynStockCode});
   bool reload = false;
+  bool creating = false;
+  bool created = false;
+  bool createFailed = false;
   @override
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
@@ -999,6 +1002,25 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
             }),
         body: StoreConnector<AppState, AppState>(
             onDidChange: (previousState, state) {
+              if (mounted &&
+                  ((state.transactionsCreateState.data[currentDynStockCode]!
+                              .creating !=
+                          creating) ||
+                      (state.transactionsCreateState.data[currentDynStockCode]!
+                              .created !=
+                          created) ||
+                      (state.transactionsCreateState.data[currentDynStockCode]!
+                              .createFailed !=
+                          createFailed))) {
+                setState(() {
+                  creating = state.transactionsCreateState
+                      .data[currentDynStockCode]!.creating;
+                  created = state.transactionsCreateState
+                      .data[currentDynStockCode]!.created;
+                  createFailed = state.transactionsCreateState
+                      .data[currentDynStockCode]!.createFailed;
+                });
+              }
               if (state.allDynStocks.deleteFailed && !errorMessageShown) {
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -1162,6 +1184,88 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                         )),
                     Container(
                       child: Column(children: [
+                        Container(
+                          margin: EdgeInsets.fromLTRB(20, 10, 20, 10),
+                          child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                Container(
+                                  child: Container(
+                                      width: screenSize.width * 0.25,
+                                      height: screenSize.height * 0.05,
+                                      decoration: BoxDecoration(
+                                          color: Colors.transparent,
+                                          borderRadius:
+                                              BorderRadius.circular(15)),
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            'Creating',
+                                            style: GoogleFonts.daysOne(
+                                              color: creating
+                                                  ? AccentColors.green1
+                                                  : AccentColors.red1,
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
+                                      )),
+                                ),
+                                Container(
+                                  child: Container(
+                                      width: screenSize.width * 0.25,
+                                      height: screenSize.height * 0.05,
+                                      decoration: BoxDecoration(
+                                          color: Colors.transparent,
+                                          borderRadius:
+                                              BorderRadius.circular(15)),
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            'Created',
+                                            style: GoogleFonts.daysOne(
+                                              color: created
+                                                  ? AccentColors.green1
+                                                  : AccentColors.red1,
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
+                                      )),
+                                ),
+                                Container(
+                                  child: Container(
+                                      width: screenSize.width * 0.25,
+                                      height: screenSize.height * 0.075,
+                                      decoration: BoxDecoration(
+                                          color: Colors.transparent,
+                                          borderRadius:
+                                              BorderRadius.circular(15)),
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            'Create Failed',
+                                            style: GoogleFonts.daysOne(
+                                              color: createFailed
+                                                  ? AccentColors.green1
+                                                  : AccentColors.red1,
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
+                                      )),
+                                ),
+                              ]),
+                        ),
                         Container(
                           margin: EdgeInsets.fromLTRB(20, 10, 20, 10),
                           child: Row(

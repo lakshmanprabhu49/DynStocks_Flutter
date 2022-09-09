@@ -102,92 +102,134 @@ Future<void> placeFullOrderAndDeleteDynStock(
                 quantity: quantity)) as KotakStockApiPlaceOrderResponse;
     bool orderPlacedInNSE = newOrder.success!.nse != null ? true : false;
     Future.delayed(Duration(milliseconds: 200), () async {
-      KotakStockApiOrderReportsResponse position = await KotakStockAPIService()
-              .getOrderReport(
+      try {
+        KotakStockApiOrderReportsResponse position =
+            await KotakStockAPIService().getOrderReport(
+                    action.userId,
+                    store.state.accessCode,
+                    (orderPlacedInNSE
+                        ? newOrder.success!.nse!.orderId
+                        : newOrder.success!.bse!.orderId),
+                    dynStockToBeDeleted.instrumentToken)
+                as KotakStockApiOrderReportsResponse;
+        OrderReportsSuccess tradedStock = position.success.firstWhere(
+            (element) =>
+                element.orderId ==
+                (orderPlacedInNSE
+                    ? newOrder.success!.nse!.orderId
+                    : newOrder.success!.bse!.orderId));
+        int orderId = orderPlacedInNSE
+            ? newOrder.success!.nse!.orderId
+            : newOrder.success!.bse!.orderId;
+        if (tradedStock.status == EStockTradeStatus.TRAD.name) {
+          Transaction transactionResponse = await TransactionsService()
+              .createTransaction(
                   action.userId,
-                  store.state.accessCode,
-                  (orderPlacedInNSE
-                      ? newOrder.success!.nse!.orderId
-                      : newOrder.success!.bse!.orderId),
-                  dynStockToBeDeleted.instrumentToken)
-          as KotakStockApiOrderReportsResponse;
-      OrderReportsSuccess tradedStock = position.success.firstWhere((element) =>
-          element.orderId ==
-          (orderPlacedInNSE
-              ? newOrder.success!.nse!.orderId
-              : newOrder.success!.bse!.orderId));
-      int orderId = orderPlacedInNSE
-          ? newOrder.success!.nse!.orderId
-          : newOrder.success!.bse!.orderId;
-      if (tradedStock.status == EStockTradeStatus.TRAD.name) {
-        Transaction transactionResponse = await TransactionsService()
-            .createTransaction(
-                action.userId,
-                action.dynStockId,
-                TransactionBody(
-                    transactionId: orderPlacedInNSE
-                        ? newOrder.success!.nse!.orderId.toString()
-                        : newOrder.success!.bse!.orderId.toString(),
-                    type: transactionType.name,
-                    noOfStocks: quantity,
-                    stockCode: action.stockCode,
-                    stockPrice: tradedStock.price));
-        String response = await DynStocksService()
-            .deleteDynStock(action.userId, action.dynStockId);
-        pauseTransactions[action.stockCode] = false;
-        store.dispatch(CreateTransactionSuccessAction(
-            stockCode: dynStockToBeDeleted.stockCode));
-        store.dispatch(DeleteDynStockSuccessAction(dynStockId: response));
-      } else {
-        Timer.periodic(Duration(seconds: 3), (timer) async {
-          KotakStockApiOrderReportsResponse position = KotakStockAPIService()
-                  .getOrderReport(
-                      action.userId,
-                      store.state.accessCode,
+                  action.dynStockId,
+                  TransactionBody(
+                      transactionId: orderPlacedInNSE
+                          ? newOrder.success!.nse!.orderId.toString()
+                          : newOrder.success!.bse!.orderId.toString(),
+                      type: transactionType.name,
+                      noOfStocks: quantity,
+                      stockCode: action.stockCode,
+                      stockPrice: tradedStock.price));
+          String response = await DynStocksService()
+              .deleteDynStock(action.userId, action.dynStockId);
+          pauseTransactions[action.stockCode] = false;
+          store.dispatch(CreateTransactionSuccessAction(
+              stockCode: dynStockToBeDeleted.stockCode));
+          store.dispatch(DeleteDynStockSuccessAction(dynStockId: response));
+        } else {
+          Timer.periodic(Duration(milliseconds: 1500), (timer) async {
+            try {
+              KotakStockApiOrderReportsResponse position =
+                  KotakStockAPIService().getOrderReport(
+                          action.userId,
+                          store.state.accessCode,
+                          (orderPlacedInNSE
+                              ? newOrder.success!.nse!.orderId
+                              : newOrder.success!.bse!.orderId),
+                          dynStockToBeDeleted.instrumentToken)
+                      as KotakStockApiOrderReportsResponse;
+              OrderReportsSuccess tradedStock = position.success.firstWhere(
+                  (element) =>
+                      element.orderId ==
                       (orderPlacedInNSE
                           ? newOrder.success!.nse!.orderId
-                          : newOrder.success!.bse!.orderId),
-                      dynStockToBeDeleted.instrumentToken)
-              as KotakStockApiOrderReportsResponse;
-          OrderReportsSuccess tradedStock = position.success.firstWhere(
-              (element) =>
-                  element.orderId ==
-                  (orderPlacedInNSE
-                      ? newOrder.success!.nse!.orderId
-                      : newOrder.success!.bse!.orderId));
-          int orderId = orderPlacedInNSE
-              ? newOrder.success!.nse!.orderId
-              : newOrder.success!.bse!.orderId;
-          if (tradedStock.status == EStockTradeStatus.TRAD.name) {
-            timer.cancel();
-            Transaction transactionResponse = await TransactionsService()
-                .createTransaction(
-                    action.userId,
-                    action.dynStockId,
-                    TransactionBody(
-                        transactionId: orderPlacedInNSE
-                            ? newOrder.success!.nse!.orderId.toString()
-                            : newOrder.success!.bse!.orderId.toString(),
-                        type: ETransactionType.SELL.name,
-                        noOfStocks: quantity,
-                        stockCode: action.stockCode,
-                        stockPrice: tradedStock.price));
-            String response = await DynStocksService()
-                .deleteDynStock(action.userId, action.dynStockId);
-            store.dispatch(CreateTransactionSuccessAction(
-                stockCode: dynStockToBeDeleted.stockCode));
-            pauseTransactions[action.stockCode] = false;
-            store.dispatch(DeleteDynStockSuccessAction(dynStockId: response));
-          } else if (tradedStock.status == EStockTradeStatus.CAN.name) {
-            timer.cancel();
-            String response = await DynStocksService()
-                .deleteDynStock(action.userId, action.dynStockId);
-            store.dispatch(CreateTransactionSuccessAction(
-                stockCode: dynStockToBeDeleted.stockCode));
-            pauseTransactions[action.stockCode] = false;
-            store.dispatch(DeleteDynStockSuccessAction(dynStockId: response));
-          }
+                          : newOrder.success!.bse!.orderId));
+              int orderId = orderPlacedInNSE
+                  ? newOrder.success!.nse!.orderId
+                  : newOrder.success!.bse!.orderId;
+              if (tradedStock.status == EStockTradeStatus.TRAD.name) {
+                timer.cancel();
+                Transaction transactionResponse = await TransactionsService()
+                    .createTransaction(
+                        action.userId,
+                        action.dynStockId,
+                        TransactionBody(
+                            transactionId: orderPlacedInNSE
+                                ? newOrder.success!.nse!.orderId.toString()
+                                : newOrder.success!.bse!.orderId.toString(),
+                            type: ETransactionType.SELL.name,
+                            noOfStocks: quantity,
+                            stockCode: action.stockCode,
+                            stockPrice: tradedStock.price));
+                String response = await DynStocksService()
+                    .deleteDynStock(action.userId, action.dynStockId);
+                store.dispatch(CreateTransactionSuccessAction(
+                    stockCode: dynStockToBeDeleted.stockCode));
+                pauseTransactions[action.stockCode] = false;
+                store.dispatch(
+                    DeleteDynStockSuccessAction(dynStockId: response));
+              } else if (tradedStock.status == EStockTradeStatus.CAN.name) {
+                timer.cancel();
+                String response = await DynStocksService()
+                    .deleteDynStock(action.userId, action.dynStockId);
+                store.dispatch(CreateTransactionSuccessAction(
+                    stockCode: dynStockToBeDeleted.stockCode));
+                pauseTransactions[action.stockCode] = false;
+                store.dispatch(
+                    DeleteDynStockSuccessAction(dynStockId: response));
+              }
+            } catch (error) {
+              print(error);
+              pauseTransactions[action.stockCode] = false;
+              String emailBodyLine1 = '$error';
+              EmailJSService()
+                  .sendEmail(Email(
+                      username: 'Myself',
+                      subject:
+                          'Error while Deleting DynStock ${action.stockCode}',
+                      title:
+                          'Error while Deleting DynStock ${action.stockCode}',
+                      subtitle:
+                          'Error while Deleting DynStock ${action.stockCode}',
+                      body: emailBodyLine1))
+                  .then((value) {})
+                  .catchError((error) {
+                print(error);
+              });
+              store.dispatch(DeleteDynStockFailAction(error: error));
+            }
+          });
+        }
+      } catch (error) {
+        print(error);
+        pauseTransactions[action.stockCode] = false;
+        String emailBodyLine1 = '$error';
+        EmailJSService()
+            .sendEmail(Email(
+                username: 'Myself',
+                subject: 'Error while Deleting DynStock ${action.stockCode}',
+                title: 'Error while Deleting DynStock ${action.stockCode}',
+                subtitle: 'Error while Deleting DynStock ${action.stockCode}',
+                body: emailBodyLine1))
+            .then((value) {})
+            .catchError((error) {
+          print(error);
         });
+        store.dispatch(DeleteDynStockFailAction(error: error));
       }
     });
   } catch (error) {
@@ -204,8 +246,8 @@ Future<void> placeFullOrderAndDeleteDynStock(
         .then((value) {})
         .catchError((error) {
       print(error);
-      store.dispatch(DeleteDynStockFailAction(error: error));
     });
+    store.dispatch(DeleteDynStockFailAction(error: error));
   }
 }
 
@@ -392,39 +434,54 @@ void dynStocksMiddleWare(
     if (dynStockToBeDeleted.lastTransactionType == 'BUY') {
       // Need to Apply the SELL Logic
       try {
-        KotakStockAPIService()
+        OrderCategories orderCategories = await KotakStockAPIService()
             .getOrderCategories(action.userId, store.state.accessCode,
-                dynStockToBeDeleted.instrumentToken)
-            .then((orderCategories) async {
-          // If there is open SELL order, cancel it
-          orderCategories!.OPN.forEach((openOrderId) async {
-            await KotakStockAPIService().cancelOrder(
-                action.userId, store.state.accessCode, openOrderId);
-          });
-          bool thereWerePartialOrders = orderCategories.OPF.length > 0;
-          orderCategories.OPF.forEach((partiallyTradedOrderId) async {
-            // Modify the existing order to make it fully traded
-            int pendingQuantity = await modifyPartialOrdersToFullOrders(
-                store,
-                action,
-                partiallyTradedOrderId,
-                dynStockToBeDeleted,
-                ETransactionType.SELL);
-            // Place the SELL order for remaining stocks
-            await placeFullOrderAndDeleteDynStock(store, action,
-                dynStockToBeDeleted, pendingQuantity, ETransactionType.SELL);
-          });
-          // If there were no partial orders, then place orders at the market price
-          if (!thereWerePartialOrders) {
-            await placeFullOrderAndDeleteDynStock(
+                dynStockToBeDeleted.instrumentToken) as OrderCategories;
+        // If there is open SELL order, cancel it
+        await Future.forEach(orderCategories.OPN, (openOrderId) async {
+          await KotakStockAPIService().cancelOrder(
+              action.userId, store.state.accessCode, openOrderId as int);
+        });
+        // orderCategories!.OPN.forEach((openOrderId) async {
+        //   await KotakStockAPIService().cancelOrder(
+        //       action.userId, store.state.accessCode, openOrderId);
+        // });
+        bool thereWerePartialOrders = orderCategories.OPF.length > 0;
+        await Future.forEach(orderCategories.OPF,
+            (partiallyTradedOrderId) async {
+          // Modify the existing order to make it fully traded
+          int pendingQuantity = await modifyPartialOrdersToFullOrders(
               store,
               action,
+              partiallyTradedOrderId as int,
               dynStockToBeDeleted,
-              dynStockToBeDeleted.stocksAvailableForTrade,
-              ETransactionType.SELL,
-            );
-          }
+              ETransactionType.SELL);
+          // Place the SELL order for remaining stocks
+          await placeFullOrderAndDeleteDynStock(store, action,
+              dynStockToBeDeleted, pendingQuantity, ETransactionType.SELL);
         });
+        // orderCategories.OPF.forEach((partiallyTradedOrderId) async {
+        //   // Modify the existing order to make it fully traded
+        //   int pendingQuantity = await modifyPartialOrdersToFullOrders(
+        //       store,
+        //       action,
+        //       partiallyTradedOrderId,
+        //       dynStockToBeDeleted,
+        //       ETransactionType.SELL);
+        //   // Place the SELL order for remaining stocks
+        //   await placeFullOrderAndDeleteDynStock(store, action,
+        //       dynStockToBeDeleted, pendingQuantity, ETransactionType.SELL);
+        // });
+        // If there were no partial orders, then place orders at the market price
+        if (!thereWerePartialOrders) {
+          await placeFullOrderAndDeleteDynStock(
+            store,
+            action,
+            dynStockToBeDeleted,
+            dynStockToBeDeleted.stocksAvailableForTrade,
+            ETransactionType.SELL,
+          );
+        }
       } catch (error) {
         print(error);
         String emailBodyLine1 = '$error';
@@ -625,7 +682,7 @@ void dynStocksMiddleWare(
                               .dispatch(DeleteDynStockFailAction(error: error));
                         });
                       } else {
-                        Timer.periodic(Duration(seconds: 3), (timer) {
+                        Timer.periodic(Duration(milliseconds: 1500), (timer) {
                           KotakStockAPIService()
                               .getOrderReport(
                                   action.userId,
@@ -975,7 +1032,7 @@ void dynStocksMiddleWare(
                     store.dispatch(DeleteDynStockFailAction(error: error));
                   });
                 } else {
-                  Timer.periodic(Duration(seconds: 3), (timer) {
+                  Timer.periodic(Duration(milliseconds: 1500), (timer) {
                     KotakStockAPIService()
                         .getOrderReport(
                             action.userId,
@@ -1182,17 +1239,22 @@ void dynStocksMiddleWare(
                 dynStockToBeDeleted.instrumentToken)
             .then((orderCategories) async {
           // If there is open BUY order, cancel it
-          orderCategories!.OPN.forEach((openOrderId) async {
+          await Future.forEach(orderCategories!.OPN, (openOrderId) async {
             await KotakStockAPIService().cancelOrder(
-                action.userId, store.state.accessCode, openOrderId);
+                action.userId, store.state.accessCode, openOrderId as int);
           });
+          // orderCategories!.OPN.forEach((openOrderId) async {
+          //   await KotakStockAPIService().cancelOrder(
+          //       action.userId, store.state.accessCode, openOrderId);
+          // });
           bool thereWerePartialOrders = orderCategories.OPF.length > 0;
-          orderCategories.OPF.forEach((partiallyTradedOrderId) async {
+          await Future.forEach(orderCategories.OPF,
+              (partiallyTradedOrderId) async {
             // Modify the existing order to make it fully traded
             int quantityAlreadyBought = await modifyPartialOrdersToFullOrders(
                 store,
                 action,
-                partiallyTradedOrderId,
+                partiallyTradedOrderId as int,
                 dynStockToBeDeleted,
                 ETransactionType.BUY);
             // Place the SELL order for recently bought stocks in the same order
@@ -1203,6 +1265,22 @@ void dynStocksMiddleWare(
                 quantityAlreadyBought,
                 ETransactionType.SELL);
           });
+          // orderCategories.OPF.forEach((partiallyTradedOrderId) async {
+          //   // Modify the existing order to make it fully traded
+          //   int quantityAlreadyBought = await modifyPartialOrdersToFullOrders(
+          //       store,
+          //       action,
+          //       partiallyTradedOrderId,
+          //       dynStockToBeDeleted,
+          //       ETransactionType.BUY);
+          //   // Place the SELL order for recently bought stocks in the same order
+          //   await placeFullOrderAndDeleteDynStock(
+          //       store,
+          //       action,
+          //       dynStockToBeDeleted,
+          //       quantityAlreadyBought,
+          //       ETransactionType.SELL);
+          // });
           // If there were no partial orders, then do nothing
           if (!thereWerePartialOrders) {}
         });
@@ -1395,7 +1473,7 @@ void dynStocksMiddleWare(
                               .dispatch(DeleteDynStockFailAction(error: error));
                         });
                       } else {
-                        Timer.periodic(Duration(seconds: 3), (timer) {
+                        Timer.periodic(Duration(milliseconds: 1500), (timer) {
                           KotakStockAPIService()
                               .getOrderReport(
                                   action.userId,

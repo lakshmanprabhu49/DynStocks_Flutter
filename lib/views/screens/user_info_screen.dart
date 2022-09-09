@@ -232,7 +232,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> with RouteAware {
       });
     }
 
-    if (appStore.state.userInfo.loadFailed && !errorMessageShown) {
+    if (appStore.state.userInfo.loadFailed && !errorMessageShown && mounted) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(
             ToastMessageHandler.showErrorMessageSnackBar(
@@ -243,7 +243,9 @@ class _UserInfoScreenState extends State<UserInfoScreen> with RouteAware {
       });
     }
 
-    if (appStore.state.authState.logoutFailed && !errorMessageShown) {
+    if (appStore.state.authState.logoutFailed &&
+        !errorMessageShown &&
+        mounted) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(
             ToastMessageHandler.showErrorMessageSnackBar(
@@ -257,7 +259,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> with RouteAware {
     return Scaffold(
       body: StoreConnector<AppState, AppState>(
           onDidChange: ((previousState, state) {
-            if (state.userInfo.loadFailed && !errorMessageShown) {
+            if (state.userInfo.loadFailed && !errorMessageShown && mounted) {
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 ScaffoldMessenger.of(context).showSnackBar(
                     ToastMessageHandler.showErrorMessageSnackBar(
@@ -268,7 +270,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> with RouteAware {
               });
             }
 
-            if (state.authState.logoutFailed && !errorMessageShown) {
+            if (state.authState.logoutFailed && !errorMessageShown && mounted) {
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 ScaffoldMessenger.of(context).showSnackBar(
                     ToastMessageHandler.showErrorMessageSnackBar(

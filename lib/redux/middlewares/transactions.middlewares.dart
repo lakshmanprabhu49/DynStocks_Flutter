@@ -54,6 +54,8 @@ Future<int> modifyPartialOrdersToFullOrders(Store<AppState> store,
     return orderReport.pendingQuantity;
   } catch (error) {
     print(error);
+    store.dispatch(
+        CreateTransactionFailAction(stockCode: action.stockCode, error: error));
     String emailBodyLine1 = '$error';
     EmailJSService()
         .sendEmail(Email(
@@ -69,8 +71,7 @@ Future<int> modifyPartialOrdersToFullOrders(Store<AppState> store,
         .catchError((error) {
       print(error);
     });
-    store.dispatch(
-        CreateTransactionFailAction(stockCode: action.stockCode, error: error));
+
     return -1;
   }
 }
@@ -92,98 +93,141 @@ Future<void> placeFullOrders(
                     : 0.0)) as KotakStockApiPlaceOrderResponse;
     bool orderPlacedInNSE = order.success!.nse != null ? true : false;
     Future.delayed(Duration(milliseconds: 200), () async {
-      KotakStockApiOrderReportsResponse position = await KotakStockAPIService()
-          .getOrderReport(
+      try {
+        KotakStockApiOrderReportsResponse position =
+            await KotakStockAPIService().getOrderReport(
+                action.userId,
+                store.state.accessCode,
+                (orderPlacedInNSE
+                    ? order.success!.nse!.orderId
+                    : order.success!.bse!.orderId),
+                action.instrumentToken) as KotakStockApiOrderReportsResponse;
+        OrderReportsSuccess tradedStock = position.success.firstWhere(
+            (element) =>
+                element.orderId ==
+                (orderPlacedInNSE
+                    ? order.success!.nse!.orderId
+                    : order.success!.bse!.orderId));
+        int orderId = orderPlacedInNSE
+            ? order.success!.nse!.orderId
+            : order.success!.bse!.orderId;
+        if (tradedStock.status == EStockTradeStatus.TRAD.name) {
+          Transaction response = await TransactionsService().createTransaction(
               action.userId,
-              store.state.accessCode,
-              (orderPlacedInNSE
+              action.dynStockId,
+              TransactionBody(
+                  transactionId: orderPlacedInNSE
+                      ? order.success!.nse!.orderId.toString()
+                      : order.success!.bse!.orderId.toString(),
+                  type: action.body.type,
+                  noOfStocks: action.body.noOfStocks,
+                  stockCode: action.body.stockCode,
+                  stockPrice: tradedStock.price));
+          store.dispatch(
+              CreateTransactionSuccessAction(stockCode: action.stockCode));
+          store.state.allTickerData.data[action.stockCode]!
+              .currentLocalMaximumPrice = tradedStock.price;
+          store.state.allTickerData.data[action.stockCode]!
+              .currentLocalMinimumPrice = tradedStock.price;
+          store.dispatch(GetAllTickerDataSuccessAction(
+              allTickerData: store.state.allTickerData.data));
+          store.dispatch(GetAllDynStocksAction(userId: action.userId));
+        } else {
+          Timer.periodic(Duration(milliseconds: 1500), (timer) async {
+            try {
+              KotakStockApiOrderReportsResponse position =
+                  await KotakStockAPIService().getOrderReport(
+                          action.userId,
+                          store.state.accessCode,
+                          (orderPlacedInNSE
+                              ? order.success!.nse!.orderId
+                              : order.success!.bse!.orderId),
+                          action.instrumentToken)
+                      as KotakStockApiOrderReportsResponse;
+              OrderReportsSuccess tradedStock = position.success.firstWhere(
+                  (element) =>
+                      element.orderId ==
+                      (orderPlacedInNSE
+                          ? order.success!.nse!.orderId
+                          : order.success!.bse!.orderId));
+              int orderId = orderPlacedInNSE
                   ? order.success!.nse!.orderId
-                  : order.success!.bse!.orderId),
-              action.instrumentToken) as KotakStockApiOrderReportsResponse;
-      OrderReportsSuccess tradedStock = position.success.firstWhere((element) =>
-          element.orderId ==
-          (orderPlacedInNSE
-              ? order.success!.nse!.orderId
-              : order.success!.bse!.orderId));
-      int orderId = orderPlacedInNSE
-          ? order.success!.nse!.orderId
-          : order.success!.bse!.orderId;
-      if (tradedStock.status == EStockTradeStatus.TRAD.name) {
-        Transaction response = await TransactionsService().createTransaction(
-            action.userId,
-            action.dynStockId,
-            TransactionBody(
-                transactionId: orderPlacedInNSE
-                    ? order.success!.nse!.orderId.toString()
-                    : order.success!.bse!.orderId.toString(),
-                type: action.body.type,
-                noOfStocks: action.body.noOfStocks,
-                stockCode: action.body.stockCode,
-                stockPrice: tradedStock.price));
-        store.dispatch(
-            CreateTransactionSuccessAction(stockCode: action.stockCode));
-        store.state.allTickerData.data[action.stockCode]!
-            .currentLocalMaximumPrice = tradedStock.price;
-        store.state.allTickerData.data[action.stockCode]!
-            .currentLocalMinimumPrice = tradedStock.price;
-        store.dispatch(GetAllTickerDataSuccessAction(
-            allTickerData: store.state.allTickerData.data));
-        store.dispatch(GetAllDynStocksAction(userId: action.userId));
-      } else {
-        Timer.periodic(Duration(seconds: 3), (timer) async {
-          KotakStockApiOrderReportsResponse position =
-              await KotakStockAPIService().getOrderReport(
-                  action.userId,
-                  store.state.accessCode,
-                  (orderPlacedInNSE
-                      ? order.success!.nse!.orderId
-                      : order.success!.bse!.orderId),
-                  action.instrumentToken) as KotakStockApiOrderReportsResponse;
-          OrderReportsSuccess tradedStock = position.success.firstWhere(
-              (element) =>
-                  element.orderId ==
-                  (orderPlacedInNSE
-                      ? order.success!.nse!.orderId
-                      : order.success!.bse!.orderId));
-          int orderId = orderPlacedInNSE
-              ? order.success!.nse!.orderId
-              : order.success!.bse!.orderId;
-          if (tradedStock.status == EStockTradeStatus.TRAD.name) {
-            timer.cancel();
-            Transaction response = await TransactionsService()
-                .createTransaction(
-                    action.userId,
-                    action.dynStockId,
-                    TransactionBody(
-                        transactionId: orderPlacedInNSE
-                            ? order.success!.nse!.orderId.toString()
-                            : order.success!.bse!.orderId.toString(),
-                        type: action.body.type,
-                        noOfStocks: action.body.noOfStocks,
-                        stockCode: action.body.stockCode,
-                        stockPrice: tradedStock.price));
-            store.dispatch(CreateTransactionSuccessAction(
-              stockCode: action.stockCode,
-            ));
-            store.state.allTickerData.data[action.stockCode]!
-                .currentLocalMaximumPrice = tradedStock.price;
-            store.state.allTickerData.data[action.stockCode]!
-                .currentLocalMinimumPrice = tradedStock.price;
-            store.dispatch(GetAllTickerDataSuccessAction(
-                allTickerData: store.state.allTickerData.data));
-            store.dispatch(GetAllDynStocksAction(userId: action.userId));
-          } else if (tradedStock.status == EStockTradeStatus.CAN.name) {
-            timer.cancel();
-            store.dispatch(CreateTransactionSuccessAction(
-              stockCode: action.stockCode,
-            ));
-            store.dispatch(GetAllDynStocksAction(userId: action.userId));
-          }
+                  : order.success!.bse!.orderId;
+              if (tradedStock.status == EStockTradeStatus.TRAD.name) {
+                timer.cancel();
+                Transaction response = await TransactionsService()
+                    .createTransaction(
+                        action.userId,
+                        action.dynStockId,
+                        TransactionBody(
+                            transactionId: orderPlacedInNSE
+                                ? order.success!.nse!.orderId.toString()
+                                : order.success!.bse!.orderId.toString(),
+                            type: action.body.type,
+                            noOfStocks: action.body.noOfStocks,
+                            stockCode: action.body.stockCode,
+                            stockPrice: tradedStock.price));
+                store.dispatch(CreateTransactionSuccessAction(
+                  stockCode: action.stockCode,
+                ));
+                store.state.allTickerData.data[action.stockCode]!
+                    .currentLocalMaximumPrice = tradedStock.price;
+                store.state.allTickerData.data[action.stockCode]!
+                    .currentLocalMinimumPrice = tradedStock.price;
+                store.dispatch(GetAllTickerDataSuccessAction(
+                    allTickerData: store.state.allTickerData.data));
+                store.dispatch(GetAllDynStocksAction(userId: action.userId));
+              } else if (tradedStock.status == EStockTradeStatus.CAN.name) {
+                timer.cancel();
+                store.dispatch(CreateTransactionSuccessAction(
+                  stockCode: action.stockCode,
+                ));
+                store.dispatch(GetAllDynStocksAction(userId: action.userId));
+              }
+            } catch (error) {
+              store.dispatch(CreateTransactionFailAction(
+                  stockCode: action.stockCode, error: error));
+              String emailBodyLine1 = '$error';
+              EmailJSService()
+                  .sendEmail(Email(
+                      username: 'Myself',
+                      subject:
+                          'Error while creating transaction for DynStock ${action.body.stockCode}',
+                      title:
+                          'Error while creating transaction for DynStock ${action.body.stockCode}',
+                      subtitle:
+                          'Error while creating transaction for DynStock ${action.body.stockCode}',
+                      body: emailBodyLine1))
+                  .then((value) {})
+                  .catchError((error) {
+                print(error);
+              });
+            }
+          });
+        }
+      } catch (error) {
+        store.dispatch(CreateTransactionFailAction(
+            stockCode: action.stockCode, error: error));
+        String emailBodyLine1 = '$error';
+        EmailJSService()
+            .sendEmail(Email(
+                username: 'Myself',
+                subject:
+                    'Error while creating transaction for DynStock ${action.body.stockCode}',
+                title:
+                    'Error while creating transaction for DynStock ${action.body.stockCode}',
+                subtitle:
+                    'Error while creating transaction for DynStock ${action.body.stockCode}',
+                body: emailBodyLine1))
+            .then((value) {})
+            .catchError((error) {
+          print(error);
         });
       }
     });
   } catch (error) {
-    print(error);
+    store.dispatch(
+        CreateTransactionFailAction(stockCode: action.stockCode, error: error));
     String emailBodyLine1 = '$error';
     EmailJSService()
         .sendEmail(Email(
@@ -199,8 +243,6 @@ Future<void> placeFullOrders(
         .catchError((error) {
       print(error);
     });
-    store.dispatch(
-        CreateTransactionFailAction(stockCode: action.stockCode, error: error));
   }
   //////////////
   /** 
@@ -281,7 +323,7 @@ Future<void> placeFullOrders(
                 stockCode: action.stockCode, error: error));
           });
         } else {
-          Timer.periodic(Duration(seconds: 3), (timer) {
+          Timer.periodic(Duration(milliseconds: 1500), (timer) {
             KotakStockAPIService()
                 .getOrderReport(
                     action.userId,
@@ -460,37 +502,23 @@ void transactionsMiddleWare(
       if (!action.forcedTransaction) {
         if (!(store
             .state.transactionsCreateState.data[action.stockCode]!.creating)) {
-          await placeFullOrders(store, action);
-        }
-      } else {
-        KotakStockAPIService()
-            .getOrderCategories(
-                action.userId, store.state.accessCode, action.instrumentToken)
-            .then((orderCategories) async {
           try {
-            // For OPEN Orders we just cancel them.
-            orderCategories!.OPN.forEach((openOrderId) async {
-              var res = await KotakStockAPIService().cancelOrder(
-                  action.userId, store.state.accessCode, openOrderId);
-            });
-            // Depending of the nature of the forced transaction (BUY/SELL),
-            // For Partially traded orders
-            bool thereWerePartialOrders = orderCategories.OPF.length > 0;
-            orderCategories.OPF.forEach((partiallyTradedOrderId) async {
-              // First modify the partial orders to fully traded orders
-              int pendingQuantity = await modifyPartialOrdersToFullOrders(
-                  store, action, partiallyTradedOrderId);
-              action.body.noOfStocks = pendingQuantity;
-              action.stockOrderType = EStockOrderType.Market.name;
-              await placeFullOrders(store, action);
-              // Then place the order for remaining quantity at market price
-            });
-
-            // If there were no partial orders, then place orders at the market price
-            if (!thereWerePartialOrders) {
+            // Sometimes , creating is not working properly,
+            // So what we do is, get order Categories, check if there are any open orders
+            // If yes, don't place Full Order
+            OrderCategories orderCategories = await KotakStockAPIService()
+                .getOrderCategories(action.userId, store.state.accessCode,
+                    action.instrumentToken) as OrderCategories;
+            if (orderCategories.OPN.isNotEmpty ||
+                orderCategories.OPF.isNotEmpty) {
+              store.dispatch(
+                  CreateTransactionSuccessAction(stockCode: action.stockCode));
+            } else {
               await placeFullOrders(store, action);
             }
           } catch (error) {
+            store.dispatch(CreateTransactionFailAction(
+                stockCode: action.stockCode, error: error));
             print(error);
             String emailBodyLine1 = '$error';
             EmailJSService()
@@ -507,10 +535,52 @@ void transactionsMiddleWare(
                 .catchError((error) {
               print(error);
             });
-            store.dispatch(CreateTransactionFailAction(
-                stockCode: action.stockCode, error: error));
           }
-        }).catchError((error) {
+        }
+      } else {
+        try {
+          OrderCategories orderCategories = await KotakStockAPIService()
+              .getOrderCategories(action.userId, store.state.accessCode,
+                  action.instrumentToken) as OrderCategories;
+          // For OPEN Orders we just cancel them.
+          await Future.forEach(orderCategories.OPN, (openOrderId) async {
+            var res = await KotakStockAPIService().cancelOrder(
+                action.userId, store.state.accessCode, openOrderId as int);
+          });
+          // orderCategories!.OPN.forEach((openOrderId) async {
+          //   var res = await KotakStockAPIService().cancelOrder(
+          //       action.userId, store.state.accessCode, openOrderId);
+          // });
+          // Depending of the nature of the forced transaction (BUY/SELL),
+          // For Partially traded orders
+          bool thereWerePartialOrders = orderCategories.OPF.isNotEmpty;
+          await Future.forEach(orderCategories.OPF,
+              (partiallyTradedOrderId) async {
+            // First modify the partial orders to fully traded orders
+            int pendingQuantity = await modifyPartialOrdersToFullOrders(
+                store, action, partiallyTradedOrderId as int);
+            action.body.noOfStocks = pendingQuantity;
+            action.stockOrderType = EStockOrderType.Market.name;
+            await placeFullOrders(store, action);
+            // Then place the order for remaining quantity at market price
+          });
+          // orderCategories.OPF.forEach((partiallyTradedOrderId) async {
+          //   // First modify the partial orders to fully traded orders
+          //   int pendingQuantity = await modifyPartialOrdersToFullOrders(
+          //       store, action, partiallyTradedOrderId);
+          //   action.body.noOfStocks = pendingQuantity;
+          //   action.stockOrderType = EStockOrderType.Market.name;
+          //   await placeFullOrders(store, action);
+          //   // Then place the order for remaining quantity at market price
+          // });
+
+          // If there were no partial orders, then place orders at the market price
+          if (!thereWerePartialOrders) {
+            await placeFullOrders(store, action);
+          }
+        } catch (error) {
+          store.dispatch(CreateTransactionFailAction(
+              stockCode: action.stockCode, error: error));
           print(error);
           String emailBodyLine1 = '$error';
           EmailJSService()
@@ -527,9 +597,7 @@ void transactionsMiddleWare(
               .catchError((error) {
             print(error);
           });
-          store.dispatch(CreateTransactionFailAction(
-              stockCode: action.stockCode, error: error));
-        });
+        }
         /////////////
       }
     } else {
@@ -555,6 +623,8 @@ void transactionsMiddleWare(
         store.dispatch(GetAllDynStocksAction(userId: action.userId));
       }).catchError((error) {
         print(error);
+        store.dispatch(CreateTransactionFailAction(
+            stockCode: action.stockCode, error: error));
         String emailBodyLine1 = '$error';
         EmailJSService()
             .sendEmail(Email(
@@ -570,8 +640,6 @@ void transactionsMiddleWare(
             .catchError((error) {
           print(error);
         });
-        store.dispatch(CreateTransactionFailAction(
-            stockCode: action.stockCode, error: error));
       });
     }
   }

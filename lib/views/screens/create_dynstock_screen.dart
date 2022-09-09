@@ -59,9 +59,9 @@ class _CreateDynStockScreenState extends State<CreateDynStockScreen>
   EExchange currentExchange = EExchange.NSE;
   EStockType currentStockType = EStockType.EQ;
   String currentNoOfStocks = '0';
-  String currentBTP = '0.0';
-  String currentSTP = '0.0';
-  String currentTolerance = '1.0';
+  String currentBTP = '2.0';
+  String currentSTP = '2.0';
+  String currentTolerance = '2.0';
   bool creatingDynStock = false;
   bool errorMessageShown = false;
   bool creatingMessageShown = false;
@@ -167,7 +167,9 @@ class _CreateDynStockScreenState extends State<CreateDynStockScreen>
       });
     }
     Size screenSize = MediaQuery.of(context).size;
-    if (appStore.state.allDynStocks.createFailed && !errorMessageShown) {
+    if (appStore.state.allDynStocks.createFailed &&
+        !errorMessageShown &&
+        mounted) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(
             ToastMessageHandler.showErrorMessageSnackBar(
@@ -180,7 +182,8 @@ class _CreateDynStockScreenState extends State<CreateDynStockScreen>
     if (mounted) {
       if (appStore.state.allDynStocks.creating &&
           !appStore.state.allDynStocks.created &&
-          !creatingMessageShown) {
+          !creatingMessageShown &&
+          mounted) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           ScaffoldMessenger.of(context).showSnackBar(
               ToastMessageHandler.showInfoMessageSnackBar(
@@ -192,7 +195,8 @@ class _CreateDynStockScreenState extends State<CreateDynStockScreen>
         });
       } else if (!appStore.state.allDynStocks.creating &&
           appStore.state.allDynStocks.created &&
-          creatingDynStock) {
+          creatingDynStock &&
+          mounted) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           ScaffoldMessenger.of(context).hideCurrentSnackBar();
           ScaffoldMessenger.of(context).showSnackBar(
@@ -208,7 +212,9 @@ class _CreateDynStockScreenState extends State<CreateDynStockScreen>
           stockSearchInput = '';
           creatingDynStock = false;
         });
-      } else if (appStore.state.allDynStocks.createFailed && creatingDynStock) {
+      } else if (appStore.state.allDynStocks.createFailed &&
+          creatingDynStock &&
+          mounted) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           ScaffoldMessenger.of(context).hideCurrentSnackBar();
           ScaffoldMessenger.of(context).showSnackBar(
@@ -224,7 +230,9 @@ class _CreateDynStockScreenState extends State<CreateDynStockScreen>
       resizeToAvoidBottomInset: false,
       body: StoreConnector<AppState, AppState>(
           onDidChange: (previousState, state) {
-            if (state.allDynStocks.createFailed && !errorMessageShown) {
+            if (state.allDynStocks.createFailed &&
+                !errorMessageShown &&
+                mounted) {
               ScaffoldMessenger.of(context).hideCurrentSnackBar();
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -323,8 +331,8 @@ class _CreateDynStockScreenState extends State<CreateDynStockScreen>
                                 currentDSTPUnit = EDSTPUnit.Price;
                                 currentExchange = EExchange.NSE;
                                 currentStockType = EStockType.EQ;
-                                currentBTP = '';
-                                currentSTP = '';
+                                currentBTP = '2.0';
+                                currentSTP = '2.0';
                               });
                             },
                           )),
@@ -740,8 +748,8 @@ class _CreateDynStockScreenState extends State<CreateDynStockScreen>
                                                         .split('.')[1] !=
                                                     newValue) {
                                                   setState(() {
-                                                    currentBTP = '';
-                                                    currentSTP = '';
+                                                    currentBTP = '2.0';
+                                                    currentSTP = '2.0';
                                                   });
                                                 }
                                                 setState(() {

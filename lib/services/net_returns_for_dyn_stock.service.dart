@@ -12,7 +12,7 @@ class NetReturnsForDynStockService {
   Future<double> getNetReturnsForDynStock(
       String userId, String dynStockId, String period) async {
     Uri url = Uri.parse(
-        '${dotenv.env["DYNSTOCKS_API_ENDPOINT_PROD"]}/$userId/dynStocks/$dynStockId/netReturns?accessCode=${appStore.state.accessCode}&period=$period');
+        '${dotenv.env["DYNSTOCKS_API_ENDPOINT_LOCAL"]}/$userId/dynStocks/$dynStockId/netReturns?accessCode=${appStore.state.accessCode}&period=$period');
     var client = http.Client();
     var response = await client.get(url, headers: {
       HttpHeaders.authorizationHeader:

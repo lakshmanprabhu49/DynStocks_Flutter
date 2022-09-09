@@ -125,7 +125,9 @@ class _ViewDynStocksListScreenState extends State<ViewDynStocksListScreen>
       });
     }
     Size screenSize = MediaQuery.of(context).size;
-    if (appStore.state.allDynStocks.loadFailed && !errorMessageShown) {
+    if (appStore.state.allDynStocks.loadFailed &&
+        !errorMessageShown &&
+        mounted) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(
             ToastMessageHandler.showErrorMessageSnackBar(
@@ -136,7 +138,8 @@ class _ViewDynStocksListScreenState extends State<ViewDynStocksListScreen>
       });
     }
     if (appStore.state.transactionsCreateState.error != null &&
-        !errorMessageShown) {
+        !errorMessageShown &&
+        mounted) {
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -259,7 +262,9 @@ class _ViewDynStocksListScreenState extends State<ViewDynStocksListScreen>
                 child: Container(
                     child: StoreConnector<AppState, DynStocksState>(
                         onDidChange: (previousState, state) {
-                          if (state.loadFailed && !errorMessageShown) {
+                          if (state.loadFailed &&
+                              !errorMessageShown &&
+                              mounted) {
                             WidgetsBinding.instance.addPostFrameCallback((_) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                   ToastMessageHandler.showErrorMessageSnackBar(
@@ -271,7 +276,8 @@ class _ViewDynStocksListScreenState extends State<ViewDynStocksListScreen>
                           }
                           if (appStore.state.transactionsCreateState.error !=
                                   null &&
-                              !errorMessageShown) {
+                              !errorMessageShown &&
+                              mounted) {
                             ScaffoldMessenger.of(context).hideCurrentSnackBar();
                             WidgetsBinding.instance.addPostFrameCallback((_) {
                               ScaffoldMessenger.of(context).showSnackBar(

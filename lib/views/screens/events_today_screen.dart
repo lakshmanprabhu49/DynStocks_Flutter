@@ -256,7 +256,7 @@ class _EventsTodayScreenState extends State<EventsTodayScreen> with RouteAware {
         });
       }
     } catch (error) {
-      if (!errorMessageShown) {
+      if (!errorMessageShown && mounted) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           ScaffoldMessenger.of(context).showSnackBar(
               ToastMessageHandler.showErrorMessageSnackBar(
@@ -380,7 +380,9 @@ class _EventsTodayScreenState extends State<EventsTodayScreen> with RouteAware {
         errorMessageShown = false;
       });
     }
-    if (appStore.state.allDynStocks.loadFailed && !errorMessageShown) {
+    if (appStore.state.allDynStocks.loadFailed &&
+        !errorMessageShown &&
+        mounted) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(
             ToastMessageHandler.showErrorMessageSnackBar(
@@ -391,7 +393,8 @@ class _EventsTodayScreenState extends State<EventsTodayScreen> with RouteAware {
       });
     }
     if ((appStore.state.transactionsCreateState.error != null) &&
-        !errorMessageShown) {
+        !errorMessageShown &&
+        mounted) {
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -408,7 +411,9 @@ class _EventsTodayScreenState extends State<EventsTodayScreen> with RouteAware {
       key: Key("EventsTodayScreen"),
       body: StoreConnector<AppState, AppState>(
         onDidChange: (previousState, state) {
-          if (appStore.state.allDynStocks.loadFailed && !errorMessageShown) {
+          if (appStore.state.allDynStocks.loadFailed &&
+              !errorMessageShown &&
+              mounted) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               ScaffoldMessenger.of(context).showSnackBar(
                   ToastMessageHandler.showErrorMessageSnackBar(
@@ -419,7 +424,8 @@ class _EventsTodayScreenState extends State<EventsTodayScreen> with RouteAware {
             });
           }
           if ((state.transactionsCreateState.error != null) &&
-              !errorMessageShown) {
+              !errorMessageShown &&
+              mounted) {
             ScaffoldMessenger.of(context).hideCurrentSnackBar();
             WidgetsBinding.instance.addPostFrameCallback((_) {
               ScaffoldMessenger.of(context).showSnackBar(
