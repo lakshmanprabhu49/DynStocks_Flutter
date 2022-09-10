@@ -54,43 +54,57 @@ Future<int> modifyPartialOrdersToFullOrders(Store<AppState> store,
     return orderReport.pendingQuantity;
   } catch (error) {
     print(error);
-    store.dispatch(
-        CreateTransactionFailAction(stockCode: action.stockCode, error: error));
-    String emailBodyLine1 = '$error';
-    EmailJSService()
-        .sendEmail(Email(
-            username: 'Myself',
-            subject:
-                'Error while creating transaction for DynStock ${action.body.stockCode}',
-            title:
-                'Error while creating transaction for DynStock ${action.body.stockCode}',
-            subtitle:
-                'Error while creating transaction for DynStock ${action.body.stockCode}',
-            body: emailBodyLine1))
-        .then((value) {})
-        .catchError((error) {
-      print(error);
-    });
-
-    return -1;
+    if (((error as dynamic).message as String)
+        .toLowerCase()
+        .contains('quota')) {
+      return modifyPartialOrdersToFullOrders(
+          store, action, partiallyTradedOrderId);
+    } else {
+      store.dispatch(CreateTransactionFailAction(
+          stockCode: action.stockCode, error: error));
+      String emailBodyLine1 = '$error';
+      EmailJSService()
+          .sendEmail(Email(
+              username: 'Myself',
+              subject:
+                  'Error while creating transaction for DynStock ${action.body.stockCode}',
+              title:
+                  'Error while creating transaction for DynStock ${action.body.stockCode}',
+              subtitle:
+                  'Error while creating transaction for DynStock ${action.body.stockCode}',
+              body: emailBodyLine1))
+          .then((value) {})
+          .catchError((error) {
+        print(error);
+      });
+      return -1;
+    }
   }
 }
 
 Future<void> placeFullOrders(
-    Store<AppState> store, CreateTransactionAction action) async {
+    Store<AppState> store, CreateTransactionAction action,
+    {bool placeOrder = true,
+    KotakStockApiPlaceOrderResponse? placedOrder}) async {
+  bool placedOrder = false;
+  KotakStockApiPlaceOrderResponse? order;
   try {
-    KotakStockApiPlaceOrderResponse order = await KotakStockAPIService()
-        .placeOrder(
-            action.userId,
-            store.state.accessCode,
-            KotakStockAPIPlaceOrderBody(
-                orderType: 'N',
-                instrumentToken: action.instrumentToken,
-                transactionType: action.body.type,
-                quantity: action.body.noOfStocks,
-                price: action.stockOrderType == EStockOrderType.Limit.name
-                    ? action.body.stockPrice
-                    : 0.0)) as KotakStockApiPlaceOrderResponse;
+    if (placeOrder) {
+      order = await KotakStockAPIService().placeOrder(
+          action.userId,
+          store.state.accessCode,
+          KotakStockAPIPlaceOrderBody(
+              orderType: 'N',
+              instrumentToken: action.instrumentToken,
+              transactionType: action.body.type,
+              quantity: action.body.noOfStocks,
+              price: action.stockOrderType == EStockOrderType.Limit.name
+                  ? action.body.stockPrice
+                  : 0.0)) as KotakStockApiPlaceOrderResponse;
+    } else {
+      order = placedOrder as KotakStockApiPlaceOrderResponse;
+    }
+    placedOrder = true;
     bool orderPlacedInNSE = order.success!.nse != null ? true : false;
     Future.delayed(Duration(milliseconds: 200), () async {
       try {
@@ -99,15 +113,15 @@ Future<void> placeFullOrders(
                 action.userId,
                 store.state.accessCode,
                 (orderPlacedInNSE
-                    ? order.success!.nse!.orderId
-                    : order.success!.bse!.orderId),
+                    ? order!.success!.nse!.orderId
+                    : order!.success!.bse!.orderId),
                 action.instrumentToken) as KotakStockApiOrderReportsResponse;
         OrderReportsSuccess tradedStock = position.success.firstWhere(
             (element) =>
                 element.orderId ==
                 (orderPlacedInNSE
-                    ? order.success!.nse!.orderId
-                    : order.success!.bse!.orderId));
+                    ? order!.success!.nse!.orderId
+                    : order!.success!.bse!.orderId));
         int orderId = orderPlacedInNSE
             ? order.success!.nse!.orderId
             : order.success!.bse!.orderId;
@@ -140,16 +154,16 @@ Future<void> placeFullOrders(
                           action.userId,
                           store.state.accessCode,
                           (orderPlacedInNSE
-                              ? order.success!.nse!.orderId
-                              : order.success!.bse!.orderId),
+                              ? order!.success!.nse!.orderId
+                              : order!.success!.bse!.orderId),
                           action.instrumentToken)
                       as KotakStockApiOrderReportsResponse;
               OrderReportsSuccess tradedStock = position.success.firstWhere(
                   (element) =>
                       element.orderId ==
                       (orderPlacedInNSE
-                          ? order.success!.nse!.orderId
-                          : order.success!.bse!.orderId));
+                          ? order!.success!.nse!.orderId
+                          : order!.success!.bse!.orderId));
               int orderId = orderPlacedInNSE
                   ? order.success!.nse!.orderId
                   : order.success!.bse!.orderId;
@@ -185,64 +199,96 @@ Future<void> placeFullOrders(
                 store.dispatch(GetAllDynStocksAction(userId: action.userId));
               }
             } catch (error) {
-              store.dispatch(CreateTransactionFailAction(
-                  stockCode: action.stockCode, error: error));
-              String emailBodyLine1 = '$error';
-              EmailJSService()
-                  .sendEmail(Email(
-                      username: 'Myself',
-                      subject:
-                          'Error while creating transaction for DynStock ${action.body.stockCode}',
-                      title:
-                          'Error while creating transaction for DynStock ${action.body.stockCode}',
-                      subtitle:
-                          'Error while creating transaction for DynStock ${action.body.stockCode}',
-                      body: emailBodyLine1))
-                  .then((value) {})
-                  .catchError((error) {
-                print(error);
-              });
+              if (((error as dynamic).message as String)
+                  .toLowerCase()
+                  .contains('quota')) {
+                if (placedOrder) {
+                  placeFullOrders(store, action,
+                      placeOrder: false, placedOrder: order);
+                } else {
+                  placeFullOrders(store, action);
+                }
+              } else {
+                store.dispatch(CreateTransactionFailAction(
+                    stockCode: action.stockCode, error: error));
+                String emailBodyLine1 = '$error';
+                EmailJSService()
+                    .sendEmail(Email(
+                        username: 'Myself',
+                        subject:
+                            'Error while creating transaction for DynStock ${action.body.stockCode}',
+                        title:
+                            'Error while creating transaction for DynStock ${action.body.stockCode}',
+                        subtitle:
+                            'Error while creating transaction for DynStock ${action.body.stockCode}',
+                        body: emailBodyLine1))
+                    .then((value) {})
+                    .catchError((error) {
+                  print(error);
+                });
+              }
             }
           });
         }
       } catch (error) {
-        store.dispatch(CreateTransactionFailAction(
-            stockCode: action.stockCode, error: error));
-        String emailBodyLine1 = '$error';
-        EmailJSService()
-            .sendEmail(Email(
-                username: 'Myself',
-                subject:
-                    'Error while creating transaction for DynStock ${action.body.stockCode}',
-                title:
-                    'Error while creating transaction for DynStock ${action.body.stockCode}',
-                subtitle:
-                    'Error while creating transaction for DynStock ${action.body.stockCode}',
-                body: emailBodyLine1))
-            .then((value) {})
-            .catchError((error) {
-          print(error);
-        });
+        if (((error as dynamic).message as String)
+            .toLowerCase()
+            .contains('quota')) {
+          if (placedOrder) {
+            placeFullOrders(store, action,
+                placeOrder: false, placedOrder: order);
+          } else {
+            placeFullOrders(store, action);
+          }
+        } else {
+          store.dispatch(CreateTransactionFailAction(
+              stockCode: action.stockCode, error: error));
+          String emailBodyLine1 = '$error';
+          EmailJSService()
+              .sendEmail(Email(
+                  username: 'Myself',
+                  subject:
+                      'Error while creating transaction for DynStock ${action.body.stockCode}',
+                  title:
+                      'Error while creating transaction for DynStock ${action.body.stockCode}',
+                  subtitle:
+                      'Error while creating transaction for DynStock ${action.body.stockCode}',
+                  body: emailBodyLine1))
+              .then((value) {})
+              .catchError((error) {
+            print(error);
+          });
+        }
       }
     });
   } catch (error) {
-    store.dispatch(
-        CreateTransactionFailAction(stockCode: action.stockCode, error: error));
-    String emailBodyLine1 = '$error';
-    EmailJSService()
-        .sendEmail(Email(
-            username: 'Myself',
-            subject:
-                'Error while creating transaction for DynStock ${action.body.stockCode}',
-            title:
-                'Error while creating transaction for DynStock ${action.body.stockCode}',
-            subtitle:
-                'Error while creating transaction for DynStock ${action.body.stockCode}',
-            body: emailBodyLine1))
-        .then((value) {})
-        .catchError((error) {
-      print(error);
-    });
+    if (((error as dynamic).message as String)
+        .toLowerCase()
+        .contains('quota')) {
+      if (placedOrder) {
+        placeFullOrders(store, action, placeOrder: false, placedOrder: order);
+      } else {
+        placeFullOrders(store, action);
+      }
+    } else {
+      store.dispatch(CreateTransactionFailAction(
+          stockCode: action.stockCode, error: error));
+      String emailBodyLine1 = '$error';
+      EmailJSService()
+          .sendEmail(Email(
+              username: 'Myself',
+              subject:
+                  'Error while creating transaction for DynStock ${action.body.stockCode}',
+              title:
+                  'Error while creating transaction for DynStock ${action.body.stockCode}',
+              subtitle:
+                  'Error while creating transaction for DynStock ${action.body.stockCode}',
+              body: emailBodyLine1))
+          .then((value) {})
+          .catchError((error) {
+        print(error);
+      });
+    }
   }
   //////////////
   /** 
@@ -517,24 +563,32 @@ void transactionsMiddleWare(
               await placeFullOrders(store, action);
             }
           } catch (error) {
-            store.dispatch(CreateTransactionFailAction(
-                stockCode: action.stockCode, error: error));
-            print(error);
-            String emailBodyLine1 = '$error';
-            EmailJSService()
-                .sendEmail(Email(
-                    username: 'Myself',
-                    subject:
-                        'Error while creating transaction for DynStock ${action.body.stockCode}',
-                    title:
-                        'Error while creating transaction for DynStock ${action.body.stockCode}',
-                    subtitle:
-                        'Error while creating transaction for DynStock ${action.body.stockCode}',
-                    body: emailBodyLine1))
-                .then((value) {})
-                .catchError((error) {
+            if (((error as dynamic).message as String)
+                .toLowerCase()
+                .contains('quota')) {
+              store.dispatch(
+                  CreateTransactionFailAction(stockCode: action.stockCode));
+              store.dispatch(action);
+            } else {
+              store.dispatch(CreateTransactionFailAction(
+                  stockCode: action.stockCode, error: error));
               print(error);
-            });
+              String emailBodyLine1 = '$error';
+              EmailJSService()
+                  .sendEmail(Email(
+                      username: 'Myself',
+                      subject:
+                          'Error while creating transaction for DynStock ${action.body.stockCode}',
+                      title:
+                          'Error while creating transaction for DynStock ${action.body.stockCode}',
+                      subtitle:
+                          'Error while creating transaction for DynStock ${action.body.stockCode}',
+                      body: emailBodyLine1))
+                  .then((value) {})
+                  .catchError((error) {
+                print(error);
+              });
+            }
           }
         }
       } else {
@@ -579,24 +633,32 @@ void transactionsMiddleWare(
             await placeFullOrders(store, action);
           }
         } catch (error) {
-          store.dispatch(CreateTransactionFailAction(
-              stockCode: action.stockCode, error: error));
-          print(error);
-          String emailBodyLine1 = '$error';
-          EmailJSService()
-              .sendEmail(Email(
-                  username: 'Myself',
-                  subject:
-                      'Error while creating transaction for DynStock ${action.body.stockCode}',
-                  title:
-                      'Error while creating transaction for DynStock ${action.body.stockCode}',
-                  subtitle:
-                      'Error while creating transaction for DynStock ${action.body.stockCode}',
-                  body: emailBodyLine1))
-              .then((value) {})
-              .catchError((error) {
+          if (((error as dynamic).message as String)
+              .toLowerCase()
+              .contains('quota')) {
+            store.dispatch(
+                CreateTransactionFailAction(stockCode: action.stockCode));
+            store.dispatch(action);
+          } else {
+            store.dispatch(CreateTransactionFailAction(
+                stockCode: action.stockCode, error: error));
             print(error);
-          });
+            String emailBodyLine1 = '$error';
+            EmailJSService()
+                .sendEmail(Email(
+                    username: 'Myself',
+                    subject:
+                        'Error while creating transaction for DynStock ${action.body.stockCode}',
+                    title:
+                        'Error while creating transaction for DynStock ${action.body.stockCode}',
+                    subtitle:
+                        'Error while creating transaction for DynStock ${action.body.stockCode}',
+                    body: emailBodyLine1))
+                .then((value) {})
+                .catchError((error) {
+              print(error);
+            });
+          }
         }
         /////////////
       }
