@@ -141,7 +141,7 @@ Future<void> placeFullOrderAndDeleteDynStock(
               stockCode: dynStockToBeDeleted.stockCode));
           store.dispatch(DeleteDynStockSuccessAction(dynStockId: response));
         } else {
-          Timer.periodic(Duration(milliseconds: 1500), (timer) async {
+          Timer.periodic(Duration(seconds: 5), (timer) async {
             try {
               KotakStockApiOrderReportsResponse position =
                   KotakStockAPIService().getOrderReport(
@@ -682,7 +682,7 @@ void dynStocksMiddleWare(
                               .dispatch(DeleteDynStockFailAction(error: error));
                         });
                       } else {
-                        Timer.periodic(Duration(milliseconds: 1500), (timer) {
+                        Timer.periodic(Duration(seconds: 5), (timer) {
                           KotakStockAPIService()
                               .getOrderReport(
                                   action.userId,
@@ -1032,7 +1032,7 @@ void dynStocksMiddleWare(
                     store.dispatch(DeleteDynStockFailAction(error: error));
                   });
                 } else {
-                  Timer.periodic(Duration(milliseconds: 1500), (timer) {
+                  Timer.periodic(Duration(seconds: 5), (timer) {
                     KotakStockAPIService()
                         .getOrderReport(
                             action.userId,
@@ -1473,7 +1473,7 @@ void dynStocksMiddleWare(
                               .dispatch(DeleteDynStockFailAction(error: error));
                         });
                       } else {
-                        Timer.periodic(Duration(milliseconds: 1500), (timer) {
+                        Timer.periodic(Duration(seconds: 5), (timer) {
                           KotakStockAPIService()
                               .getOrderReport(
                                   action.userId,

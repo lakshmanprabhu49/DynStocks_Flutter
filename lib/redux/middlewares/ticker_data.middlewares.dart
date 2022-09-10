@@ -196,10 +196,14 @@ void tickerDataMiddleWare(
                 dynStock.stockType != EStockType.BE.name) {
               switch (dynStock.DSTPUnit) {
                 case 'Price':
-                  if ((response.price.currentPrice! -
-                              dynStock.lastTradedPrice) *
-                          dynStock.noOfStocks <=
-                      dynStock.tolerance) {
+                  if (((response.price.currentPrice! -
+                                  dynStock.lastTradedPrice) *
+                              dynStock.noOfStocks <=
+                          dynStock.HETolerance) &&
+                      ((response.price.currentPrice! -
+                                  dynStock.lastTradedPrice) *
+                              dynStock.noOfStocks >=
+                          dynStock.LETolerance)) {
                     orderPlaced = true;
                     orderType = 'SELL';
                     store.dispatch(CreateTransactionAction(
@@ -209,17 +213,14 @@ void tickerDataMiddleWare(
                         stockCode: dynStock.stockCode,
                         stockOrderType: EStockOrderType.Limit.name,
                         body: TransactionBody(
-                            transactionId: '',
-                            type: 'SELL',
-                            noOfStocks: dynStock.stocksAvailableForTrade == 0
-                                ? dynStock.noOfStocks
-                                : dynStock.stocksAvailableForTrade,
-                            stockCode: dynStock.stockCode,
-                            stockPrice: max(
-                                response.price.currentPrice!,
-                                dynStock.lastTradedPrice -
-                                    (dynStock.tolerance /
-                                        dynStock.noOfStocks)))));
+                          transactionId: '',
+                          type: 'SELL',
+                          noOfStocks: dynStock.stocksAvailableForTrade == 0
+                              ? dynStock.noOfStocks
+                              : dynStock.stocksAvailableForTrade,
+                          stockCode: dynStock.stockCode,
+                          stockPrice: response.price.currentPrice!,
+                        )));
                   } else if (response.price.currentPrice != null &&
                       (response.price.currentPrice! <=
                           response.currentLocalMaximumPrice - dynStock.STPr)) {
@@ -242,10 +243,14 @@ void tickerDataMiddleWare(
                   }
                   break;
                 case 'Percentage':
-                  if ((response.price.currentPrice! -
-                              dynStock.lastTradedPrice) *
-                          dynStock.noOfStocks <=
-                      dynStock.tolerance) {
+                  if (((response.price.currentPrice! -
+                                  dynStock.lastTradedPrice) *
+                              dynStock.noOfStocks <=
+                          dynStock.HETolerance) &&
+                      ((response.price.currentPrice! -
+                                  dynStock.lastTradedPrice) *
+                              dynStock.noOfStocks >=
+                          dynStock.LETolerance)) {
                     orderPlaced = true;
                     orderType = 'SELL';
                     store.dispatch(CreateTransactionAction(
@@ -255,17 +260,14 @@ void tickerDataMiddleWare(
                         stockCode: dynStock.stockCode,
                         stockOrderType: EStockOrderType.Limit.name,
                         body: TransactionBody(
-                            transactionId: '',
-                            type: 'SELL',
-                            noOfStocks: dynStock.stocksAvailableForTrade == 0
-                                ? dynStock.noOfStocks
-                                : dynStock.stocksAvailableForTrade,
-                            stockCode: dynStock.stockCode,
-                            stockPrice: max(
-                                response.price.currentPrice!,
-                                dynStock.lastTradedPrice -
-                                    (dynStock.tolerance /
-                                        dynStock.noOfStocks)))));
+                          transactionId: '',
+                          type: 'SELL',
+                          noOfStocks: dynStock.stocksAvailableForTrade == 0
+                              ? dynStock.noOfStocks
+                              : dynStock.stocksAvailableForTrade,
+                          stockCode: dynStock.stockCode,
+                          stockPrice: response.price.currentPrice!,
+                        )));
                   } else if (response.price.currentPrice != null &&
                       (response.price.currentPrice! <=
                           double.parse(((response.currentLocalMaximumPrice) *
@@ -297,9 +299,12 @@ void tickerDataMiddleWare(
               !(dynStock.stallTransactions)) {
             switch (dynStock.DSTPUnit) {
               case 'Price':
-                if ((dynStock.lastTradedPrice - response.price.currentPrice!) *
-                        dynStock.noOfStocks <=
-                    dynStock.tolerance) {
+                if (((dynStock.lastTradedPrice - response.price.currentPrice!) *
+                            dynStock.noOfStocks <=
+                        dynStock.HETolerance) &&
+                    ((dynStock.lastTradedPrice - response.price.currentPrice!) *
+                            dynStock.noOfStocks >=
+                        dynStock.LETolerance)) {
                   orderPlaced = true;
                   orderType = 'BUY';
                   store.dispatch(CreateTransactionAction(
@@ -309,16 +314,13 @@ void tickerDataMiddleWare(
                       stockCode: dynStock.stockCode,
                       stockOrderType: EStockOrderType.Limit.name,
                       body: TransactionBody(
-                          transactionId: '',
-                          type: 'BUY',
-                          noOfStocks: (dynStock.noOfStocks -
-                              dynStock.stocksAvailableForTrade),
-                          stockCode: dynStock.stockCode,
-                          stockPrice: min(
-                              response.price.currentPrice!,
-                              dynStock.lastTradedPrice +
-                                  (dynStock.tolerance /
-                                      dynStock.noOfStocks)))));
+                        transactionId: '',
+                        type: 'BUY',
+                        noOfStocks: (dynStock.noOfStocks -
+                            dynStock.stocksAvailableForTrade),
+                        stockCode: dynStock.stockCode,
+                        stockPrice: response.price.currentPrice!,
+                      )));
                 } else if (response.price.currentPrice != null &&
                     (response.price.currentPrice! >=
                         response.currentLocalMinimumPrice + dynStock.BTPr)) {
@@ -340,9 +342,12 @@ void tickerDataMiddleWare(
                 }
                 break;
               case 'Percentage':
-                if ((dynStock.lastTradedPrice - response.price.currentPrice!) *
-                        dynStock.noOfStocks <=
-                    dynStock.tolerance) {
+                if (((dynStock.lastTradedPrice - response.price.currentPrice!) *
+                            dynStock.noOfStocks <=
+                        dynStock.HETolerance) &&
+                    ((dynStock.lastTradedPrice - response.price.currentPrice!) *
+                            dynStock.noOfStocks >=
+                        dynStock.LETolerance)) {
                   orderPlaced = true;
                   orderType = 'BUY';
                   store.dispatch(CreateTransactionAction(
@@ -352,16 +357,13 @@ void tickerDataMiddleWare(
                       stockOrderType: EStockOrderType.Limit.name,
                       stockCode: dynStock.stockCode,
                       body: TransactionBody(
-                          transactionId: '',
-                          type: 'BUY',
-                          noOfStocks: (dynStock.noOfStocks -
-                              dynStock.stocksAvailableForTrade),
-                          stockCode: dynStock.stockCode,
-                          stockPrice: min(
-                              response.price.currentPrice!,
-                              dynStock.lastTradedPrice +
-                                  (dynStock.tolerance /
-                                      dynStock.noOfStocks)))));
+                        transactionId: '',
+                        type: 'BUY',
+                        noOfStocks: (dynStock.noOfStocks -
+                            dynStock.stocksAvailableForTrade),
+                        stockCode: dynStock.stockCode,
+                        stockPrice: response.price.currentPrice!,
+                      )));
                 } else if (response.price.currentPrice != null &&
                     (response.price.currentPrice! >=
                         double.parse(((response.currentLocalMinimumPrice) *

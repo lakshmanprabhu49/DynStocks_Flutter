@@ -53,7 +53,8 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
   String currentBTP = '0.0';
   double netReturnsForDynStocks = 0.0;
   String currentSTP = '0.0';
-  String currentTolerance = '1.0';
+  String currentHETolerance = '3.0';
+  String currentLETolerance = '2.0';
   bool deleteButtonDisabled = true;
   EChoice stallTransactions = EChoice.No;
   bool shouldLoadInitialValues = true;
@@ -139,7 +140,8 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
     currentSTP = currentDSTPUnit == EDSTPUnit.Price
         ? dynStock.STPr.toString()
         : dynStock.STPe.toString();
-    currentTolerance = dynStock.tolerance.toString();
+    currentHETolerance = dynStock.HETolerance.toString();
+    currentLETolerance = dynStock.LETolerance.toString();
     stallTransactions = dynStock.stallTransactions ? EChoice.Yes : EChoice.No;
     DateTime lastTransactionTime =
         DateTime.fromMillisecondsSinceEpoch(dynStock.lastTransactionTime!.date);
@@ -372,6 +374,7 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                           stockOrderType: EStockOrderType.Market.name,
                           forcedTransaction: true));
                 }
+                Navigator.pop(context, 'Delete');
               }
             },
             child: Container(
@@ -767,10 +770,10 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                                     child: Column(children: [
                                       Row(children: [
                                         Text(
-                                          'Tolerance (amount)',
+                                          'HE Tolerance (amount)',
                                           textAlign: TextAlign.left,
                                           style: GoogleFonts.lusitana(
-                                              fontSize: 23,
+                                              fontSize: 20,
                                               color: PaletteColors.blue2),
                                         )
                                       ]),
@@ -808,12 +811,71 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                                                 }
                                                 return null;
                                               },
-                                              initialValue: currentTolerance,
+                                              initialValue: currentHETolerance,
                                               keyboardType:
                                                   TextInputType.number,
                                               onChanged: (newValue) =>
                                                   setState(() {
-                                                    currentTolerance = newValue;
+                                                    currentHETolerance =
+                                                        newValue;
+                                                  })))),
+                                    ])),
+                                Container(
+                                    margin: EdgeInsets.fromLTRB(5, 10, 5, 0),
+                                    padding: EdgeInsets.fromLTRB(10, 5, 5, 5),
+                                    decoration:
+                                        BoxDecoration(color: Colors.white),
+                                    child: Column(children: [
+                                      Row(children: [
+                                        Text(
+                                          'LE Tolerance (amount)',
+                                          textAlign: TextAlign.left,
+                                          style: GoogleFonts.lusitana(
+                                              fontSize: 20,
+                                              color: PaletteColors.blue2),
+                                        )
+                                      ]),
+                                      Container(
+                                          margin:
+                                              EdgeInsets.fromLTRB(0, 0, 0, 10),
+                                          decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                              color: PaletteColors.blue3),
+                                          padding:
+                                              EdgeInsets.fromLTRB(10, 0, 10, 0),
+                                          child: (TextFormField(
+                                              autovalidateMode: AutovalidateMode
+                                                  .onUserInteraction,
+                                              validator: (value) {
+                                                if (value!.isEmpty) {
+                                                  return 'Please enter a value';
+                                                }
+                                                if (currentDSTPUnit ==
+                                                        EDSTPUnit.Percentage &&
+                                                    (double.parse(value
+                                                                as String) >
+                                                            100.0 ||
+                                                        double.parse(value
+                                                                as String) <
+                                                            0.0)) {
+                                                  return 'Please enter a valid percentage';
+                                                }
+                                                if (currentDSTPUnit ==
+                                                        EDSTPUnit.Price &&
+                                                    value.split('.').length >
+                                                        2) {
+                                                  return 'Please enter a valid decimal number';
+                                                }
+                                                return null;
+                                              },
+                                              initialValue: currentLETolerance,
+                                              keyboardType:
+                                                  TextInputType.number,
+                                              onChanged: (newValue) =>
+                                                  setState(() {
+                                                    currentLETolerance =
+                                                        newValue;
                                                   })))),
                                     ])),
                                 Container(
@@ -966,8 +1028,10 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                                                                 EChoice.Yes
                                                             ? true
                                                             : false,
-                                                    tolerance: double.parse(
-                                                        currentTolerance),
+                                                    HETolerance: double.parse(
+                                                        currentHETolerance),
+                                                    LETolerance: double.parse(
+                                                        currentLETolerance),
                                                   )));
                                           setState(() {
                                             errorMessageShown = false;
@@ -1085,7 +1149,8 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                       stockType: '',
                       instrumentToken: '',
                       DSTPUnit: '',
-                      tolerance: 1.0,
+                      HETolerance: 3.0,
+                      LETolerance: 2.0,
                       noOfStocks: 0));
               if (currentDynStock.dynStockId.uuid.isNotEmpty) {
                 return SingleChildScrollView(
@@ -1569,7 +1634,7 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                                             MainAxisAlignment.center,
                                         children: [
                                           Text(
-                                            currentDynStock.tolerance
+                                            currentDynStock.HETolerance
                                                 .toStringAsFixed(2),
                                             style: GoogleFonts.daysOne(
                                               color: PaletteColors.blue2,
@@ -1578,10 +1643,10 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                                             ),
                                           ),
                                           Text(
-                                            'Tolerance (amount)',
+                                            'HE Tolerance (amount)',
                                             style: GoogleFonts.outfit(
                                               color: PaletteColors.blue4,
-                                              fontSize: 15,
+                                              fontSize: 12,
                                             ),
                                           )
                                         ],
@@ -1593,6 +1658,74 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                                       height: screenSize.height * 0.075,
                                       decoration: BoxDecoration(
                                           color: PaletteColors.purple2,
+                                          borderRadius:
+                                              BorderRadius.circular(15)),
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            currentDynStock.LETolerance
+                                                .toStringAsFixed(2),
+                                            style: GoogleFonts.daysOne(
+                                              color: PaletteColors.blue2,
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          Text(
+                                            'LE Tolerance (amount)',
+                                            style: GoogleFonts.outfit(
+                                              color: PaletteColors.blue4,
+                                              fontSize: 12,
+                                            ),
+                                          )
+                                        ],
+                                      )),
+                                ),
+                              ]),
+                        ),
+                        Container(
+                          margin: EdgeInsets.fromLTRB(20, 10, 20, 10),
+                          child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                Container(
+                                  child: Container(
+                                      width: screenSize.width * 0.35,
+                                      height: screenSize.height * 0.075,
+                                      decoration: BoxDecoration(
+                                          color: PaletteColors.blue3,
+                                          borderRadius:
+                                              BorderRadius.circular(15)),
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            '${currentDynStock.lastTransactionType} ',
+                                            style: GoogleFonts.daysOne(
+                                              color: PaletteColors.blue2,
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          Text(
+                                            'Last Transaction Type',
+                                            style: GoogleFonts.outfit(
+                                              color: PaletteColors.blue4,
+                                              fontSize: 12,
+                                            ),
+                                          )
+                                        ],
+                                      )),
+                                ),
+                                Container(
+                                  child: Container(
+                                      width: screenSize.width * 0.35,
+                                      height: screenSize.height * 0.075,
+                                      decoration: BoxDecoration(
+                                          color: PaletteColors.blue3,
                                           borderRadius:
                                               BorderRadius.circular(15)),
                                       child: Column(
@@ -1628,43 +1761,13 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
                               Container(
-                                child: Container(
-                                    width: screenSize.width * 0.35,
-                                    height: screenSize.height * 0.075,
-                                    decoration: BoxDecoration(
-                                        color: PaletteColors.blue3,
-                                        borderRadius:
-                                            BorderRadius.circular(15)),
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Text(
-                                          '${currentDynStock.lastTransactionType} ',
-                                          style: GoogleFonts.daysOne(
-                                            color: PaletteColors.blue2,
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                        Text(
-                                          'Last Transaction Type',
-                                          style: GoogleFonts.outfit(
-                                            color: PaletteColors.blue4,
-                                            fontSize: 12,
-                                          ),
-                                        )
-                                      ],
-                                    )),
-                              ),
-                              Container(
                                 decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(15)),
                                 child: Container(
                                     width: screenSize.width * 0.35,
                                     height: screenSize.height * 0.075,
                                     decoration: BoxDecoration(
-                                        color: PaletteColors.blue3,
+                                        color: PaletteColors.purple2,
                                         borderRadius:
                                             BorderRadius.circular(15)),
                                     child: Column(

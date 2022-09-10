@@ -133,7 +133,7 @@ Future<void> placeFullOrders(
               allTickerData: store.state.allTickerData.data));
           store.dispatch(GetAllDynStocksAction(userId: action.userId));
         } else {
-          Timer.periodic(Duration(milliseconds: 1500), (timer) async {
+          Timer.periodic(Duration(seconds: 5), (timer) async {
             try {
               KotakStockApiOrderReportsResponse position =
                   await KotakStockAPIService().getOrderReport(
@@ -323,7 +323,7 @@ Future<void> placeFullOrders(
                 stockCode: action.stockCode, error: error));
           });
         } else {
-          Timer.periodic(Duration(milliseconds: 1500), (timer) {
+          Timer.periodic(Duration(seconds: 5), (timer) {
             KotakStockAPIService()
                 .getOrderReport(
                     action.userId,

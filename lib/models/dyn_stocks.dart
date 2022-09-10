@@ -20,7 +20,8 @@ class DynStock {
     required this.instrumentToken,
     required this.DSTPUnit,
     required this.noOfStocks,
-    required this.tolerance,
+    required this.HETolerance,
+    required this.LETolerance,
     this.lastTradedPrice = 0.0,
     this.lastTransactionType = 'BUY',
     this.lastTransactionTime = null,
@@ -48,7 +49,8 @@ class DynStock {
   TransactionTime? lastTransactionTime;
   int stocksAvailableForTrade;
   bool stallTransactions;
-  double tolerance;
+  double HETolerance;
+  double LETolerance;
   double BTPr;
   double STPr;
   double BTPe;
@@ -76,7 +78,8 @@ class DynStock {
         STPe: json["STPe"],
         noOfStocks: json["noOfStocks"],
         stallTransactions: json["stallTransactions"],
-        tolerance: json["tolerance"],
+        HETolerance: json["HETolerance"],
+        LETolerance: json["LETolerance"],
         transactions: List<Transaction>.from(
             json["transactions"].map((x) => Transaction.fromJson(x))),
       );
@@ -101,7 +104,8 @@ class DynStock {
         "STPe": STPe,
         "noOfStocks": noOfStocks,
         "stallTransactions": stallTransactions,
-        'tolerance': tolerance,
+        'HETolerance': HETolerance,
+        'LETolerance': LETolerance,
         "transactions": List<dynamic>.from(transactions.map((x) => x.toJson())),
       };
 }
@@ -132,7 +136,8 @@ class DynStockBody {
     required this.stockType,
     required this.DSTPUnit,
     required this.noOfStocks,
-    required this.tolerance,
+    required this.HETolerance,
+    required this.LETolerance,
     this.BTPr = 0.0,
     this.STPr = 0.0,
     this.BTPe = 0.0,
@@ -154,7 +159,8 @@ class DynStockBody {
   double BTPe;
   double STPe;
   bool stallTransactions;
-  double tolerance;
+  double HETolerance;
+  double LETolerance;
   TransactionBody? transactionForCreateDynStock;
 
   factory DynStockBody.fromJson(Map<String, dynamic> json) => DynStockBody(
@@ -171,7 +177,8 @@ class DynStockBody {
         STPe: json["STPe"],
         noOfStocks: json["noOfStocks"],
         stallTransactions: json["stallTransactions"],
-        tolerance: json["tolerance"],
+        HETolerance: json["HETolerance"],
+        LETolerance: json["LETolerance"],
         transactionForCreateDynStock:
             TransactionBody.fromJson(json["transactionForCreateDynStock"]),
       );
@@ -190,7 +197,8 @@ class DynStockBody {
         "STPe": STPe,
         "noOfStocks": noOfStocks,
         "stallTransactions": stallTransactions,
-        'tolerance': tolerance,
+        'HETolerance': HETolerance,
+        'LETolerance': LETolerance,
         "transactionForCreateDynStock": transactionForCreateDynStock?.toJson(),
       };
 }

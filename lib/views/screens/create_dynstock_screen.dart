@@ -61,7 +61,8 @@ class _CreateDynStockScreenState extends State<CreateDynStockScreen>
   String currentNoOfStocks = '0';
   String currentBTP = '2.0';
   String currentSTP = '2.0';
-  String currentTolerance = '2.0';
+  String currentHETolerance = '3.0';
+  String currentLETolerance = '2.0';
   bool creatingDynStock = false;
   bool errorMessageShown = false;
   bool creatingMessageShown = false;
@@ -939,7 +940,7 @@ class _CreateDynStockScreenState extends State<CreateDynStockScreen>
                                     child: Column(children: [
                                       Row(children: [
                                         Text(
-                                          'Tolerance (amount)',
+                                          'HE Tolerance (amount)',
                                           textAlign: TextAlign.left,
                                           style: GoogleFonts.lusitana(
                                               fontSize: 23,
@@ -980,12 +981,73 @@ class _CreateDynStockScreenState extends State<CreateDynStockScreen>
                                               },
                                               autovalidateMode: AutovalidateMode
                                                   .onUserInteraction,
-                                              initialValue: currentTolerance,
+                                              initialValue: currentHETolerance,
                                               keyboardType:
                                                   TextInputType.number,
                                               onChanged: (newValue) =>
                                                   setState(() {
-                                                    currentTolerance = newValue;
+                                                    currentHETolerance =
+                                                        newValue;
+                                                  })))),
+                                    ])),
+                                Container(
+                                    margin: EdgeInsets.fromLTRB(5, 10, 5, 0),
+                                    padding: EdgeInsets.fromLTRB(20, 5, 20, 5),
+                                    decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius:
+                                            BorderRadius.circular(30)),
+                                    child: Column(children: [
+                                      Row(children: [
+                                        Text(
+                                          'LE Tolerance (amount)',
+                                          textAlign: TextAlign.left,
+                                          style: GoogleFonts.lusitana(
+                                              fontSize: 23,
+                                              color: PaletteColors.blue2),
+                                        )
+                                      ]),
+                                      Container(
+                                          margin:
+                                              EdgeInsets.fromLTRB(0, 0, 0, 10),
+                                          decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                              color: PaletteColors.blue3),
+                                          padding:
+                                              EdgeInsets.fromLTRB(10, 0, 10, 0),
+                                          child: (TextFormField(
+                                              validator: (value) {
+                                                if (value!.isEmpty) {
+                                                  return 'Please enter a value';
+                                                }
+                                                if (currentDSTPUnit ==
+                                                        EDSTPUnit.Percentage &&
+                                                    (double.parse(value
+                                                                as String) >
+                                                            100.0 ||
+                                                        double.parse(value
+                                                                as String) <
+                                                            0.0)) {
+                                                  return 'Please enter a valid percentage';
+                                                }
+                                                if (currentDSTPUnit ==
+                                                        EDSTPUnit.Price &&
+                                                    value.split('.').length >
+                                                        2) {
+                                                  return 'Please enter a valid decimal number';
+                                                }
+                                                return null;
+                                              },
+                                              autovalidateMode: AutovalidateMode
+                                                  .onUserInteraction,
+                                              initialValue: currentLETolerance,
+                                              keyboardType:
+                                                  TextInputType.number,
+                                              onChanged: (newValue) =>
+                                                  setState(() {
+                                                    currentLETolerance =
+                                                        newValue;
                                                   })))),
                                     ])),
                               ])),
@@ -1056,7 +1118,10 @@ class _CreateDynStockScreenState extends State<CreateDynStockScreen>
                                               EDSTPUnit.Percentage
                                           ? double.parse(currentSTP)
                                           : 0.0,
-                                      tolerance: double.parse(currentTolerance),
+                                      HETolerance:
+                                          double.parse(currentHETolerance),
+                                      LETolerance:
+                                          double.parse(currentLETolerance),
                                     )),
                               );
                               setState(() {

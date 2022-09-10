@@ -385,13 +385,15 @@ class _UserInfoScreenState extends State<UserInfoScreen> with RouteAware {
                                           MainAxisAlignment.center,
                                       children: [
                                         if (state.userInfo.loaded)
-                                          Text(
-                                            '${state.userInfo.data!.noOfDynStocksOwned}',
-                                            style: GoogleFonts.outfit(
-                                                fontSize: 30,
-                                                fontWeight: FontWeight.bold,
-                                                color: PaletteColors.blue2),
-                                          ),
+                                          SingleChildScrollView(
+                                              scrollDirection: Axis.horizontal,
+                                              child: Text(
+                                                '${state.userInfo.data!.noOfDynStocksOwned}',
+                                                style: GoogleFonts.outfit(
+                                                    fontSize: 30,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: PaletteColors.blue2),
+                                              )),
                                         if (state.userInfo.loaded)
                                           Text(
                                             'DynStocks',
@@ -416,13 +418,15 @@ class _UserInfoScreenState extends State<UserInfoScreen> with RouteAware {
                                           MainAxisAlignment.center,
                                       children: [
                                         if (state.userInfo.loaded)
-                                          Text(
-                                            '${state.userInfo.data!.noOfTransactionsMade}',
-                                            style: GoogleFonts.outfit(
-                                                fontSize: 30,
-                                                fontWeight: FontWeight.bold,
-                                                color: PaletteColors.blue2),
-                                          ),
+                                          SingleChildScrollView(
+                                              scrollDirection: Axis.horizontal,
+                                              child: Text(
+                                                '${state.userInfo.data!.noOfTransactionsMade}',
+                                                style: GoogleFonts.outfit(
+                                                    fontSize: 30,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: PaletteColors.blue2),
+                                              )),
                                         if (state.userInfo.loaded)
                                           Text(
                                             'Transactions',
@@ -442,6 +446,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> with RouteAware {
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: [
                                 Container(
+                                  margin: EdgeInsets.fromLTRB(0, 20, 0, 20),
                                   padding: EdgeInsets.fromLTRB(10, 10, 10, 10),
                                   width: screenSize.width * 0.4,
                                   height: screenSize.width * 0.3,
@@ -453,20 +458,24 @@ class _UserInfoScreenState extends State<UserInfoScreen> with RouteAware {
                                           MainAxisAlignment.center,
                                       children: [
                                         if (state.userInfo.loaded)
-                                          Row(children: [
-                                            Icon(
-                                              Icons.currency_rupee,
-                                              color: PaletteColors.blue2,
-                                              size: 25,
-                                            ),
-                                            Text(
-                                              '${state.userInfo.data!.netReturns.toStringAsFixed(2)}',
-                                              style: GoogleFonts.outfit(
-                                                  fontSize: 25,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: PaletteColors.blue2),
-                                            )
-                                          ]),
+                                          SingleChildScrollView(
+                                              scrollDirection: Axis.horizontal,
+                                              child: Row(children: [
+                                                Icon(
+                                                  Icons.currency_rupee,
+                                                  color: PaletteColors.blue2,
+                                                  size: 25,
+                                                ),
+                                                Text(
+                                                  '${state.userInfo.data!.netReturns.toStringAsFixed(2)}',
+                                                  style: GoogleFonts.outfit(
+                                                      fontSize: 25,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color:
+                                                          PaletteColors.blue2),
+                                                )
+                                              ])),
                                         if (state.userInfo.loaded)
                                           Text(
                                             'Net returns from all DynStocks',
@@ -482,10 +491,11 @@ class _UserInfoScreenState extends State<UserInfoScreen> with RouteAware {
                                       ]),
                                 ),
                                 Container(
+                                  margin: EdgeInsets.fromLTRB(0, 20, 0, 20),
                                   width: screenSize.width * 0.4,
                                   height: screenSize.width * 0.3,
                                   decoration: BoxDecoration(
-                                      color: PaletteColors.purple2,
+                                      color: PaletteColors.blue3,
                                       borderRadius: BorderRadius.circular(30)),
                                   child: Column(
                                       mainAxisAlignment:
