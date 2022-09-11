@@ -20,6 +20,9 @@ class DynStocksService {
     });
     String res = response.body;
     if (response.statusCode < 400) {
+      if (res.substring(0, 2) == '[]') {
+        return [];
+      }
       return dynStockFromJson(res);
     } else {
       throw Exception(ErrorClass.fromJson(jsonDecode(res)).message);

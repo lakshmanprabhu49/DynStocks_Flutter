@@ -14,3 +14,18 @@ class GetUserInfoFailAction {
   final dynamic error;
   GetUserInfoFailAction({required this.error});
 }
+
+class DeleteUserAction {
+  String userId;
+  DeleteUserAction({required this.userId});
+}
+
+class DeleteUserSuccessAction {
+  final String userId;
+  DeleteUserSuccessAction({required this.userId});
+}
+
+class DeleteUserFailAction {
+  final dynamic error;
+  DeleteUserFailAction({required this.error});
+}

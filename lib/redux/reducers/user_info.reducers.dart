@@ -9,6 +9,9 @@ UserInfoState userInfoReducer(UserInfoState state, dynamic action) {
       loading: true,
       loaded: false,
       loadFailed: false,
+      deleting: state.deleting,
+      deleted: state.deleted,
+      deleteFailed: state.deleteFailed,
       data: state.data,
     );
   }
@@ -17,6 +20,9 @@ UserInfoState userInfoReducer(UserInfoState state, dynamic action) {
         loading: false,
         loaded: true,
         loadFailed: false,
+        deleting: state.deleting,
+        deleted: state.deleted,
+        deleteFailed: state.deleteFailed,
         data: action.userInfo,
         error: null);
   }
@@ -26,7 +32,44 @@ UserInfoState userInfoReducer(UserInfoState state, dynamic action) {
         loaded: false,
         loadFailed: true,
         data: null,
+        deleting: state.deleting,
+        deleted: state.deleted,
+        deleteFailed: state.deleteFailed,
         error: action.error);
+  }
+
+  if (action is DeleteUserAction) {
+    return UserInfoState.updatedState(
+      loading: state.loading,
+      loaded: state.loaded,
+      loadFailed: state.loadFailed,
+      deleting: true,
+      deleted: false,
+      deleteFailed: false,
+      data: state.data,
+    );
+  }
+  if (action is DeleteUserSuccessAction) {
+    return UserInfoState.updatedState(
+      loading: state.loading,
+      loaded: state.loaded,
+      loadFailed: state.loadFailed,
+      deleting: false,
+      deleted: true,
+      deleteFailed: false,
+      data: state.data,
+    );
+  }
+  if (action is DeleteUserFailAction) {
+    return UserInfoState.updatedState(
+      loading: state.loading,
+      loaded: state.loaded,
+      loadFailed: state.loadFailed,
+      deleting: false,
+      deleted: false,
+      deleteFailed: true,
+      data: state.data,
+    );
   }
   return state;
 }

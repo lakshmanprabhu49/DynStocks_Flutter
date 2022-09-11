@@ -33,5 +33,25 @@ void userInfoMiddleWare(
       store.dispatch(GetUserInfoFailAction(error: error));
     });
   }
+  if (action is DeleteUserAction) {
+    UserInfoService().deleteUser(action.userId).then((response) {
+      store.dispatch(DeleteUserSuccessAction(userId: action.userId));
+    }).catchError((error) {
+      print(error);
+      String emailBodyLine1 = '$error';
+      EmailJSService()
+          .sendEmail(Email(
+              username: 'Myself',
+              subject: 'Error while getting user info for ${action.userId}',
+              title: 'Error while getting user info for ${action.userId}',
+              subtitle: 'Error while getting user info for ${action.userId}',
+              body: emailBodyLine1))
+          .then((value) {})
+          .catchError((error) {
+        print(error);
+      });
+      store.dispatch(DeleteUserFailAction(error: error));
+    });
+  }
   next(action);
 }

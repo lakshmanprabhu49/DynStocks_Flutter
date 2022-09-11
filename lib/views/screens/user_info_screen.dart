@@ -1,36 +1,22 @@
 import 'dart:async';
-import 'package:collection/collection.dart';
 import 'package:dynstocks/main.dart';
-import 'package:dynstocks/models/bar_chart.dart';
 import 'package:dynstocks/models/colors.dart';
-import 'package:dynstocks/models/common.dart';
 import 'package:dynstocks/models/dyn_stocks.dart';
 import 'package:dynstocks/redux/actions/authentication.actions.dart';
-import 'package:dynstocks/redux/actions/dyn_stocks.actions.dart';
 import 'package:dynstocks/redux/actions/local_user_creds.actions.dart';
-import 'package:dynstocks/redux/actions/ticker_data.actions.dart';
 import 'package:dynstocks/redux/actions/user_info.actions.dart';
 import 'package:dynstocks/redux/app_state.dart';
-import 'package:dynstocks/redux/state/dyn_stocks.state.dart';
 import 'package:dynstocks/static/post-market-timer.dart';
 import 'package:dynstocks/static/toast_message_handler.dart';
 import 'package:dynstocks/static/timed_ticker_call.dart';
 import 'package:dynstocks/views/screens/enter_local_user_creds_screen.dart';
-import 'package:dynstocks/views/screens/view_dynstocks_list_screen.dart';
-import 'package:dynstocks/views/screens/view_transactions_screen.dart';
 import 'package:dynstocks/views/widgets/bottom_navigation_bar_custom.dart';
-import 'package:dynstocks/views/widgets/dyn_stocks_list_item.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:fl_chart/fl_chart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wakelock/wakelock.dart';
-import 'package:yahoofin/yahoofin.dart';
-import 'package:intl/intl.dart';
-import 'package:collection/collection.dart';
-import 'dart:math';
 
 class UserInfoScreen extends StatefulWidget {
   UserInfoScreen({Key? key}) : super(key: key);
@@ -204,6 +190,122 @@ class _UserInfoScreenState extends State<UserInfoScreen> with RouteAware {
     );
   }
 
+  Future<String?> showDeleteUserDialog() {
+    return showDialog<String>(
+      context: context,
+      builder: (BuildContext context) => AlertDialog(
+        title: Text(
+          'Delete',
+          style: GoogleFonts.outfit(
+            fontSize: 25,
+            fontWeight: FontWeight.bold,
+            color: AccentColors.red1,
+          ),
+        ),
+        content: Text(
+          'Are you sure you want to delete this user?',
+          style: GoogleFonts.outfit(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: AccentColors.yellow1,
+          ),
+        ),
+        actions: <Widget>[
+          ElevatedButton(
+            style: ButtonStyle(
+              backgroundColor: MaterialStateProperty.all(
+                Colors.white,
+              ),
+            ),
+            onPressed: () => Navigator.pop(context, 'Cancel'),
+            child: Container(
+                padding: EdgeInsets.fromLTRB(10, 10, 10, 10),
+                child: Text(
+                  'Cancel',
+                  style: GoogleFonts.lusitana(
+                    fontSize: 15,
+                    color: AccentColors.red1,
+                    fontWeight: FontWeight.bold,
+                  ),
+                )),
+          ),
+          ElevatedButton(
+            style: ButtonStyle(
+              backgroundColor: MaterialStateProperty.all(
+                AccentColors.red1,
+              ),
+            ),
+            onPressed: () {
+              if (mounted) {
+                StoreProvider.of<AppState>(context)
+                    .dispatch(LogoutAction(userId: userId));
+                StoreProvider.of<AppState>(context)
+                    .dispatch(DeleteUserAction(userId: userId));
+                setState(() {
+                  errorMessageShown = false;
+                });
+              }
+            },
+            child: Container(
+                padding: EdgeInsets.fromLTRB(10, 10, 10, 10),
+                child: Text(
+                  'Delete',
+                  style: GoogleFonts.lusitana(
+                    fontSize: 15,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                )),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<String?> showCannotDeleteUserDialog() {
+    return showDialog<String>(
+      context: context,
+      builder: (BuildContext context) => AlertDialog(
+        title: Text(
+          'Cannot Delete User',
+          style: GoogleFonts.outfit(
+            fontSize: 25,
+            fontWeight: FontWeight.bold,
+            color: AccentColors.red1,
+          ),
+        ),
+        content: Text(
+          'The user already has some undeleted dynstocks. Please delete them first.',
+          style: GoogleFonts.outfit(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: AccentColors.yellow1,
+          ),
+        ),
+        actions: <Widget>[
+          ElevatedButton(
+            style: ButtonStyle(
+              backgroundColor: MaterialStateProperty.all(
+                Colors.white,
+              ),
+            ),
+            onPressed: () => Navigator.pop(context, 'OK'),
+            child: Container(
+                padding: EdgeInsets.fromLTRB(10, 10, 10, 10),
+                child: Text(
+                  'OK',
+                  style: GoogleFonts.lusitana(
+                    fontSize: 15,
+                    color: AccentColors.red1,
+                    fontWeight: FontWeight.bold,
+                  ),
+                )),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     Wakelock.enabled.then((value) {
@@ -280,6 +382,26 @@ class _UserInfoScreenState extends State<UserInfoScreen> with RouteAware {
                 errorMessageShown = true;
               });
             }
+
+            if (state.userInfo.deleteFailed && !errorMessageShown && mounted) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                    ToastMessageHandler.showErrorMessageSnackBar(
+                        '${state.userInfo.error}'));
+              });
+              setState(() {
+                errorMessageShown = true;
+              });
+            }
+
+            if (state.userInfo.deleted) {
+              StoreProvider.of<AppState>(context)
+                  .dispatch(LogoutAction(userId: userId));
+              setState(() {
+                errorMessageShown = false;
+              });
+            }
+
             if (mounted && state.authState.loggedOut) {
               SharedPreferences.getInstance().then((prefs) async {
                 prefs.clear().then((value) {
@@ -384,7 +506,8 @@ class _UserInfoScreenState extends State<UserInfoScreen> with RouteAware {
                                       mainAxisAlignment:
                                           MainAxisAlignment.center,
                                       children: [
-                                        if (state.userInfo.loaded)
+                                        if (state.userInfo.loaded &&
+                                            !(state.userInfo.deleted))
                                           SingleChildScrollView(
                                               scrollDirection: Axis.horizontal,
                                               child: Text(
@@ -394,7 +517,8 @@ class _UserInfoScreenState extends State<UserInfoScreen> with RouteAware {
                                                     fontWeight: FontWeight.bold,
                                                     color: PaletteColors.blue2),
                                               )),
-                                        if (state.userInfo.loaded)
+                                        if (state.userInfo.loaded &&
+                                            !(state.userInfo.deleted))
                                           Text(
                                             'DynStocks',
                                             style: GoogleFonts.overlock(
@@ -417,7 +541,8 @@ class _UserInfoScreenState extends State<UserInfoScreen> with RouteAware {
                                       mainAxisAlignment:
                                           MainAxisAlignment.center,
                                       children: [
-                                        if (state.userInfo.loaded)
+                                        if (state.userInfo.loaded &&
+                                            !(state.userInfo.deleted))
                                           SingleChildScrollView(
                                               scrollDirection: Axis.horizontal,
                                               child: Text(
@@ -427,7 +552,8 @@ class _UserInfoScreenState extends State<UserInfoScreen> with RouteAware {
                                                     fontWeight: FontWeight.bold,
                                                     color: PaletteColors.blue2),
                                               )),
-                                        if (state.userInfo.loaded)
+                                        if (state.userInfo.loaded &&
+                                            !(state.userInfo.deleted))
                                           Text(
                                             'Transactions',
                                             style: GoogleFonts.overlock(
@@ -457,7 +583,8 @@ class _UserInfoScreenState extends State<UserInfoScreen> with RouteAware {
                                       mainAxisAlignment:
                                           MainAxisAlignment.center,
                                       children: [
-                                        if (state.userInfo.loaded)
+                                        if (state.userInfo.loaded &&
+                                            !(state.userInfo.deleted))
                                           SingleChildScrollView(
                                               scrollDirection: Axis.horizontal,
                                               child: Row(children: [
@@ -476,7 +603,8 @@ class _UserInfoScreenState extends State<UserInfoScreen> with RouteAware {
                                                           PaletteColors.blue2),
                                                 )
                                               ])),
-                                        if (state.userInfo.loaded)
+                                        if (state.userInfo.loaded &&
+                                            !(state.userInfo.deleted))
                                           Text(
                                             'Net returns from all DynStocks',
                                             textAlign: TextAlign.center,
@@ -484,7 +612,8 @@ class _UserInfoScreenState extends State<UserInfoScreen> with RouteAware {
                                                 fontSize: 15,
                                                 color: PaletteColors.blue2),
                                           ),
-                                        if (state.userInfo.loading)
+                                        if (state.userInfo.loading &&
+                                            !(state.userInfo.deleted))
                                           (Text('Loading....')),
                                         if (state.userInfo.loadFailed)
                                           Text('Load Failed!')
@@ -504,7 +633,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> with RouteAware {
                                 )
                               ]),
                           Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
                               Container(
                                   child: ElevatedButton(
@@ -528,6 +657,36 @@ class _UserInfoScreenState extends State<UserInfoScreen> with RouteAware {
                                         'Log Out',
                                         style: GoogleFonts.lusitana(
                                             color: PaletteColors.blue2,
+                                            fontSize: 25,
+                                            fontWeight: FontWeight.bold),
+                                      ))),
+                              Container(
+                                  child: ElevatedButton(
+                                      style: ButtonStyle(
+                                        padding: MaterialStateProperty.all(
+                                            EdgeInsets.fromLTRB(
+                                                15, 15, 15, 15)),
+                                        shape: MaterialStateProperty.all(
+                                            RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(25),
+                                        )),
+                                        backgroundColor:
+                                            MaterialStateProperty.all(
+                                                AccentColors.red1),
+                                      ),
+                                      onPressed: () {
+                                        if (state
+                                            .allDynStocks.data.isNotEmpty) {
+                                          showCannotDeleteUserDialog();
+                                        } else {
+                                          showDeleteUserDialog();
+                                        }
+                                      },
+                                      child: Text(
+                                        'Delete User',
+                                        style: GoogleFonts.lusitana(
+                                            color: PaletteColors.blue3,
                                             fontSize: 25,
                                             fontWeight: FontWeight.bold),
                                       )))

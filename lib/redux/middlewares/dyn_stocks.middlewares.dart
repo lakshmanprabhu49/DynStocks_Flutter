@@ -7,8 +7,6 @@ import 'package:dynstocks/models/email.dart';
 import 'package:dynstocks/models/kotak_stock_api.dart';
 import 'package:dynstocks/models/transactions.dart';
 import 'package:dynstocks/redux/actions/dyn_stocks.actions.dart';
-import 'package:dynstocks/redux/actions/dyn_stocks.actions.dart';
-import 'package:dynstocks/redux/actions/kotak_stock_api.actions.dart';
 import 'package:dynstocks/redux/actions/ticker_data.actions.dart';
 import 'package:dynstocks/redux/actions/transactions.actions.dart';
 import 'package:dynstocks/redux/app_state.dart';
@@ -277,10 +275,10 @@ void dynStocksMiddleWare(
           previousDynStocksForUser.difference(dynStocksForUser);
       if (dynStocksDeleted.isNotEmpty) {
         mapAltered = true;
-        while (dynStocksDeleted.iterator.moveNext()) {
-          map.remove(dynStocksDeleted.iterator.current);
-          pauseTransactions.remove(dynStocksDeleted.iterator.current);
-        }
+        dynStocksDeleted.forEach((element) {
+          map.remove(element);
+          pauseTransactions.remove(element);
+        });
       }
       if (mapAltered) {
         store.dispatch(InitializeCreateTransactionStateAction(data: map));

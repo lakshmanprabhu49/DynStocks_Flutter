@@ -26,4 +26,21 @@ class UserInfoService {
       throw Exception(ErrorClass.fromJson(jsonDecode(res)).message);
     }
   }
+
+  Future<String> deleteUser(String userId) async {
+    Uri url = Uri.parse(
+        '${dotenv.env["DYNSTOCKS_API_ENDPOINT_LOCAL"]}/users/$userId');
+    var client = http.Client();
+    var response = await client.delete(url, headers: {
+      HttpHeaders.authorizationHeader:
+          'Bearer ${appStore.state.kotakStockAPI.jwtToken}',
+      'x-request-id': appStore.state.DYNSTOCKS_X_REQUEST_ID
+    });
+    String res = response.body;
+    if (response.statusCode < 400) {
+      return userId;
+    } else {
+      throw Exception(ErrorClass.fromJson(jsonDecode(res)).message);
+    }
+  }
 }
