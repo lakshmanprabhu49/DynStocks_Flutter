@@ -11,8 +11,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class UserInfoService {
   Future<UserInfo> getUserInfo(String userId) async {
-    Uri url = Uri.parse(
-        '${dotenv.env["DYNSTOCKS_API_ENDPOINT_LOCAL"]}/users/$userId');
+    Uri url =
+        Uri.parse('${dotenv.env["DYNSTOCKS_API_ENDPOINT_PROD"]}/users/$userId');
     var client = http.Client();
     var response = await client.get(url, headers: {
       HttpHeaders.authorizationHeader:
@@ -28,8 +28,8 @@ class UserInfoService {
   }
 
   Future<String> deleteUser(String userId) async {
-    Uri url = Uri.parse(
-        '${dotenv.env["DYNSTOCKS_API_ENDPOINT_LOCAL"]}/users/$userId');
+    Uri url =
+        Uri.parse('${dotenv.env["DYNSTOCKS_API_ENDPOINT_PROD"]}/users/$userId');
     var client = http.Client();
     var response = await client.delete(url, headers: {
       HttpHeaders.authorizationHeader:
