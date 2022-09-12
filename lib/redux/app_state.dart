@@ -10,8 +10,10 @@ import 'package:dynstocks/redux/state/user_info.state.dart';
 
 class AppState {
   String userId = '';
+  String username = '';
   String accessCode = '';
   int timedTickerPeriod = 10;
+  String emailForError = 'lakshmanprabhusubscription@gmail.com';
   NetReturnsForDynStockState netReturnsForDynStock =
       NetReturnsForDynStockState.initialState();
   String DYNSTOCKS_X_REQUEST_ID = 'DYNSTOCKS_X_REQUEST_ID';
@@ -46,6 +48,7 @@ class AppState {
       UserInfoState? userInfo,
       AuthState? authState,
       String? userId,
+      String? username,
       NetReturnsForDynStockState? netReturnsForDynStock,
       TransactionsCreateState? transactionsCreateState}) {
     if (allDynStocks != null) {
@@ -71,6 +74,9 @@ class AppState {
     }
     if (userId != null) {
       this.userId = userId;
+    }
+    if (username != null) {
+      this.username = username;
     }
     if (netReturnsForDynStock != null) {
       this.netReturnsForDynStock = netReturnsForDynStock;

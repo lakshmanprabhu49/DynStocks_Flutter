@@ -196,12 +196,12 @@ void tickerDataMiddleWare(
                 dynStock.stockType != EStockType.BE.name) {
               switch (dynStock.DSTPUnit) {
                 case 'Price':
-                  if (((response.price.currentPrice! -
-                                  dynStock.lastTradedPrice) *
+                  if (((dynStock.lastTradedPrice -
+                                  response.price.currentPrice!) *
                               dynStock.noOfStocks <=
                           dynStock.HETolerance) &&
-                      ((response.price.currentPrice! -
-                                  dynStock.lastTradedPrice) *
+                      ((dynStock.lastTradedPrice -
+                                  response.price.currentPrice!) *
                               dynStock.noOfStocks >=
                           dynStock.LETolerance)) {
                     orderPlaced = true;
@@ -243,12 +243,12 @@ void tickerDataMiddleWare(
                   }
                   break;
                 case 'Percentage':
-                  if (((response.price.currentPrice! -
-                                  dynStock.lastTradedPrice) *
+                  if (((dynStock.lastTradedPrice -
+                                  response.price.currentPrice!) *
                               dynStock.noOfStocks <=
                           dynStock.HETolerance) &&
-                      ((response.price.currentPrice! -
-                                  dynStock.lastTradedPrice) *
+                      ((dynStock.lastTradedPrice -
+                                  response.price.currentPrice!) *
                               dynStock.noOfStocks >=
                           dynStock.LETolerance)) {
                     orderPlaced = true;
@@ -299,10 +299,10 @@ void tickerDataMiddleWare(
               !(dynStock.stallTransactions)) {
             switch (dynStock.DSTPUnit) {
               case 'Price':
-                if (((dynStock.lastTradedPrice - response.price.currentPrice!) *
+                if (((response.price.currentPrice! - dynStock.lastTradedPrice) *
                             dynStock.noOfStocks <=
                         dynStock.HETolerance) &&
-                    ((dynStock.lastTradedPrice - response.price.currentPrice!) *
+                    ((response.price.currentPrice! - dynStock.lastTradedPrice) *
                             dynStock.noOfStocks >=
                         dynStock.LETolerance)) {
                   orderPlaced = true;
@@ -342,10 +342,10 @@ void tickerDataMiddleWare(
                 }
                 break;
               case 'Percentage':
-                if (((dynStock.lastTradedPrice - response.price.currentPrice!) *
+                if (((response.price.currentPrice! - dynStock.lastTradedPrice) *
                             dynStock.noOfStocks <=
                         dynStock.HETolerance) &&
-                    ((dynStock.lastTradedPrice - response.price.currentPrice!) *
+                    ((response.price.currentPrice! - dynStock.lastTradedPrice) *
                             dynStock.noOfStocks >=
                         dynStock.LETolerance)) {
                   orderPlaced = true;

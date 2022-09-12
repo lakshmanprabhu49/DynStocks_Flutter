@@ -7,6 +7,13 @@ String userIdReducer(String state, dynamic action) {
   return state;
 }
 
+String usernameReducer(String state, dynamic action) {
+  if (action is SetUsernameAction) {
+    return action.username;
+  }
+  return state;
+}
+
 String accessCodeReducer(String state, dynamic action) {
   if (action is SetAccessCodeAction) {
     return action.accessCode;

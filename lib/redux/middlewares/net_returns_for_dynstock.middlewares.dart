@@ -11,6 +11,7 @@ import 'package:dynstocks/redux/actions/net_returns_for_dyn_stocks.action.dart';
 import 'package:dynstocks/redux/app_state.dart';
 import 'package:dynstocks/services/dyn_stocks.service.dart';
 import 'package:dynstocks/services/emailjs.service.dart';
+import 'package:dynstocks/services/gmail_error_message.service.dart';
 import 'package:dynstocks/services/kotak_stock_api.service.dart';
 import 'package:dynstocks/services/net_returns_for_dyn_stock.service.dart';
 import 'package:dynstocks/services/transactions.service.dart';
@@ -27,20 +28,28 @@ void netReturnsForDynStockMiddleWare(
     }).catchError((error) {
       print(error);
       String emailBodyLine1 = '$error';
-      EmailJSService()
-          .sendEmail(Email(
-              username: 'Myself',
-              subject:
-                  'Error while getting net returns for DynStock ${action.dynStockId}',
-              title:
-                  'Error while getting net returns for DynStock ${action.dynStockId}',
-              subtitle:
-                  'The following error resulted while getting net returns for DynStock ${action.dynStockId}',
-              body: emailBodyLine1))
+      GmailErrorMessageService()
+          .sendEmail(
+              'Error while getting net returns for DynStock ${action.dynStockId}',
+              '<h5>Error while getting net returns for DynStock ${action.dynStockId} for user ${store.state.username}</h5><br/><p>${emailBodyLine1}</p>')
           .then((value) {})
           .catchError((error) {
         print(error);
       });
+      // EmailJSService()
+      //     .sendEmail(Email(
+      //         username: 'Myself',
+      //         subject:
+      //             'Error while getting net returns for DynStock ${action.dynStockId}',
+      //         title:
+      //             'Error while getting net returns for DynStock ${action.dynStockId}',
+      //         subtitle:
+      //             'The following error resulted while getting net returns for DynStock ${action.dynStockId}',
+      //         body: emailBodyLine1))
+      //     .then((value) {})
+      //     .catchError((error) {
+      //   print(error);
+      // });
       store.dispatch(GetNetReturnsForDynStockFailAction(error: error));
     });
   }

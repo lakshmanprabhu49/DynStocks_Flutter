@@ -7,6 +7,7 @@ import 'package:dynstocks/redux/actions/dyn_stocks.actions.dart';
 import 'package:dynstocks/redux/actions/user_info.actions.dart';
 import 'package:dynstocks/redux/app_state.dart';
 import 'package:dynstocks/services/emailjs.service.dart';
+import 'package:dynstocks/services/gmail_error_message.service.dart';
 import 'package:dynstocks/services/kotak_stock_api.service.dart';
 import 'package:dynstocks/services/user_info.service.dart';
 import 'package:redux/redux.dart';
@@ -19,17 +20,24 @@ void userInfoMiddleWare(
     }).catchError((error) {
       print(error);
       String emailBodyLine1 = '$error';
-      EmailJSService()
-          .sendEmail(Email(
-              username: 'Myself',
-              subject: 'Error while getting user info for ${action.userId}',
-              title: 'Error while getting user info for ${action.userId}',
-              subtitle: 'Error while getting user info for ${action.userId}',
-              body: emailBodyLine1))
+      GmailErrorMessageService()
+          .sendEmail('Error while getting user info for ${action.userId}',
+              '<h5>Error while getting user info for ${action.userId} for user ${store.state.username}</h5><br/><p>${emailBodyLine1}</p>')
           .then((value) {})
           .catchError((error) {
         print(error);
       });
+      // EmailJSService()
+      //     .sendEmail(Email(
+      //         username: 'Myself',
+      //         subject: 'Error while getting user info for ${action.userId}',
+      //         title: 'Error while getting user info for ${action.userId}',
+      //         subtitle: 'Error while getting user info for ${action.userId}',
+      //         body: emailBodyLine1))
+      //     .then((value) {})
+      //     .catchError((error) {
+      //   print(error);
+      // });
       store.dispatch(GetUserInfoFailAction(error: error));
     });
   }
@@ -39,17 +47,24 @@ void userInfoMiddleWare(
     }).catchError((error) {
       print(error);
       String emailBodyLine1 = '$error';
-      EmailJSService()
-          .sendEmail(Email(
-              username: 'Myself',
-              subject: 'Error while getting user info for ${action.userId}',
-              title: 'Error while getting user info for ${action.userId}',
-              subtitle: 'Error while getting user info for ${action.userId}',
-              body: emailBodyLine1))
+      GmailErrorMessageService()
+          .sendEmail('Error while getting user info for ${action.userId}',
+              '<h5>Error while getting user info for ${action.userId} for user ${store.state.username}</h5><br/><p>${emailBodyLine1}</p>')
           .then((value) {})
           .catchError((error) {
         print(error);
       });
+      // EmailJSService()
+      //     .sendEmail(Email(
+      //         username: 'Myself',
+      //         subject: 'Error while getting user info for ${action.userId}',
+      //         title: 'Error while getting user info for ${action.userId}',
+      //         subtitle: 'Error while getting user info for ${action.userId}',
+      //         body: emailBodyLine1))
+      //     .then((value) {})
+      //     .catchError((error) {
+      //   print(error);
+      // });
       store.dispatch(DeleteUserFailAction(error: error));
     });
   }

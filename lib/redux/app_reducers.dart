@@ -15,6 +15,7 @@ AppState appReducer(AppState state, dynamic action) {
   } else {
     return AppState.updatedState(
         userId: userIdReducer(state.userId, action),
+        username: usernameReducer(state.username, action),
         accessCode: accessCodeReducer(state.accessCode, action),
         timedTickerPeriod:
             timedTickerPeriodReducer(state.timedTickerPeriod, action),

@@ -410,6 +410,8 @@ class _UserInfoScreenState extends State<UserInfoScreen> with RouteAware {
                     StoreProvider.of<AppState>(context)
                         .dispatch(SetUserIdAction(userId: ''));
                     StoreProvider.of<AppState>(context)
+                        .dispatch(SetUsernameAction(username: ''));
+                    StoreProvider.of<AppState>(context)
                         .dispatch(SetAccessCodeAction(accessCode: ''));
                     Route newRoute = MaterialPageRoute(
                         builder: (context) => EnterLocalUserCredsScreen(

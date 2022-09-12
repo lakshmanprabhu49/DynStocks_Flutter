@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "107783190528",
+    "project_id": "dynstocks-flask-email-4f972",
+    "storage_bucket": "dynstocks-flask-email-4f972.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:107783190528:android:2728f37b837c4c3fa580e5",
+        "android_client_info": {
+          "package_name": "com.lpcreations21.dynstocks"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "107783190528-8jp6igh6i5tm00ip9ah01aaolg6mcnsv.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBLAjk7vNQCi3bFmDPupIo2MmodQAqi6Qo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "107783190528-8jp6igh6i5tm00ip9ah01aaolg6mcnsv.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

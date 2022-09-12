@@ -3,6 +3,11 @@ class SetUserIdAction {
   SetUserIdAction({required this.userId});
 }
 
+class SetUsernameAction {
+  String username;
+  SetUsernameAction({required this.username});
+}
+
 class SetAccessCodeAction {
   String accessCode;
   SetAccessCodeAction({required this.accessCode});

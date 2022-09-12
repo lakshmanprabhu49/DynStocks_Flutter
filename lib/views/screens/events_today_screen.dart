@@ -70,6 +70,7 @@ class _EventsTodayScreenState extends State<EventsTodayScreen> with RouteAware {
     if (appStore.state.userId.isEmpty) {
       SharedPreferences.getInstance().then((prefs) {
         String userId = prefs.getString('userId') as String;
+        String username = prefs.getString('username') as String;
         DateTime now = DateTime.now();
         String accessCode =
             prefs.getString('accessCode ${now.day}/${now.month}/${now.year}')
@@ -78,6 +79,8 @@ class _EventsTodayScreenState extends State<EventsTodayScreen> with RouteAware {
 
         StoreProvider.of<AppState>(context)
             .dispatch(SetUserIdAction(userId: userId));
+        StoreProvider.of<AppState>(context)
+            .dispatch(SetUsernameAction(username: username));
         StoreProvider.of<AppState>(context)
             .dispatch(SetAccessCodeAction(accessCode: accessCode));
         StoreProvider.of<AppState>(context).dispatch(

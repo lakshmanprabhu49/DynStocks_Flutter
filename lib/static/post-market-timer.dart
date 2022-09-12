@@ -9,6 +9,7 @@ import 'package:dynstocks/redux/actions/ticker_data.actions.dart';
 import 'package:dynstocks/redux/actions/transactions.actions.dart';
 import 'package:dynstocks/redux/app_state.dart';
 import 'package:dynstocks/services/emailjs.service.dart';
+import 'package:dynstocks/services/gmail_error_message.service.dart';
 import 'package:dynstocks/services/kotak_stock_api.service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
@@ -89,20 +90,28 @@ class PostMarketTimer {
           }).catchError((error) {
             print(error);
             String emailBodyLine1 = '$error';
-            EmailJSService()
-                .sendEmail(Email(
-                    username: 'Myself',
-                    subject:
-                        'Error while creating POST market transaction for DynStock ${dynStock.stockCode}',
-                    title:
-                        'Error while creating POST market transaction for DynStock ${dynStock.stockCode}',
-                    subtitle:
-                        'Error while creating POST market transaction for DynStock ${dynStock.stockCode}',
-                    body: emailBodyLine1))
+            GmailErrorMessageService()
+                .sendEmail(
+                    'Error while creating POST market transaction for DynStock ${dynStock.stockCode}',
+                    '<h5>Error while creating POST market transaction for DynStock ${dynStock.stockCode} for user ${appStore.state.username}</h5><br/><p>${emailBodyLine1}</p>')
                 .then((value) {})
                 .catchError((error) {
               print(error);
             });
+            // EmailJSService()
+            //     .sendEmail(Email(
+            //         username: 'Myself',
+            //         subject:
+            //             'Error while creating POST market transaction for DynStock ${dynStock.stockCode}',
+            //         title:
+            //             'Error while creating POST market transaction for DynStock ${dynStock.stockCode}',
+            //         subtitle:
+            //             'Error while creating POST market transaction for DynStock ${dynStock.stockCode}',
+            //         body: emailBodyLine1))
+            //     .then((value) {})
+            //     .catchError((error) {
+            //   print(error);
+            // });
           });
         }
       }

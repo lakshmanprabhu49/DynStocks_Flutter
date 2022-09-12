@@ -12,6 +12,7 @@ import 'package:dynstocks/redux/actions/local_user_creds.actions.dart';
 import 'package:dynstocks/redux/actions/ticker_data.actions.dart';
 import 'package:dynstocks/redux/actions/transactions.actions.dart';
 import 'package:dynstocks/redux/app_state.dart';
+import 'package:dynstocks/services/gmail_error_message.service.dart';
 import 'package:dynstocks/services/transactions.service.dart';
 import 'package:dynstocks/static/toast_message_handler.dart';
 import 'package:dynstocks/static/timed_ticker_call.dart';
@@ -69,8 +70,11 @@ class _EnterLocalUserCredsScreenState extends State<EnterLocalUserCredsScreen>
       SharedPreferences.getInstance().then((prefs) {
         if (mounted) {
           String? userId = prefs.getString('userId');
+          String? username = prefs.getString('username');
           StoreProvider.of<AppState>(context)
               .dispatch(SetUserIdAction(userId: userId as String));
+          StoreProvider.of<AppState>(context)
+              .dispatch(SetUsernameAction(username: username as String));
         }
       });
     }
@@ -87,6 +91,7 @@ class _EnterLocalUserCredsScreenState extends State<EnterLocalUserCredsScreen>
             timedTickerPeriod: timedTickerPeriod as int));
       }
     });
+    GmailErrorMessageService().signIntoGoogle();
   }
 
   // Stops the periodic timer, possibly invoked when the screen goes out of focus
@@ -171,6 +176,8 @@ class _EnterLocalUserCredsScreenState extends State<EnterLocalUserCredsScreen>
                     StoreProvider.of<AppState>(context)
                         .dispatch(SetUserIdAction(userId: state.userId));
                     StoreProvider.of<AppState>(context)
+                        .dispatch(SetUsernameAction(username: state.username));
+                    StoreProvider.of<AppState>(context)
                         .dispatch(SetAccessCodeAction(accessCode: accessCode));
                     SharedPreferences.getInstance().then((prefs) {
                       DateTime now = DateTime.now();
@@ -206,6 +213,8 @@ class _EnterLocalUserCredsScreenState extends State<EnterLocalUserCredsScreen>
                   prefs.setString('username', username);
                   StoreProvider.of<AppState>(context).dispatch(SetUserIdAction(
                       userId: state.authState.data!.userId as String));
+                  StoreProvider.of<AppState>(context)
+                      .dispatch(SetUsernameAction(username: username));
                   Future.delayed(Duration(seconds: 1), () {
                     setState(() {
                       accessCode = '';
