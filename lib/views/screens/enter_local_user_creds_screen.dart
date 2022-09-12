@@ -91,7 +91,6 @@ class _EnterLocalUserCredsScreenState extends State<EnterLocalUserCredsScreen>
             timedTickerPeriod: timedTickerPeriod as int));
       }
     });
-    GmailErrorMessageService().signIntoGoogle();
   }
 
   // Stops the periodic timer, possibly invoked when the screen goes out of focus
@@ -110,11 +109,13 @@ class _EnterLocalUserCredsScreenState extends State<EnterLocalUserCredsScreen>
     Wakelock.enabled.then((value) {
       if (!value) {
         Wakelock.enable();
+        GmailErrorMessageService().signIntoGoogle();
       }
     });
     if (mounted) {
       stopPeriodicTimer();
     }
+
     if ((appStore.state.kotakStockAPI.loginFailed) &&
         !errorMessageShown &&
         mounted) {

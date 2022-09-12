@@ -10,6 +10,7 @@ import 'package:dynstocks/redux/actions/dyn_stocks.actions.dart';
 import 'package:dynstocks/redux/actions/ticker_data.actions.dart';
 import 'package:dynstocks/redux/app_state.dart';
 import 'package:dynstocks/redux/state/dyn_stocks.state.dart';
+import 'package:dynstocks/services/gmail_error_message.service.dart';
 import 'package:dynstocks/static/post-market-timer.dart';
 import 'package:dynstocks/static/timed_ticker_call.dart';
 import 'package:dynstocks/views/screens/view_dynstocks_list_screen.dart';
@@ -308,6 +309,7 @@ class _ViewChartForSpecificDynStockScreenState
     Wakelock.enabled.then((value) {
       if (!value) {
         Wakelock.enable();
+        GmailErrorMessageService().signIntoGoogle();
       }
     });
     DateTime now = DateTime.now();

@@ -6,6 +6,7 @@ import 'package:dynstocks/redux/actions/authentication.actions.dart';
 import 'package:dynstocks/redux/actions/local_user_creds.actions.dart';
 import 'package:dynstocks/redux/actions/user_info.actions.dart';
 import 'package:dynstocks/redux/app_state.dart';
+import 'package:dynstocks/services/gmail_error_message.service.dart';
 import 'package:dynstocks/static/post-market-timer.dart';
 import 'package:dynstocks/static/toast_message_handler.dart';
 import 'package:dynstocks/static/timed_ticker_call.dart';
@@ -311,6 +312,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> with RouteAware {
     Wakelock.enabled.then((value) {
       if (!value) {
         Wakelock.enable();
+        GmailErrorMessageService().signIntoGoogle();
       }
     });
     DateTime now = DateTime.now();

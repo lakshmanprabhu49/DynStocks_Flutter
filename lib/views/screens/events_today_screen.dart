@@ -10,6 +10,7 @@ import 'package:dynstocks/redux/actions/local_user_creds.actions.dart';
 import 'package:dynstocks/redux/actions/ticker_data.actions.dart';
 import 'package:dynstocks/redux/actions/transactions.actions.dart';
 import 'package:dynstocks/redux/app_state.dart';
+import 'package:dynstocks/services/gmail_error_message.service.dart';
 import 'package:dynstocks/services/transactions.service.dart';
 import 'package:dynstocks/static/post-market-timer.dart';
 import 'package:dynstocks/static/toast_message_handler.dart';
@@ -346,6 +347,7 @@ class _EventsTodayScreenState extends State<EventsTodayScreen> with RouteAware {
     Wakelock.enabled.then((value) {
       if (!value) {
         Wakelock.enable();
+        GmailErrorMessageService().signIntoGoogle();
       }
     });
     DateTime now = DateTime.now();
