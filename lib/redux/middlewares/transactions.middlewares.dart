@@ -206,6 +206,52 @@ Future<void> placeFullOrders(
                   stockCode: action.stockCode,
                 ));
                 store.dispatch(GetAllDynStocksAction(userId: action.userId));
+              } else if (tradedStock.status == EStockTradeStatus.OPN.name) {
+                // Check if the order can be further optimized
+                if (tradedStock.transactionType == ETransactionType.SELL.name &&
+                    store.state.allTickerData.data[action.stockCode]!.price
+                            .currentPrice! >
+                        tradedStock.price) {
+                  KotakStockApiPlaceOrderResponse newModifiedOrder =
+                      await KotakStockAPIService().modifyOrder(
+                              action.userId,
+                              store.state.accessCode,
+                              tradedStock.orderId,
+                              KotakStockAPIPlaceOrderBody(
+                                  orderType: 'N',
+                                  instrumentToken: action.instrumentToken,
+                                  transactionType: tradedStock.transactionType,
+                                  quantity: tradedStock.orderQuantity,
+                                  price: store
+                                      .state
+                                      .allTickerData
+                                      .data[action.stockCode]!
+                                      .price
+                                      .currentPrice!))
+                          as KotakStockApiPlaceOrderResponse;
+                } else if (tradedStock.transactionType ==
+                        ETransactionType.BUY.name &&
+                    store.state.allTickerData.data[action.stockCode]!.price
+                            .currentPrice! <
+                        tradedStock.price) {
+                  KotakStockApiPlaceOrderResponse newModifiedOrder =
+                      await KotakStockAPIService().modifyOrder(
+                              action.userId,
+                              store.state.accessCode,
+                              tradedStock.orderId,
+                              KotakStockAPIPlaceOrderBody(
+                                  orderType: 'N',
+                                  instrumentToken: action.instrumentToken,
+                                  transactionType: tradedStock.transactionType,
+                                  quantity: tradedStock.orderQuantity,
+                                  price: store
+                                      .state
+                                      .allTickerData
+                                      .data[action.stockCode]!
+                                      .price
+                                      .currentPrice!))
+                          as KotakStockApiPlaceOrderResponse;
+                }
               }
             } catch (error) {
               if (((error as dynamic).message as String)

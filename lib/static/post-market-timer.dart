@@ -19,6 +19,11 @@ class PostMarketTimer {
   static BuildContext? context;
   static Future<void> startPostMarketTimer(BuildContext context) async {
     context = context;
+    DateTime startingTime = DateTime.now();
+    if (startingTime.hour > 15 ||
+        (startingTime.hour == 15 && startingTime.minute > 30)) {
+      return;
+    }
     timer ??= Timer.periodic(Duration(seconds: 1), (timer) async {
       DateTime now = DateTime.now();
       if (now.hour > 15 || (now.hour == 15 && now.minute > 30)) {

@@ -91,6 +91,45 @@ Future<int> modifyPartialOrdersToFullOrders(
   }
 }
 
+Future<void> deleteDynStockWithoutPlacingOrder(Store<AppState> store,
+    DeleteDynStockAction action, DynStock dynStockToBeDeleted) async {
+  try {
+    String response = await DynStocksService()
+        .deleteDynStock(action.userId, action.dynStockId);
+    pauseTransactions[action.stockCode] = false;
+    store.dispatch(CreateTransactionSuccessAction(
+        stockCode: dynStockToBeDeleted.stockCode));
+    store.dispatch(DeleteDynStockSuccessAction(dynStockId: response));
+  } catch (error) {
+    print(error);
+    pauseTransactions[action.stockCode] = false;
+    String emailBodyLine1 = '$error';
+    GmailErrorMessageService()
+        .sendEmail(
+            'Error while Deleting DynStock ${action.stockCode} for user ${store.state.username}',
+            '<h5>Error while Deleting DynStock ${action.stockCode} for user ${store.state.username} for user ${store.state.username}</h5><br/><p>${emailBodyLine1}</p>')
+        .then((value) {})
+        .catchError((error) {
+      print(error);
+    });
+    // EmailJSService()
+    //     .sendEmail(Email(
+    //         username: 'Myself',
+    //         subject:
+    //             'Error while Deleting DynStock ${action.stockCode}',
+    //         title:
+    //             'Error while Deleting DynStock ${action.stockCode}',
+    //         subtitle:
+    //             'Error while Deleting DynStock ${action.stockCode}',
+    //         body: emailBodyLine1))
+    //     .then((value) {})
+    //     .catchError((error) {
+    //   print(error);
+    // });
+    store.dispatch(DeleteDynStockFailAction(error: error));
+  }
+}
+
 Future<void> placeFullOrderAndDeleteDynStock(
     Store<AppState> store,
     DeleteDynStockAction action,
@@ -606,8 +645,11 @@ void dynStocksMiddleWare(
                 quantityAlreadyBought,
                 ETransactionType.SELL);
           });
-          // If there were no partial orders, then do nothing
-          if (!thereWerePartialOrders) {}
+          // If there were no partial orders, then just delete the DynStock
+          if (!thereWerePartialOrders) {
+            await deleteDynStockWithoutPlacingOrder(
+                store, action, dynStockToBeDeleted);
+          }
         });
       } catch (error) {
         print(error);

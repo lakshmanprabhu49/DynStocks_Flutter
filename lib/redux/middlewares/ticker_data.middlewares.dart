@@ -239,7 +239,10 @@ void tickerDataMiddleWare(
                                 ? dynStock.noOfStocks
                                 : dynStock.stocksAvailableForTrade,
                             stockCode: dynStock.stockCode,
-                            stockPrice: response.price.currentPrice!)));
+                            stockPrice: max(
+                                response.price.currentPrice!,
+                                response.currentLocalMaximumPrice -
+                                    dynStock.STPr))));
                   }
                   break;
                 case 'Percentage':
@@ -288,7 +291,12 @@ void tickerDataMiddleWare(
                                 ? dynStock.noOfStocks
                                 : dynStock.stocksAvailableForTrade,
                             stockCode: dynStock.stockCode,
-                            stockPrice: response.price.currentPrice!)));
+                            stockPrice: max(
+                                response.price.currentPrice!,
+                                double.parse(
+                                    ((response.currentLocalMaximumPrice) *
+                                            (1 - (dynStock.STPe / 100)))
+                                        .toStringAsFixed(2))))));
                   }
                   break;
               }
@@ -338,7 +346,10 @@ void tickerDataMiddleWare(
                           noOfStocks: (dynStock.noOfStocks -
                               dynStock.stocksAvailableForTrade),
                           stockCode: dynStock.stockCode,
-                          stockPrice: response.price.currentPrice!)));
+                          stockPrice: min(
+                              response.price.currentPrice!,
+                              response.currentLocalMinimumPrice +
+                                  dynStock.BTPr))));
                 }
                 break;
               case 'Percentage':
@@ -383,7 +394,12 @@ void tickerDataMiddleWare(
                           noOfStocks: (dynStock.noOfStocks -
                               dynStock.stocksAvailableForTrade),
                           stockCode: dynStock.stockCode,
-                          stockPrice: response.price.currentPrice!)));
+                          stockPrice: min(
+                              response.price.currentPrice!,
+                              double.parse(
+                                  ((response.currentLocalMinimumPrice) *
+                                          (1 + (dynStock.BTPe / 100)))
+                                      .toStringAsFixed(2))))));
                 }
                 break;
             }
