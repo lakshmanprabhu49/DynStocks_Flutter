@@ -7,17 +7,18 @@ import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server.dart';
 
 class GmailErrorMessageService {
-  GoogleSignIn _googleSignIn =
+  static GoogleSignIn _googleSignIn =
       GoogleSignIn(scopes: ['https://mail.google.com/']);
 
   Future<GoogleSignInAccount?> signIntoGoogle() async {
-    if (await _googleSignIn.isSignedIn()) {
+    bool isUserSignedIn = await _googleSignIn.isSignedIn();
+    if (isUserSignedIn) {
       return _googleSignIn.currentUser;
     }
     return await _googleSignIn.signIn();
   }
 
-  Future<void> sendEmail(String subject, String text) async {
+  Future<void> sendEmail(String subject, String html) async {
     GoogleSignInAccount user = await signIntoGoogle() as GoogleSignInAccount;
     final auth = await user.authentication;
     final accessToken = auth.accessToken as String;
@@ -25,11 +26,12 @@ class GmailErrorMessageService {
     message.from = user.email;
     message.recipients = [user.email];
     message.subject = subject;
-    message.text = text;
+    message.html = html;
     SmtpServer smtpServer = gmailSaslXoauth2(user.email, accessToken);
     try {
       await send(message, smtpServer);
     } on MailerException catch (error) {
+      print(error.message);
       throw Exception(error.message);
     }
   }

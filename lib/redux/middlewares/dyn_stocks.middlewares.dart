@@ -70,7 +70,7 @@ Future<int> modifyPartialOrdersToFullOrders(
     GmailErrorMessageService()
         .sendEmail(
             'Error while Deleting DynStock ${action.stockCode} for user ${store.state.username}',
-            '<h5>Error while Deleting DynStock ${action.stockCode} for user ${store.state.username} for user ${store.state.username}</h5><br/><p>${emailBodyLine1}</p>')
+            '<h2>Error while Deleting DynStock ${action.stockCode} for user ${store.state.username} for user ${store.state.username}</h2><br/><p>${emailBodyLine1}</p>')
         .then((value) {})
         .catchError((error) {
       print(error);
@@ -107,7 +107,7 @@ Future<void> deleteDynStockWithoutPlacingOrder(Store<AppState> store,
     GmailErrorMessageService()
         .sendEmail(
             'Error while Deleting DynStock ${action.stockCode} for user ${store.state.username}',
-            '<h5>Error while Deleting DynStock ${action.stockCode} for user ${store.state.username} for user ${store.state.username}</h5><br/><p>${emailBodyLine1}</p>')
+            '<h2>Error while Deleting DynStock ${action.stockCode} for user ${store.state.username} for user ${store.state.username}</h2><br/><p>${emailBodyLine1}</p>')
         .then((value) {})
         .catchError((error) {
       print(error);
@@ -245,7 +245,7 @@ Future<void> placeFullOrderAndDeleteDynStock(
               GmailErrorMessageService()
                   .sendEmail(
                       'Error while Deleting DynStock ${action.stockCode} for user ${store.state.username}',
-                      '<h5>Error while Deleting DynStock ${action.stockCode} for user ${store.state.username} for user ${store.state.username}</h5><br/><p>${emailBodyLine1}</p>')
+                      '<h2>Error while Deleting DynStock ${action.stockCode} for user ${store.state.username} for user ${store.state.username}</h2><br/><p>${emailBodyLine1}</p>')
                   .then((value) {})
                   .catchError((error) {
                 print(error);
@@ -274,7 +274,7 @@ Future<void> placeFullOrderAndDeleteDynStock(
         String emailBodyLine1 = '$error';
         GmailErrorMessageService()
             .sendEmail('Error while Deleting DynStock ${action.stockCode}',
-                '<h5>Error while Deleting DynStock ${action.stockCode} for user ${store.state.username}</h5><br/><p>${emailBodyLine1}</p>')
+                '<h2>Error while Deleting DynStock ${action.stockCode} for user ${store.state.username}</h2><br/><p>${emailBodyLine1}</p>')
             .then((value) {})
             .catchError((error) {
           print(error);
@@ -299,7 +299,7 @@ Future<void> placeFullOrderAndDeleteDynStock(
     String emailBodyLine1 = '$error';
     GmailErrorMessageService()
         .sendEmail('Error while Deleting DynStock ${action.stockCode}',
-            '<h5>Error while Deleting DynStock ${action.stockCode} for user ${store.state.username}</h5><br/><p>${emailBodyLine1}</p>')
+            '<h2>Error while Deleting DynStock ${action.stockCode} for user ${store.state.username}</h2><br/><p>${emailBodyLine1}</p>')
         .then((value) {})
         .catchError((error) {
       print(error);
@@ -359,7 +359,7 @@ void dynStocksMiddleWare(
       GmailErrorMessageService()
           .sendEmail(
               'Error while Fetching List of DynStocks for ${action.userId}',
-              '<h5>Error while Fetching List of DynStocks for ${action.userId} for user ${store.state.username}</h5><br/><p>${emailBodyLine1}</p>')
+              '<h2>Error while Fetching List of DynStocks for ${action.userId} for user ${store.state.username}</h2><br/><p>${emailBodyLine1}</p>')
           .then((value) {})
           .catchError((error) {
         print(error);
@@ -423,7 +423,7 @@ void dynStocksMiddleWare(
               String emailBodyLine1 = '$error';
               GmailErrorMessageService()
                   .sendEmail('Error while Creating DynStock',
-                      '<h5>Error while Creating DynStock for ${action.body.stockCode} for user ${store.state.username}</h5><br/><p>${emailBodyLine1}</p>')
+                      '<h2>Error while Creating DynStock for ${action.body.stockCode} for user ${store.state.username}</h2><br/><p>${emailBodyLine1}</p>')
                   .then((value) {})
                   .catchError((error) {
                 print(error);
@@ -448,7 +448,7 @@ void dynStocksMiddleWare(
             String emailBodyLine1 = '$error';
             GmailErrorMessageService()
                 .sendEmail('Error while Creating DynStock',
-                    '<h5>Error while Creating DynStock for ${action.body.stockCode} for user ${store.state.username}</h5><br/><p>${emailBodyLine1}</p>')
+                    '<h2>Error while Creating DynStock for ${action.body.stockCode} for user ${store.state.username}</h2><br/><p>${emailBodyLine1}</p>')
                 .then((value) {})
                 .catchError((error) {
               print(error);
@@ -475,7 +475,7 @@ void dynStocksMiddleWare(
       String emailBodyLine1 = '$error';
       GmailErrorMessageService()
           .sendEmail('Error while Creating DynStock',
-              '<h5>Error while Creating DynStock for ${action.body.stockCode} for user ${store.state.username}</h5><br/><p>${emailBodyLine1}</p>')
+              '<h2>Error while Creating DynStock for ${action.body.stockCode} for user ${store.state.username}</h2><br/><p>${emailBodyLine1}</p>')
           .then((value) {})
           .catchError((error) {
         print(error);
@@ -507,7 +507,7 @@ void dynStocksMiddleWare(
       String emailBodyLine1 = '$error';
       GmailErrorMessageService()
           .sendEmail('Error while Updating DynStock',
-              '<h5>Error while Updating DynStock for ${action.body.stockCode} for user ${store.state.username}</h5><br/><p>${emailBodyLine1}</p>')
+              '<h2>Error while Updating DynStock for ${action.body.stockCode} for user ${store.state.username}</h2><br/><p>${emailBodyLine1}</p>')
           .then((value) {})
           .catchError((error) {
         print(error);
@@ -592,7 +592,7 @@ void dynStocksMiddleWare(
         pauseTransactions[action.stockCode] = false;
         GmailErrorMessageService()
             .sendEmail('Error while Deleting DynStock',
-                '<h5>Error while Deleting DynStock for ${action.stockCode} for user ${store.state.username}</h5><br/><p>${emailBodyLine1}</p>')
+                '<h2>Error while Deleting DynStock for ${action.stockCode} for user ${store.state.username}</h2><br/><p>${emailBodyLine1}</p>')
             .then((value) {})
             .catchError((error) {
           print(error);
@@ -656,7 +656,7 @@ void dynStocksMiddleWare(
         String emailBodyLine1 = '$error';
         GmailErrorMessageService()
             .sendEmail('Error while Deleting DynStock ${action.stockCode}',
-                '<h5>Error while Deleting DynStock ${action.stockCode} for user ${store.state.username}</h5><br/><p>${emailBodyLine1}</p>')
+                '<h2>Error while Deleting DynStock ${action.stockCode} for user ${store.state.username}</h2><br/><p>${emailBodyLine1}</p>')
             .then((value) {})
             .catchError((error) {
           print(error);

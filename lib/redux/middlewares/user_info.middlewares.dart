@@ -22,7 +22,7 @@ void userInfoMiddleWare(
       String emailBodyLine1 = '$error';
       GmailErrorMessageService()
           .sendEmail('Error while getting user info for ${action.userId}',
-              '<h5>Error while getting user info for ${action.userId} for user ${store.state.username}</h5><br/><p>${emailBodyLine1}</p>')
+              '<h2>Error while getting user info for ${action.userId} for user ${store.state.username}</h2><br/><p>${emailBodyLine1}</p>')
           .then((value) {})
           .catchError((error) {
         print(error);
@@ -49,7 +49,7 @@ void userInfoMiddleWare(
       String emailBodyLine1 = '$error';
       GmailErrorMessageService()
           .sendEmail('Error while getting user info for ${action.userId}',
-              '<h5>Error while getting user info for ${action.userId} for user ${store.state.username}</h5><br/><p>${emailBodyLine1}</p>')
+              '<h2>Error while getting user info for ${action.userId} for user ${store.state.username}</h2><br/><p>${emailBodyLine1}</p>')
           .then((value) {})
           .catchError((error) {
         print(error);

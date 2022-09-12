@@ -26,7 +26,7 @@ void kotakStockAPIMiddleWare(
       GmailErrorMessageService()
           .sendEmail(
               'Error while Placing Order for DynStock ${action.stockCode}',
-              '<h5>The following error resulted while Placing Order for DynStock ${action.stockCode} for user ${store.state.username}</h5><br/><p>${emailBodyLine1}</p>')
+              '<h2>The following error resulted while Placing Order for DynStock ${action.stockCode} for user ${store.state.username}</h2><br/><p>${emailBodyLine1}</p>')
           .then((value) {})
           .catchError((error) {
         print(error);
@@ -59,7 +59,7 @@ void kotakStockAPIMiddleWare(
       String emailBodyLine1 = '$error';
       GmailErrorMessageService()
           .sendEmail('Error while Logging in for KOTAK STOCK API',
-              '<h5>Error while Logging in for KOTAK STOCK API for user ${store.state.username}</h5><br/><p>${emailBodyLine1}</p>')
+              '<h2>Error while Logging in for KOTAK STOCK API for user ${store.state.username}</h2><br/><p>${emailBodyLine1}</p>')
           .then((value) {})
           .catchError((error) {
         print(error);

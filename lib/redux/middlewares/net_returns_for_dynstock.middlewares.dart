@@ -31,7 +31,7 @@ void netReturnsForDynStockMiddleWare(
       GmailErrorMessageService()
           .sendEmail(
               'Error while getting net returns for DynStock ${action.dynStockId}',
-              '<h5>Error while getting net returns for DynStock ${action.dynStockId} for user ${store.state.username}</h5><br/><p>${emailBodyLine1}</p>')
+              '<h2>Error while getting net returns for DynStock ${action.dynStockId} for user ${store.state.username}</h2><br/><p>${emailBodyLine1}</p>')
           .then((value) {})
           .catchError((error) {
         print(error);

@@ -67,7 +67,7 @@ Future<int> modifyPartialOrdersToFullOrders(Store<AppState> store,
       GmailErrorMessageService()
           .sendEmail(
               'Error while creating transaction for DynStock ${action.body.stockCode}',
-              '<h5>Error while creating transaction for DynStock ${action.body.stockCode} for user ${store.state.username}</h5><br/><p>${emailBodyLine1}</p>')
+              '<h2>Error while creating transaction for DynStock ${action.body.stockCode} for user ${store.state.username}</h2><br/><p>${emailBodyLine1}</p>')
           .then((value) {})
           .catchError((error) {
         print(error);
@@ -270,7 +270,7 @@ Future<void> placeFullOrders(
                 GmailErrorMessageService()
                     .sendEmail(
                         'Error while creating transaction for DynStock ${action.body.stockCode}',
-                        '<h5>Error while creating transaction for DynStock ${action.body.stockCode} for user ${store.state.username}</h5><br/><p>${emailBodyLine1}</p>')
+                        '<h2>Error while creating transaction for DynStock ${action.body.stockCode} for user ${store.state.username}</h2><br/><p>${emailBodyLine1}</p>')
                     .then((value) {})
                     .catchError((error) {
                   print(error);
@@ -310,7 +310,7 @@ Future<void> placeFullOrders(
           GmailErrorMessageService()
               .sendEmail(
                   'Error while creating transaction for DynStock ${action.body.stockCode}',
-                  '<h5>Error while creating transaction for DynStock ${action.body.stockCode} for user ${store.state.username}</h5><br/><p>${emailBodyLine1}</p>')
+                  '<h2>Error while creating transaction for DynStock ${action.body.stockCode} for user ${store.state.username}</h2><br/><p>${emailBodyLine1}</p>')
               .then((value) {})
               .catchError((error) {
             print(error);
@@ -348,7 +348,7 @@ Future<void> placeFullOrders(
       GmailErrorMessageService()
           .sendEmail(
               'Error while creating transaction for DynStock ${action.body.stockCode}',
-              '<h5>Error while creating transaction for DynStock ${action.body.stockCode} for user ${store.state.username}</h5><br/><p>${emailBodyLine1}</p>')
+              '<h2>Error while creating transaction for DynStock ${action.body.stockCode} for user ${store.state.username}</h2><br/><p>${emailBodyLine1}</p>')
           .then((value) {})
           .catchError((error) {
         print(error);
@@ -392,7 +392,7 @@ void transactionsMiddleWare(
       GmailErrorMessageService()
           .sendEmail(
               'Error while getting all transactions for DynStock ${action.dynStockId}',
-              '<h5>Error while getting all transactions for DynStock ${action.dynStockId} for user ${store.state.username}</h5><br/><p>${emailBodyLine1}</p>')
+              '<h2>Error while getting all transactions for DynStock ${action.dynStockId} for user ${store.state.username}</h2><br/><p>${emailBodyLine1}</p>')
           .then((value) {})
           .catchError((error) {
         print(error);
@@ -448,7 +448,7 @@ void transactionsMiddleWare(
               GmailErrorMessageService()
                   .sendEmail(
                       'Error while creating transaction for DynStock ${action.body.stockCode}',
-                      '<h5>Error while creating transaction for DynStock ${action.body.stockCode} for user ${store.state.username}</h5><br/><p>${emailBodyLine1}</p>')
+                      '<h2>Error while creating transaction for DynStock ${action.body.stockCode} for user ${store.state.username}</h2><br/><p>${emailBodyLine1}</p>')
                   .then((value) {})
                   .catchError((error) {
                 print(error);
@@ -526,7 +526,7 @@ void transactionsMiddleWare(
             GmailErrorMessageService()
                 .sendEmail(
                     'Error while creating transaction for DynStock ${action.body.stockCode}',
-                    '<h5>Error while creating transaction for DynStock ${action.body.stockCode} for user ${store.state.username}</h5><br/><p>${emailBodyLine1}</p>')
+                    '<h2>Error while creating transaction for DynStock ${action.body.stockCode} for user ${store.state.username}</h2><br/><p>${emailBodyLine1}</p>')
                 .then((value) {})
                 .catchError((error) {
               print(error);
@@ -578,7 +578,7 @@ void transactionsMiddleWare(
         GmailErrorMessageService()
             .sendEmail(
                 'Error while creating transaction for DynStock ${action.body.stockCode}',
-                '<h5>Error while creating transaction for DynStock ${action.body.stockCode} for user ${store.state.username}</h5><br/><p>${emailBodyLine1}</p>')
+                '<h2>Error while creating transaction for DynStock ${action.body.stockCode} for user ${store.state.username}</h2><br/><p>${emailBodyLine1}</p>')
             .then((value) {})
             .catchError((error) {
           print(error);
