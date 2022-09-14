@@ -403,7 +403,7 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
     Wakelock.enabled.then((value) {
       if (!value) {
         Wakelock.enable();
-        GmailErrorMessageService().signIntoGoogle();
+        GmailErrorMessageService.signIntoGoogle();
       }
     });
     DateTime now = DateTime.now();

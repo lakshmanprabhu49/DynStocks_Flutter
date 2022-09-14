@@ -109,7 +109,7 @@ class _EnterLocalUserCredsScreenState extends State<EnterLocalUserCredsScreen>
     Wakelock.enabled.then((value) {
       if (!value) {
         Wakelock.enable();
-        GmailErrorMessageService().signIntoGoogle();
+        GmailErrorMessageService.signIntoGoogle();
       }
     });
     if (mounted) {

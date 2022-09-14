@@ -233,16 +233,14 @@ void tickerDataMiddleWare(
                         dynStockId: dynStock.dynStockId.uuid,
                         stockCode: dynStock.stockCode,
                         body: TransactionBody(
-                            transactionId: '',
-                            type: 'SELL',
-                            noOfStocks: dynStock.stocksAvailableForTrade == 0
-                                ? dynStock.noOfStocks
-                                : dynStock.stocksAvailableForTrade,
-                            stockCode: dynStock.stockCode,
-                            stockPrice: max(
-                                response.price.currentPrice!,
-                                response.currentLocalMaximumPrice -
-                                    dynStock.STPr))));
+                          transactionId: '',
+                          type: 'SELL',
+                          noOfStocks: dynStock.stocksAvailableForTrade == 0
+                              ? dynStock.noOfStocks
+                              : dynStock.stocksAvailableForTrade,
+                          stockCode: dynStock.stockCode,
+                          stockPrice: response.price.currentPrice!,
+                        )));
                   }
                   break;
                 case 'Percentage':
@@ -285,18 +283,14 @@ void tickerDataMiddleWare(
                         dynStockId: dynStock.dynStockId.uuid,
                         stockCode: dynStock.stockCode,
                         body: TransactionBody(
-                            transactionId: '',
-                            type: 'SELL',
-                            noOfStocks: dynStock.stocksAvailableForTrade == 0
-                                ? dynStock.noOfStocks
-                                : dynStock.stocksAvailableForTrade,
-                            stockCode: dynStock.stockCode,
-                            stockPrice: max(
-                                response.price.currentPrice!,
-                                double.parse(
-                                    ((response.currentLocalMaximumPrice) *
-                                            (1 - (dynStock.STPe / 100)))
-                                        .toStringAsFixed(2))))));
+                          transactionId: '',
+                          type: 'SELL',
+                          noOfStocks: dynStock.stocksAvailableForTrade == 0
+                              ? dynStock.noOfStocks
+                              : dynStock.stocksAvailableForTrade,
+                          stockCode: dynStock.stockCode,
+                          stockPrice: response.price.currentPrice!,
+                        )));
                   }
                   break;
               }
@@ -341,15 +335,13 @@ void tickerDataMiddleWare(
                       dynStockId: dynStock.dynStockId.uuid,
                       stockCode: dynStock.stockCode,
                       body: TransactionBody(
-                          transactionId: '',
-                          type: 'BUY',
-                          noOfStocks: (dynStock.noOfStocks -
-                              dynStock.stocksAvailableForTrade),
-                          stockCode: dynStock.stockCode,
-                          stockPrice: min(
-                              response.price.currentPrice!,
-                              response.currentLocalMinimumPrice +
-                                  dynStock.BTPr))));
+                        transactionId: '',
+                        type: 'BUY',
+                        noOfStocks: (dynStock.noOfStocks -
+                            dynStock.stocksAvailableForTrade),
+                        stockCode: dynStock.stockCode,
+                        stockPrice: response.price.currentPrice!,
+                      )));
                 }
                 break;
               case 'Percentage':
@@ -389,17 +381,13 @@ void tickerDataMiddleWare(
                       stockOrderType: EStockOrderType.Limit.name,
                       stockCode: dynStock.stockCode,
                       body: TransactionBody(
-                          transactionId: '',
-                          type: 'BUY',
-                          noOfStocks: (dynStock.noOfStocks -
-                              dynStock.stocksAvailableForTrade),
-                          stockCode: dynStock.stockCode,
-                          stockPrice: min(
-                              response.price.currentPrice!,
-                              double.parse(
-                                  ((response.currentLocalMinimumPrice) *
-                                          (1 + (dynStock.BTPe / 100)))
-                                      .toStringAsFixed(2))))));
+                        transactionId: '',
+                        type: 'BUY',
+                        noOfStocks: (dynStock.noOfStocks -
+                            dynStock.stocksAvailableForTrade),
+                        stockCode: dynStock.stockCode,
+                        stockPrice: response.price.currentPrice!,
+                      )));
                 }
                 break;
             }
