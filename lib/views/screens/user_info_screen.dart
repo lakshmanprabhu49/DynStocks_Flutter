@@ -328,7 +328,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> with RouteAware {
       });
     }
     Size screenSize = MediaQuery.of(context).size;
-    if (mounted && !isLoaded) {
+    if (mounted && !isLoaded && !appStore.state.userInfo.loadFailed) {
       StoreProvider.of<AppState>(context)
           .dispatch(GetUserInfoAction(userId: userId));
       setState(() {
@@ -481,223 +481,241 @@ class _UserInfoScreenState extends State<UserInfoScreen> with RouteAware {
                         },
                         onEditingComplete: () {},
                       )),
-                  Container(
-                      child: Container(
-                    margin: EdgeInsets.fromLTRB(0, 20, 0, 0),
-                    padding: EdgeInsets.fromLTRB(0, 50, 0, 50),
-                    decoration: BoxDecoration(
-                        borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(50),
-                            topRight: Radius.circular(50)),
-                        gradient: LinearGradient(
-                            colors: [PaletteColors.blue1, PaletteColors.blue2],
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter)),
-                    child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                Container(
-                                  width: screenSize.width * 0.4,
-                                  height: screenSize.width * 0.3,
-                                  decoration: BoxDecoration(
-                                      color: PaletteColors.blue3,
-                                      borderRadius: BorderRadius.circular(30)),
-                                  child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        if (state.userInfo.loaded &&
-                                            !(state.userInfo.deleted))
-                                          SingleChildScrollView(
-                                              scrollDirection: Axis.horizontal,
-                                              child: Text(
-                                                '${state.userInfo.data!.noOfDynStocksOwned}',
-                                                style: GoogleFonts.outfit(
-                                                    fontSize: 30,
-                                                    fontWeight: FontWeight.bold,
-                                                    color: PaletteColors.blue2),
-                                              )),
-                                        if (state.userInfo.loaded &&
-                                            !(state.userInfo.deleted))
-                                          Text(
-                                            'DynStocks',
-                                            style: GoogleFonts.overlock(
-                                                fontSize: 20,
-                                                color: PaletteColors.blue2),
-                                          ),
-                                        if (state.userInfo.loading)
-                                          (Text('Loading....')),
-                                        if (state.userInfo.loadFailed)
-                                          Text('Load Failed!')
-                                      ]),
-                                ),
-                                Container(
-                                  width: screenSize.width * 0.4,
-                                  height: screenSize.width * 0.3,
-                                  decoration: BoxDecoration(
-                                      color: PaletteColors.purple2,
-                                      borderRadius: BorderRadius.circular(30)),
-                                  child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        if (state.userInfo.loaded &&
-                                            !(state.userInfo.deleted))
-                                          SingleChildScrollView(
-                                              scrollDirection: Axis.horizontal,
-                                              child: Text(
-                                                '${state.userInfo.data!.noOfTransactionsMade}',
-                                                style: GoogleFonts.outfit(
-                                                    fontSize: 30,
-                                                    fontWeight: FontWeight.bold,
-                                                    color: PaletteColors.blue2),
-                                              )),
-                                        if (state.userInfo.loaded &&
-                                            !(state.userInfo.deleted))
-                                          Text(
-                                            'Transactions',
-                                            style: GoogleFonts.overlock(
-                                                fontSize: 20,
-                                                color: PaletteColors.blue2),
-                                          ),
-                                        if (state.userInfo.loading)
-                                          (Text('Loading....')),
-                                        if (state.userInfo.loadFailed)
-                                          Text('Load Failed!')
-                                      ]),
-                                )
-                              ]),
-                          Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                Container(
-                                  margin: EdgeInsets.fromLTRB(0, 20, 0, 20),
-                                  padding: EdgeInsets.fromLTRB(10, 10, 10, 10),
-                                  width: screenSize.width * 0.4,
-                                  height: screenSize.width * 0.3,
-                                  decoration: BoxDecoration(
-                                      color: PaletteColors.purple2,
-                                      borderRadius: BorderRadius.circular(30)),
-                                  child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        if (state.userInfo.loaded &&
-                                            !(state.userInfo.deleted))
-                                          SingleChildScrollView(
-                                              scrollDirection: Axis.horizontal,
-                                              child: Row(children: [
-                                                Icon(
-                                                  Icons.currency_rupee,
-                                                  color: PaletteColors.blue2,
-                                                  size: 25,
-                                                ),
-                                                Text(
-                                                  '${state.userInfo.data!.netReturns.toStringAsFixed(2)}',
+                  if (state.userInfo.loaded)
+                    Container(
+                        child: Container(
+                      margin: EdgeInsets.fromLTRB(0, 20, 0, 0),
+                      padding: EdgeInsets.fromLTRB(0, 50, 0, 50),
+                      decoration: BoxDecoration(
+                          borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(50),
+                              topRight: Radius.circular(50)),
+                          gradient: LinearGradient(
+                              colors: [
+                                PaletteColors.blue1,
+                                PaletteColors.blue2
+                              ],
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter)),
+                      child: Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  Container(
+                                    width: screenSize.width * 0.4,
+                                    height: screenSize.width * 0.3,
+                                    decoration: BoxDecoration(
+                                        color: PaletteColors.blue3,
+                                        borderRadius:
+                                            BorderRadius.circular(30)),
+                                    child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          if (state.userInfo.loaded &&
+                                              !(state.userInfo.deleted))
+                                            SingleChildScrollView(
+                                                scrollDirection:
+                                                    Axis.horizontal,
+                                                child: Text(
+                                                  '${state.userInfo.data!.noOfDynStocksOwned}',
                                                   style: GoogleFonts.outfit(
-                                                      fontSize: 25,
+                                                      fontSize: 30,
                                                       fontWeight:
                                                           FontWeight.bold,
                                                       color:
                                                           PaletteColors.blue2),
-                                                )
-                                              ])),
-                                        if (state.userInfo.loaded &&
-                                            !(state.userInfo.deleted))
-                                          Text(
-                                            'Net returns from all DynStocks',
-                                            textAlign: TextAlign.center,
-                                            style: GoogleFonts.overlock(
-                                                fontSize: 15,
-                                                color: PaletteColors.blue2),
-                                          ),
-                                        if (state.userInfo.loading &&
-                                            !(state.userInfo.deleted))
-                                          (Text('Loading....')),
-                                        if (state.userInfo.loadFailed)
-                                          Text('Load Failed!')
-                                      ]),
-                                ),
+                                                )),
+                                          if (state.userInfo.loaded &&
+                                              !(state.userInfo.deleted))
+                                            Text(
+                                              'DynStocks',
+                                              style: GoogleFonts.overlock(
+                                                  fontSize: 20,
+                                                  color: PaletteColors.blue2),
+                                            ),
+                                          if (state.userInfo.loading)
+                                            (Text('Loading....')),
+                                          if (state.userInfo.loadFailed)
+                                            Text('Load Failed!')
+                                        ]),
+                                  ),
+                                  Container(
+                                    width: screenSize.width * 0.4,
+                                    height: screenSize.width * 0.3,
+                                    decoration: BoxDecoration(
+                                        color: PaletteColors.purple2,
+                                        borderRadius:
+                                            BorderRadius.circular(30)),
+                                    child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          if (state.userInfo.loaded &&
+                                              !(state.userInfo.deleted))
+                                            SingleChildScrollView(
+                                                scrollDirection:
+                                                    Axis.horizontal,
+                                                child: Text(
+                                                  '${state.userInfo.data!.noOfTransactionsMade}',
+                                                  style: GoogleFonts.outfit(
+                                                      fontSize: 30,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color:
+                                                          PaletteColors.blue2),
+                                                )),
+                                          if (state.userInfo.loaded &&
+                                              !(state.userInfo.deleted))
+                                            Text(
+                                              'Transactions',
+                                              style: GoogleFonts.overlock(
+                                                  fontSize: 20,
+                                                  color: PaletteColors.blue2),
+                                            ),
+                                          if (state.userInfo.loading)
+                                            (Text('Loading....')),
+                                          if (state.userInfo.loadFailed)
+                                            Text('Load Failed!')
+                                        ]),
+                                  )
+                                ]),
+                            Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  Container(
+                                    margin: EdgeInsets.fromLTRB(0, 20, 0, 20),
+                                    padding:
+                                        EdgeInsets.fromLTRB(10, 10, 10, 10),
+                                    width: screenSize.width * 0.4,
+                                    height: screenSize.width * 0.3,
+                                    decoration: BoxDecoration(
+                                        color: PaletteColors.purple2,
+                                        borderRadius:
+                                            BorderRadius.circular(30)),
+                                    child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          if (state.userInfo.loaded &&
+                                              !(state.userInfo.deleted))
+                                            SingleChildScrollView(
+                                                scrollDirection:
+                                                    Axis.horizontal,
+                                                child: Row(children: [
+                                                  Icon(
+                                                    Icons.currency_rupee,
+                                                    color: PaletteColors.blue2,
+                                                    size: 25,
+                                                  ),
+                                                  Text(
+                                                    '${state.userInfo.data!.netReturns.toStringAsFixed(2)}',
+                                                    style: GoogleFonts.outfit(
+                                                        fontSize: 25,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        color: PaletteColors
+                                                            .blue2),
+                                                  )
+                                                ])),
+                                          if (state.userInfo.loaded &&
+                                              !(state.userInfo.deleted))
+                                            Text(
+                                              'Net returns from all DynStocks',
+                                              textAlign: TextAlign.center,
+                                              style: GoogleFonts.overlock(
+                                                  fontSize: 15,
+                                                  color: PaletteColors.blue2),
+                                            ),
+                                          if (state.userInfo.loading &&
+                                              !(state.userInfo.deleted))
+                                            (Text('Loading....')),
+                                          if (state.userInfo.loadFailed)
+                                            Text('Load Failed!')
+                                        ]),
+                                  ),
+                                  Container(
+                                    margin: EdgeInsets.fromLTRB(0, 20, 0, 20),
+                                    width: screenSize.width * 0.4,
+                                    height: screenSize.width * 0.3,
+                                    decoration: BoxDecoration(
+                                        color: PaletteColors.blue3,
+                                        borderRadius:
+                                            BorderRadius.circular(30)),
+                                    child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: []),
+                                  )
+                                ]),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
                                 Container(
-                                  margin: EdgeInsets.fromLTRB(0, 20, 0, 20),
-                                  width: screenSize.width * 0.4,
-                                  height: screenSize.width * 0.3,
-                                  decoration: BoxDecoration(
-                                      color: PaletteColors.blue3,
-                                      borderRadius: BorderRadius.circular(30)),
-                                  child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: []),
-                                )
-                              ]),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              Container(
-                                  child: ElevatedButton(
-                                      style: ButtonStyle(
-                                        padding: MaterialStateProperty.all(
-                                            EdgeInsets.fromLTRB(
-                                                15, 15, 15, 15)),
-                                        shape: MaterialStateProperty.all(
-                                            RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(25),
-                                        )),
-                                        backgroundColor:
-                                            MaterialStateProperty.all(
-                                                Colors.white),
-                                      ),
-                                      onPressed: () {
-                                        showLogoutDialog();
-                                      },
-                                      child: Text(
-                                        'Log Out',
-                                        style: GoogleFonts.lusitana(
-                                            color: PaletteColors.blue2,
-                                            fontSize: 25,
-                                            fontWeight: FontWeight.bold),
-                                      ))),
-                              Container(
-                                  child: ElevatedButton(
-                                      style: ButtonStyle(
-                                        padding: MaterialStateProperty.all(
-                                            EdgeInsets.fromLTRB(
-                                                15, 15, 15, 15)),
-                                        shape: MaterialStateProperty.all(
-                                            RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(25),
-                                        )),
-                                        backgroundColor:
-                                            MaterialStateProperty.all(
-                                                AccentColors.red1),
-                                      ),
-                                      onPressed: () {
-                                        if (state
-                                            .allDynStocks.data.isNotEmpty) {
-                                          showCannotDeleteUserDialog();
-                                        } else {
-                                          showDeleteUserDialog();
-                                        }
-                                      },
-                                      child: Text(
-                                        'Delete User',
-                                        style: GoogleFonts.lusitana(
-                                            color: PaletteColors.blue3,
-                                            fontSize: 25,
-                                            fontWeight: FontWeight.bold),
-                                      )))
-                            ],
-                          )
-                        ]),
-                  ))
+                                    child: ElevatedButton(
+                                        style: ButtonStyle(
+                                          padding: MaterialStateProperty.all(
+                                              EdgeInsets.fromLTRB(
+                                                  15, 15, 15, 15)),
+                                          shape: MaterialStateProperty.all(
+                                              RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(25),
+                                          )),
+                                          backgroundColor:
+                                              MaterialStateProperty.all(
+                                                  Colors.white),
+                                        ),
+                                        onPressed: () {
+                                          showLogoutDialog();
+                                        },
+                                        child: Text(
+                                          'Log Out',
+                                          style: GoogleFonts.lusitana(
+                                              color: PaletteColors.blue2,
+                                              fontSize: 25,
+                                              fontWeight: FontWeight.bold),
+                                        ))),
+                                Container(
+                                    child: ElevatedButton(
+                                        style: ButtonStyle(
+                                          padding: MaterialStateProperty.all(
+                                              EdgeInsets.fromLTRB(
+                                                  15, 15, 15, 15)),
+                                          shape: MaterialStateProperty.all(
+                                              RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(25),
+                                          )),
+                                          backgroundColor:
+                                              MaterialStateProperty.all(
+                                                  AccentColors.red1),
+                                        ),
+                                        onPressed: () {
+                                          if (state
+                                              .allDynStocks.data.isNotEmpty) {
+                                            showCannotDeleteUserDialog();
+                                          } else {
+                                            showDeleteUserDialog();
+                                          }
+                                        },
+                                        child: Text(
+                                          'Delete User',
+                                          style: GoogleFonts.lusitana(
+                                              color: PaletteColors.blue3,
+                                              fontSize: 25,
+                                              fontWeight: FontWeight.bold),
+                                        )))
+                              ],
+                            )
+                          ]),
+                    ))
                 ])),
               )),
       bottomNavigationBar: BottomNavigationBarCustom(

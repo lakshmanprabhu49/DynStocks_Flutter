@@ -9,13 +9,13 @@ import 'package:mailer/smtp_server.dart';
 class GmailErrorMessageService {
   static final GoogleSignIn _googleSignIn =
       GoogleSignIn(scopes: ['https://mail.google.com/']);
-
+  static GoogleSignInAccount? user;
   static Future<GoogleSignInAccount?> signIntoGoogle() async {
     bool isUserSignedIn = await _googleSignIn.isSignedIn();
-    if (isUserSignedIn) {
-      return _googleSignIn.currentUser;
+    if (!isUserSignedIn) {
+      GmailErrorMessageService.user = await _googleSignIn.signIn();
     }
-    return await _googleSignIn.signIn();
+    return GmailErrorMessageService.user;
   }
 
   static Future<void> sendEmail(String subject, String html) async {

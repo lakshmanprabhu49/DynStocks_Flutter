@@ -48,8 +48,8 @@ void userInfoMiddleWare(
       print(error);
       String emailBodyLine1 = '$error';
       GmailErrorMessageService.sendEmail(
-              'Error while getting user info for ${action.userId}',
-              '<h2>Error while getting user info for ${action.userId} for user ${store.state.username}</h2><br/><p>${emailBodyLine1}</p>')
+              'Error while deleting user info for ${action.userId}',
+              '<h2>Error while deleting user info for ${action.userId} for user ${store.state.username}</h2><br/><p>${emailBodyLine1}</p>')
           .then((value) {})
           .catchError((error) {
         print(error);
