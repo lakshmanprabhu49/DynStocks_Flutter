@@ -11,8 +11,7 @@ class GmailErrorMessageService {
       GoogleSignIn(scopes: ['https://mail.google.com/']);
   static GoogleSignInAccount? user;
   static Future<GoogleSignInAccount?> signIntoGoogle() async {
-    bool isUserSignedIn = await _googleSignIn.isSignedIn();
-    if (!isUserSignedIn) {
+    if (GmailErrorMessageService.user != null) {
       GmailErrorMessageService.user = await _googleSignIn.signIn();
     }
     return GmailErrorMessageService.user;
