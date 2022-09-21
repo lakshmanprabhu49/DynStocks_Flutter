@@ -772,7 +772,7 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                                     child: Column(children: [
                                       Row(children: [
                                         Text(
-                                          'HE Tolerance (amount)',
+                                          'HE Tolerance',
                                           textAlign: TextAlign.left,
                                           style: GoogleFonts.lusitana(
                                               fontSize: 20,
@@ -830,7 +830,7 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                                     child: Column(children: [
                                       Row(children: [
                                         Text(
-                                          'LE Tolerance (amount)',
+                                          'LE Tolerance',
                                           textAlign: TextAlign.left,
                                           style: GoogleFonts.lusitana(
                                               fontSize: 20,
@@ -1645,7 +1645,7 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                                             ),
                                           ),
                                           Text(
-                                            'HE Tolerance (amount)',
+                                            'HE Tolerance',
                                             style: GoogleFonts.outfit(
                                               color: PaletteColors.blue4,
                                               fontSize: 12,
@@ -1676,7 +1676,7 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                                             ),
                                           ),
                                           Text(
-                                            'LE Tolerance (amount)',
+                                            'LE Tolerance',
                                             style: GoogleFonts.outfit(
                                               color: PaletteColors.blue4,
                                               fontSize: 12,

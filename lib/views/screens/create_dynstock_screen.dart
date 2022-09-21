@@ -942,7 +942,7 @@ class _CreateDynStockScreenState extends State<CreateDynStockScreen>
                                     child: Column(children: [
                                       Row(children: [
                                         Text(
-                                          'HE Tolerance (amount)',
+                                          'HE Tolerance',
                                           textAlign: TextAlign.left,
                                           style: GoogleFonts.lusitana(
                                               fontSize: 23,
@@ -1002,7 +1002,7 @@ class _CreateDynStockScreenState extends State<CreateDynStockScreen>
                                     child: Column(children: [
                                       Row(children: [
                                         Text(
-                                          'LE Tolerance (amount)',
+                                          'LE Tolerance',
                                           textAlign: TextAlign.left,
                                           style: GoogleFonts.lusitana(
                                               fontSize: 23,
