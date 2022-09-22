@@ -15,6 +15,7 @@ import 'package:dynstocks/services/transactions.service.dart';
 import 'package:dynstocks/static/post-market-timer.dart';
 import 'package:dynstocks/static/toast_message_handler.dart';
 import 'package:dynstocks/static/timed_ticker_call.dart';
+import 'package:dynstocks/views/screens/view_dynstocks_list_screen.dart';
 import 'package:dynstocks/views/widgets/bottom_navigation_bar_custom.dart';
 import 'package:dynstocks/views/widgets/transactions_today_bar_chart.dart';
 import 'package:dynstocks/views/widgets/transactions_today_details.dart';
@@ -364,8 +365,8 @@ class _EventsTodayScreenState extends State<EventsTodayScreen> with RouteAware {
             isLoaded = false;
             reload = true;
           });
-          Route newRoute =
-              MaterialPageRoute(builder: (context) => EventsTodayScreen());
+          Route newRoute = MaterialPageRoute(
+              builder: (context) => ViewDynStocksListScreen());
           Navigator.pushReplacement(context, newRoute);
         }
       });
