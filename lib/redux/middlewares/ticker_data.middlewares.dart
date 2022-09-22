@@ -8,6 +8,7 @@ import 'package:dynstocks/redux/actions/transactions.actions.dart';
 import 'package:dynstocks/redux/actions/ticker_data.actions.dart';
 import 'package:dynstocks/redux/app_state.dart';
 import 'package:dynstocks/services/ticker_data.service.dart';
+import 'package:dynstocks/static/last_dispatched_order_time.dart';
 import 'package:redux/redux.dart';
 import 'package:collection/collection.dart';
 import 'package:intl/intl.dart';
@@ -188,12 +189,21 @@ void tickerDataMiddleWare(
             !(store.state.transactionsCreateState.data[dynStock.stockCode]!
                 .creating) &&
             !(pauseTransactions[dynStock.stockCode] == true)) {
+          DateTime lastDispatchedOrderTime =
+              LastDispatchedOrderTime.data[dynStock.stockCode] as DateTime;
+          DateTime now = DateTime.now();
+          Duration difference = now.difference(lastDispatchedOrderTime);
           // SELL Logic
           if (dynStock.lastTransactionType == 'BUY' &&
               !(dynStock.stallTransactions)) {
             if ((now.compareTo(secondNextDayOfLastTransactionTime) >= 0 &&
                     dynStock.stockType == EStockType.BE.name) ||
                 dynStock.stockType != EStockType.BE.name) {
+              if (!LastDispatchedOrderTime.data
+                  .containsKey(dynStock.stockCode)) {
+                LastDispatchedOrderTime.data[dynStock.stockCode] =
+                    DateTime(2020);
+              }
               switch (dynStock.DSTPUnit) {
                 case 'Price':
                   if (((dynStock.lastTradedPrice -
@@ -201,8 +211,11 @@ void tickerDataMiddleWare(
                           dynStock.HETolerance) &&
                       ((dynStock.lastTradedPrice -
                               response.price.currentPrice!) >=
-                          dynStock.LETolerance)) {
+                          dynStock.LETolerance) &&
+                      (difference.inMinutes >= 1)) {
                     orderPlaced = true;
+                    LastDispatchedOrderTime.data[dynStock.stockCode] =
+                        DateTime.now();
                     orderType = 'SELL';
                     store.dispatch(CreateTransactionAction(
                         userId: appStore.state.userId,
@@ -221,8 +234,11 @@ void tickerDataMiddleWare(
                         )));
                   } else if (response.price.currentPrice != null &&
                       (response.price.currentPrice! <=
-                          response.currentLocalMaximumPrice - dynStock.STPr)) {
+                          response.currentLocalMaximumPrice - dynStock.STPr) &&
+                      (difference.inMinutes >= 1)) {
                     orderPlaced = true;
+                    LastDispatchedOrderTime.data[dynStock.stockCode] =
+                        DateTime.now();
                     orderType = 'SELL';
                     store.dispatch(CreateTransactionAction(
                         userId: appStore.state.userId,
@@ -247,8 +263,11 @@ void tickerDataMiddleWare(
                           dynStock.HETolerance) &&
                       ((dynStock.lastTradedPrice -
                               response.price.currentPrice!) >=
-                          dynStock.LETolerance)) {
+                          dynStock.LETolerance) &&
+                      (difference.inMinutes >= 1)) {
                     orderPlaced = true;
+                    LastDispatchedOrderTime.data[dynStock.stockCode] =
+                        DateTime.now();
                     orderType = 'SELL';
                     store.dispatch(CreateTransactionAction(
                         userId: appStore.state.userId,
@@ -269,8 +288,11 @@ void tickerDataMiddleWare(
                       (response.price.currentPrice! <=
                           double.parse(((response.currentLocalMaximumPrice) *
                                   (1 - (dynStock.STPe / 100)))
-                              .toStringAsFixed(2)))) {
+                              .toStringAsFixed(2))) &&
+                      (difference.inMinutes >= 1)) {
                     orderPlaced = true;
+                    LastDispatchedOrderTime.data[dynStock.stockCode] =
+                        DateTime.now();
                     orderType = 'SELL';
                     store.dispatch(CreateTransactionAction(
                         userId: appStore.state.userId,
@@ -302,8 +324,11 @@ void tickerDataMiddleWare(
                         dynStock.HETolerance) &&
                     ((response.price.currentPrice! -
                             dynStock.lastTradedPrice) >=
-                        dynStock.LETolerance)) {
+                        dynStock.LETolerance) &&
+                    (difference.inMinutes >= 1)) {
                   orderPlaced = true;
+                  LastDispatchedOrderTime.data[dynStock.stockCode] =
+                      DateTime.now();
                   orderType = 'BUY';
                   store.dispatch(CreateTransactionAction(
                       userId: appStore.state.userId,
@@ -321,8 +346,11 @@ void tickerDataMiddleWare(
                       )));
                 } else if (response.price.currentPrice != null &&
                     (response.price.currentPrice! >=
-                        response.currentLocalMinimumPrice + dynStock.BTPr)) {
+                        response.currentLocalMinimumPrice + dynStock.BTPr) &&
+                    (difference.inMinutes >= 1)) {
                   orderPlaced = true;
+                  LastDispatchedOrderTime.data[dynStock.stockCode] =
+                      DateTime.now();
                   orderType = 'BUY';
                   store.dispatch(CreateTransactionAction(
                       userId: appStore.state.userId,
@@ -346,8 +374,11 @@ void tickerDataMiddleWare(
                         dynStock.HETolerance) &&
                     ((response.price.currentPrice! -
                             dynStock.lastTradedPrice) >=
-                        dynStock.LETolerance)) {
+                        dynStock.LETolerance) &&
+                    (difference.inMinutes >= 1)) {
                   orderPlaced = true;
+                  LastDispatchedOrderTime.data[dynStock.stockCode] =
+                      DateTime.now();
                   orderType = 'BUY';
                   store.dispatch(CreateTransactionAction(
                       userId: appStore.state.userId,
@@ -367,8 +398,11 @@ void tickerDataMiddleWare(
                     (response.price.currentPrice! >=
                         double.parse(((response.currentLocalMinimumPrice) *
                                 (1 + (dynStock.BTPe / 100)))
-                            .toStringAsFixed(2)))) {
+                            .toStringAsFixed(2))) &&
+                    (difference.inMinutes >= 1)) {
                   orderPlaced = true;
+                  LastDispatchedOrderTime.data[dynStock.stockCode] =
+                      DateTime.now();
                   orderType = 'BUY';
                   store.dispatch(CreateTransactionAction(
                       userId: appStore.state.userId,
