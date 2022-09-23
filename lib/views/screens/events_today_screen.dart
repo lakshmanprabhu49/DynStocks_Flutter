@@ -352,14 +352,14 @@ class _EventsTodayScreenState extends State<EventsTodayScreen> with RouteAware {
       }
     });
     DateTime now = DateTime.now();
-    if (((now.hour < 9) || (now.hour == 9 && now.hour < 15)) &&
+    if (((now.hour < 9) || (now.hour == 9 && now.minute < 15)) &&
         !timerCreatedFor915) {
       setState(() {
         timerCreatedFor915 = true;
       });
       Timer.periodic(Duration(seconds: 1), (timer) {
         DateTime currentTime = DateTime.now();
-        if (currentTime.hour == 9 && now.hour >= 15) {
+        if ((currentTime.hour == 9 && now.minute >= 15)) {
           timer.cancel();
           setState(() {
             isLoaded = false;
