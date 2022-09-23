@@ -12,6 +12,7 @@ import 'package:dynstocks/services/emailjs.service.dart';
 import 'package:dynstocks/services/gmail_error_message.service.dart';
 import 'package:dynstocks/services/kotak_stock_api.service.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 
 class PostMarketTimer {
@@ -116,6 +117,8 @@ class PostMarketTimer {
             //     .catchError((error) {
             //   print(error);
             // });
+          }).whenComplete(() {
+            SystemNavigator.pop();
           });
         }
       }
