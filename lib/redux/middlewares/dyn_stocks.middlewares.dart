@@ -99,6 +99,7 @@ Future<void> deleteDynStockWithoutPlacingOrder(Store<AppState> store,
     store.dispatch(CreateTransactionSuccessAction(
         stockCode: dynStockToBeDeleted.stockCode));
     store.dispatch(DeleteDynStockSuccessAction(dynStockId: response));
+    store.dispatch(GetAllTickerDataAction());
   } catch (error) {
     print(error);
     pauseTransactions[action.stockCode] = false;
@@ -184,6 +185,7 @@ Future<void> placeFullOrderAndDeleteDynStock(
           store.dispatch(CreateTransactionSuccessAction(
               stockCode: dynStockToBeDeleted.stockCode));
           store.dispatch(DeleteDynStockSuccessAction(dynStockId: response));
+          store.dispatch(GetAllTickerDataAction());
         } else {
           Timer.periodic(Duration(seconds: 5), (timer) async {
             try {
@@ -226,6 +228,7 @@ Future<void> placeFullOrderAndDeleteDynStock(
                 pauseTransactions[action.stockCode] = false;
                 store.dispatch(
                     DeleteDynStockSuccessAction(dynStockId: response));
+                store.dispatch(GetAllTickerDataAction());
               } else if (tradedStock.status == EStockTradeStatus.CAN.name) {
                 timer.cancel();
                 String response = await DynStocksService()
@@ -235,6 +238,7 @@ Future<void> placeFullOrderAndDeleteDynStock(
                 pauseTransactions[action.stockCode] = false;
                 store.dispatch(
                     DeleteDynStockSuccessAction(dynStockId: response));
+                store.dispatch(GetAllTickerDataAction());
               }
             } catch (error) {
               print(error);

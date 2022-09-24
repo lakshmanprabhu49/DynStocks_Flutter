@@ -7,6 +7,7 @@ import 'package:dynstocks/models/yahoo_finance_data.dart';
 import 'package:dynstocks/redux/actions/transactions.actions.dart';
 import 'package:dynstocks/redux/actions/ticker_data.actions.dart';
 import 'package:dynstocks/redux/app_state.dart';
+import 'package:dynstocks/services/gmail_error_message.service.dart';
 import 'package:dynstocks/services/ticker_data.service.dart';
 import 'package:dynstocks/static/last_dispatched_order_time.dart';
 import 'package:redux/redux.dart';
@@ -189,6 +190,9 @@ void tickerDataMiddleWare(
             !(store.state.transactionsCreateState.data[dynStock.stockCode]!
                 .creating) &&
             !(pauseTransactions[dynStock.stockCode] == true)) {
+          if (!LastDispatchedOrderTime.data.containsKey(dynStock.stockCode)) {
+            LastDispatchedOrderTime.data[dynStock.stockCode] = DateTime(2020);
+          }
           DateTime lastDispatchedOrderTime =
               LastDispatchedOrderTime.data[dynStock.stockCode] as DateTime;
           DateTime now = DateTime.now();
@@ -199,11 +203,6 @@ void tickerDataMiddleWare(
             if ((now.compareTo(secondNextDayOfLastTransactionTime) >= 0 &&
                     dynStock.stockType == EStockType.BE.name) ||
                 dynStock.stockType != EStockType.BE.name) {
-              if (!LastDispatchedOrderTime.data
-                  .containsKey(dynStock.stockCode)) {
-                LastDispatchedOrderTime.data[dynStock.stockCode] =
-                    DateTime(2020);
-              }
               switch (dynStock.DSTPUnit) {
                 case 'Price':
                   if (((dynStock.lastTradedPrice -
@@ -433,6 +432,13 @@ void tickerDataMiddleWare(
       }).catchError((error) {
         print(error);
         store.dispatch(GetAllTickerDataFailAction(error: error));
+        String emailBodyLine1 = '$error';
+        GmailErrorMessageService.sendEmail('Error in ticker data middleware',
+                '<h2>Error in ticker data middleware</h2><br/><p>${emailBodyLine1}</p>')
+            .then((value) {})
+            .catchError((error) {
+          print(error);
+        });
       });
     });
   }
