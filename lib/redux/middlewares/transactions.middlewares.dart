@@ -13,6 +13,7 @@ import 'package:dynstocks/services/emailjs.service.dart';
 import 'package:dynstocks/services/gmail_error_message.service.dart';
 import 'package:dynstocks/services/kotak_stock_api.service.dart';
 import 'package:dynstocks/services/transactions.service.dart';
+import 'package:dynstocks/static/last_dispatched_order_time.dart';
 import 'package:redux/redux.dart';
 
 Future<int> modifyPartialOrdersToFullOrders(Store<AppState> store,
@@ -207,50 +208,50 @@ Future<void> placeFullOrders(
                 store.dispatch(GetAllDynStocksAction(userId: action.userId));
               } else if (tradedStock.status == EStockTradeStatus.OPN.name) {
                 // Check if the order can be further optimized
-                if (tradedStock.transactionType == ETransactionType.SELL.name &&
-                    store.state.allTickerData.data[action.stockCode]!.price
-                            .currentPrice! >
-                        tradedStock.price) {
-                  KotakStockApiPlaceOrderResponse newModifiedOrder =
-                      await KotakStockAPIService().modifyOrder(
-                              action.userId,
-                              store.state.accessCode,
-                              tradedStock.orderId,
-                              KotakStockAPIPlaceOrderBody(
-                                  orderType: 'N',
-                                  instrumentToken: action.instrumentToken,
-                                  transactionType: tradedStock.transactionType,
-                                  quantity: tradedStock.orderQuantity,
-                                  price: store
-                                      .state
-                                      .allTickerData
-                                      .data[action.stockCode]!
-                                      .price
-                                      .currentPrice!))
-                          as KotakStockApiPlaceOrderResponse;
-                } else if (tradedStock.transactionType ==
-                        ETransactionType.BUY.name &&
-                    store.state.allTickerData.data[action.stockCode]!.price
-                            .currentPrice! <
-                        tradedStock.price) {
-                  KotakStockApiPlaceOrderResponse newModifiedOrder =
-                      await KotakStockAPIService().modifyOrder(
-                              action.userId,
-                              store.state.accessCode,
-                              tradedStock.orderId,
-                              KotakStockAPIPlaceOrderBody(
-                                  orderType: 'N',
-                                  instrumentToken: action.instrumentToken,
-                                  transactionType: tradedStock.transactionType,
-                                  quantity: tradedStock.orderQuantity,
-                                  price: store
-                                      .state
-                                      .allTickerData
-                                      .data[action.stockCode]!
-                                      .price
-                                      .currentPrice!))
-                          as KotakStockApiPlaceOrderResponse;
-                }
+                // if (tradedStock.transactionType == ETransactionType.SELL.name &&
+                //     store.state.allTickerData.data[action.stockCode]!.price
+                //             .currentPrice! >
+                //         tradedStock.price) {
+                //   KotakStockApiPlaceOrderResponse newModifiedOrder =
+                //       await KotakStockAPIService().modifyOrder(
+                //               action.userId,
+                //               store.state.accessCode,
+                //               tradedStock.orderId,
+                //               KotakStockAPIPlaceOrderBody(
+                //                   orderType: 'N',
+                //                   instrumentToken: action.instrumentToken,
+                //                   transactionType: tradedStock.transactionType,
+                //                   quantity: tradedStock.orderQuantity,
+                //                   price: store
+                //                       .state
+                //                       .allTickerData
+                //                       .data[action.stockCode]!
+                //                       .price
+                //                       .currentPrice!))
+                //           as KotakStockApiPlaceOrderResponse;
+                // } else if (tradedStock.transactionType ==
+                //         ETransactionType.BUY.name &&
+                //     store.state.allTickerData.data[action.stockCode]!.price
+                //             .currentPrice! <
+                //         tradedStock.price) {
+                //   KotakStockApiPlaceOrderResponse newModifiedOrder =
+                //       await KotakStockAPIService().modifyOrder(
+                //               action.userId,
+                //               store.state.accessCode,
+                //               tradedStock.orderId,
+                //               KotakStockAPIPlaceOrderBody(
+                //                   orderType: 'N',
+                //                   instrumentToken: action.instrumentToken,
+                //                   transactionType: tradedStock.transactionType,
+                //                   quantity: tradedStock.orderQuantity,
+                //                   price: store
+                //                       .state
+                //                       .allTickerData
+                //                       .data[action.stockCode]!
+                //                       .price
+                //                       .currentPrice!))
+                //           as KotakStockApiPlaceOrderResponse;
+                // }
               }
             } catch (error) {
               if (((error as dynamic).message as String)
@@ -412,8 +413,16 @@ void transactionsMiddleWare(
   if (action is CreateTransactionAction) {
     if (action.placeKotakAPIStockOrder) {
       if (!action.forcedTransaction) {
-        if (!(store
-            .state.transactionsCreateState.data[action.stockCode]!.creating)) {
+        if (!LastDispatchedOrderTime.data.containsKey(action.stockCode)) {
+          LastDispatchedOrderTime.data[action.stockCode] = DateTime(2020);
+        }
+        DateTime lastDispatchedOrderTime =
+            LastDispatchedOrderTime.data[action.stockCode] as DateTime;
+        DateTime now = DateTime.now();
+        Duration difference = now.difference(lastDispatchedOrderTime);
+        if (!(store.state.transactionsCreateState.data[action.stockCode]!
+                .creating) &&
+            difference.inMinutes >= 1) {
           try {
             // Sometimes , creating is not working properly,
             // So what we do is, get order Categories, check if there are any open orders

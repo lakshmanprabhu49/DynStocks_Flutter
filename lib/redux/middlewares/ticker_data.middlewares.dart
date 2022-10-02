@@ -221,7 +221,7 @@ void tickerDataMiddleWare(
                         instrumentToken: dynStock.instrumentToken,
                         dynStockId: dynStock.dynStockId.uuid,
                         stockCode: dynStock.stockCode,
-                        stockOrderType: EStockOrderType.Limit.name,
+                        stockOrderType: EStockOrderType.Market.name,
                         body: TransactionBody(
                           transactionId: '',
                           type: 'SELL',
@@ -229,7 +229,7 @@ void tickerDataMiddleWare(
                               ? dynStock.noOfStocks
                               : dynStock.stocksAvailableForTrade,
                           stockCode: dynStock.stockCode,
-                          stockPrice: response.price.currentPrice!,
+                          stockPrice: 0,
                         )));
                   } else if (response.price.currentPrice != null &&
                       (response.price.currentPrice! <=
@@ -242,7 +242,7 @@ void tickerDataMiddleWare(
                     store.dispatch(CreateTransactionAction(
                         userId: appStore.state.userId,
                         instrumentToken: dynStock.instrumentToken,
-                        stockOrderType: EStockOrderType.Limit.name,
+                        stockOrderType: EStockOrderType.Market.name,
                         dynStockId: dynStock.dynStockId.uuid,
                         stockCode: dynStock.stockCode,
                         body: TransactionBody(
@@ -252,7 +252,7 @@ void tickerDataMiddleWare(
                               ? dynStock.noOfStocks
                               : dynStock.stocksAvailableForTrade,
                           stockCode: dynStock.stockCode,
-                          stockPrice: response.price.currentPrice!,
+                          stockPrice: 0,
                         )));
                   }
                   break;
@@ -273,7 +273,7 @@ void tickerDataMiddleWare(
                         instrumentToken: dynStock.instrumentToken,
                         dynStockId: dynStock.dynStockId.uuid,
                         stockCode: dynStock.stockCode,
-                        stockOrderType: EStockOrderType.Limit.name,
+                        stockOrderType: EStockOrderType.Market.name,
                         body: TransactionBody(
                           transactionId: '',
                           type: 'SELL',
@@ -281,7 +281,7 @@ void tickerDataMiddleWare(
                               ? dynStock.noOfStocks
                               : dynStock.stocksAvailableForTrade,
                           stockCode: dynStock.stockCode,
-                          stockPrice: response.price.currentPrice!,
+                          stockPrice: 0,
                         )));
                   } else if (response.price.currentPrice != null &&
                       (response.price.currentPrice! <=
@@ -296,7 +296,7 @@ void tickerDataMiddleWare(
                     store.dispatch(CreateTransactionAction(
                         userId: appStore.state.userId,
                         instrumentToken: dynStock.instrumentToken,
-                        stockOrderType: EStockOrderType.Limit.name,
+                        stockOrderType: EStockOrderType.Market.name,
                         dynStockId: dynStock.dynStockId.uuid,
                         stockCode: dynStock.stockCode,
                         body: TransactionBody(
@@ -306,7 +306,7 @@ void tickerDataMiddleWare(
                               ? dynStock.noOfStocks
                               : dynStock.stocksAvailableForTrade,
                           stockCode: dynStock.stockCode,
-                          stockPrice: response.price.currentPrice!,
+                          stockPrice: 0,
                         )));
                   }
                   break;
@@ -334,14 +334,14 @@ void tickerDataMiddleWare(
                       instrumentToken: dynStock.instrumentToken,
                       dynStockId: dynStock.dynStockId.uuid,
                       stockCode: dynStock.stockCode,
-                      stockOrderType: EStockOrderType.Limit.name,
+                      stockOrderType: EStockOrderType.Market.name,
                       body: TransactionBody(
                         transactionId: '',
                         type: 'BUY',
                         noOfStocks: (dynStock.noOfStocks -
                             dynStock.stocksAvailableForTrade),
                         stockCode: dynStock.stockCode,
-                        stockPrice: response.price.currentPrice!,
+                        stockPrice: 0,
                       )));
                 } else if (response.price.currentPrice != null &&
                     (response.price.currentPrice! >=
@@ -354,7 +354,7 @@ void tickerDataMiddleWare(
                   store.dispatch(CreateTransactionAction(
                       userId: appStore.state.userId,
                       instrumentToken: dynStock.instrumentToken,
-                      stockOrderType: EStockOrderType.Limit.name,
+                      stockOrderType: EStockOrderType.Market.name,
                       dynStockId: dynStock.dynStockId.uuid,
                       stockCode: dynStock.stockCode,
                       body: TransactionBody(
@@ -363,7 +363,7 @@ void tickerDataMiddleWare(
                         noOfStocks: (dynStock.noOfStocks -
                             dynStock.stocksAvailableForTrade),
                         stockCode: dynStock.stockCode,
-                        stockPrice: response.price.currentPrice!,
+                        stockPrice: 0,
                       )));
                 }
                 break;
@@ -383,7 +383,7 @@ void tickerDataMiddleWare(
                       userId: appStore.state.userId,
                       instrumentToken: dynStock.instrumentToken,
                       dynStockId: dynStock.dynStockId.uuid,
-                      stockOrderType: EStockOrderType.Limit.name,
+                      stockOrderType: EStockOrderType.Market.name,
                       stockCode: dynStock.stockCode,
                       body: TransactionBody(
                         transactionId: '',
@@ -391,7 +391,7 @@ void tickerDataMiddleWare(
                         noOfStocks: (dynStock.noOfStocks -
                             dynStock.stocksAvailableForTrade),
                         stockCode: dynStock.stockCode,
-                        stockPrice: response.price.currentPrice!,
+                        stockPrice: 0,
                       )));
                 } else if (response.price.currentPrice != null &&
                     (response.price.currentPrice! >=
@@ -407,7 +407,7 @@ void tickerDataMiddleWare(
                       userId: appStore.state.userId,
                       instrumentToken: dynStock.instrumentToken,
                       dynStockId: dynStock.dynStockId.uuid,
-                      stockOrderType: EStockOrderType.Limit.name,
+                      stockOrderType: EStockOrderType.Market.name,
                       stockCode: dynStock.stockCode,
                       body: TransactionBody(
                         transactionId: '',
@@ -415,7 +415,7 @@ void tickerDataMiddleWare(
                         noOfStocks: (dynStock.noOfStocks -
                             dynStock.stocksAvailableForTrade),
                         stockCode: dynStock.stockCode,
-                        stockPrice: response.price.currentPrice!,
+                        stockPrice: 0,
                       )));
                 }
                 break;
