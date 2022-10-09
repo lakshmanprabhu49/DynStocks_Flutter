@@ -325,7 +325,7 @@ class _EventsTodayScreenState extends State<EventsTodayScreen> with RouteAware {
     Timer.periodic(Duration(seconds: 1), (timer) {
       if (mounted) {
         PostMarketTimer.startPostMarketTimer(context);
-        bool timerStarted = TimedTickerCall?.startTimedTickerCallForDynStocks(
+        bool timerStarted = TimedTickerCall.startTimedTickerCallForDynStocks(
           context,
         );
         if (timerStarted) {

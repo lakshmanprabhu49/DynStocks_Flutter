@@ -45,8 +45,20 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
   DynStock? currentDynStock;
   String currentDynStockTimePeriod = '1h';
   bool isTimedTickerFetchStarted = false;
-  List<String> dynStockTimePeriod =
-      List.from(['1h', '1d', '1w', '1m', '3m', '6m', '1y', 'All']);
+  List<String> dynStockTimePeriod = List.from([
+    '1h',
+    '1d',
+    '1w',
+    '1m',
+    '3m',
+    '6m',
+    '1y',
+    '2y',
+    '3y',
+    '4y',
+    '5y',
+    'All'
+  ]);
 
   EDSTPUnit currentDSTPUnit = EDSTPUnit.Price;
   Map<EDSTPUnit, String> DSTPUnitMap = Map();
@@ -82,7 +94,7 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
     Timer.periodic(Duration(seconds: 1), (timer) {
       if (mounted) {
         PostMarketTimer.startPostMarketTimer(context);
-        bool timerStarted = TimedTickerCall?.startTimedTickerCallForDynStocks(
+        bool timerStarted = TimedTickerCall.startTimedTickerCallForDynStocks(
           context,
         );
         if (timerStarted) {

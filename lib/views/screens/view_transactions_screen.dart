@@ -83,7 +83,7 @@ class _ViewTransactionsScreenState extends State<ViewTransactionsScreen>
     Timer.periodic(Duration(seconds: 1), (timer) {
       if (mounted) {
         PostMarketTimer.startPostMarketTimer(context);
-        bool timerStarted = TimedTickerCall?.startTimedTickerCallForDynStocks(
+        bool timerStarted = TimedTickerCall.startTimedTickerCallForDynStocks(
           context,
         );
         if (timerStarted) {
