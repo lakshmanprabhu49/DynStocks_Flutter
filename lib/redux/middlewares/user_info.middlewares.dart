@@ -20,24 +20,24 @@ void userInfoMiddleWare(
     }).catchError((error) {
       print(error);
       String emailBodyLine1 = '$error';
-      GmailErrorMessageService.sendEmail(
-              'Error while getting user info for ${action.userId}',
-              '<h2>Error while getting user info for ${action.userId} for user ${store.state.username}</h2><br/><p>${emailBodyLine1}</p>')
-          .then((value) {})
-          .catchError((error) {
-        print(error);
-      });
-      // EmailJSService()
-      //     .sendEmail(Email(
-      //         username: 'Myself',
-      //         subject: 'Error while getting user info for ${action.userId}',
-      //         title: 'Error while getting user info for ${action.userId}',
-      //         subtitle: 'Error while getting user info for ${action.userId}',
-      //         body: emailBodyLine1))
+      // GmailErrorMessageService.sendEmail(
+      //         'Error while getting user info for ${action.userId}',
+      //         '<h2>Error while getting user info for ${action.userId} for user ${store.state.username}</h2><br/><p>${emailBodyLine1}</p>')
       //     .then((value) {})
       //     .catchError((error) {
       //   print(error);
       // });
+      EmailJSService()
+          .sendEmail(Email(
+              username: 'Myself',
+              subject: 'Error while getting user info for ${action.userId}',
+              title: 'Error while getting user info for ${action.userId}',
+              subtitle: 'Error while getting user info for ${action.userId}',
+              body: emailBodyLine1))
+          .then((value) {})
+          .catchError((error) {
+        print(error);
+      });
       store.dispatch(GetUserInfoFailAction(error: error));
     });
   }
@@ -47,24 +47,24 @@ void userInfoMiddleWare(
     }).catchError((error) {
       print(error);
       String emailBodyLine1 = '$error';
-      GmailErrorMessageService.sendEmail(
-              'Error while deleting user info for ${action.userId}',
-              '<h2>Error while deleting user info for ${action.userId} for user ${store.state.username}</h2><br/><p>${emailBodyLine1}</p>')
-          .then((value) {})
-          .catchError((error) {
-        print(error);
-      });
-      // EmailJSService()
-      //     .sendEmail(Email(
-      //         username: 'Myself',
-      //         subject: 'Error while getting user info for ${action.userId}',
-      //         title: 'Error while getting user info for ${action.userId}',
-      //         subtitle: 'Error while getting user info for ${action.userId}',
-      //         body: emailBodyLine1))
+      // GmailErrorMessageService.sendEmail(
+      //         'Error while deleting user info for ${action.userId}',
+      //         '<h2>Error while deleting user info for ${action.userId} for user ${store.state.username}</h2><br/><p>${emailBodyLine1}</p>')
       //     .then((value) {})
       //     .catchError((error) {
       //   print(error);
       // });
+      EmailJSService()
+          .sendEmail(Email(
+              username: 'Myself',
+              subject: 'Error while getting user info for ${action.userId}',
+              title: 'Error while getting user info for ${action.userId}',
+              subtitle: 'Error while getting user info for ${action.userId}',
+              body: emailBodyLine1))
+          .then((value) {})
+          .catchError((error) {
+        print(error);
+      });
       store.dispatch(DeleteUserFailAction(error: error));
     });
   }

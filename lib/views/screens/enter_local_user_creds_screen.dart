@@ -99,6 +99,11 @@ class _EnterLocalUserCredsScreenState extends State<EnterLocalUserCredsScreen>
   }
 
   @override
+  void didPush() {
+    super.didPush();
+  }
+
+  @override
   void dispose() {
     stopPeriodicTimer();
     super.dispose();
@@ -109,7 +114,7 @@ class _EnterLocalUserCredsScreenState extends State<EnterLocalUserCredsScreen>
     Wakelock.enabled.then((value) {
       if (!value) {
         Wakelock.enable();
-        GmailErrorMessageService.signIntoGoogle();
+        // GmailErrorMessageService.signIntoGoogle();
       }
     });
     if (mounted) {

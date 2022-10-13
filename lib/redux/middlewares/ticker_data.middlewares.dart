@@ -2,11 +2,13 @@ import 'dart:math';
 
 import 'package:dynstocks/main.dart';
 import 'package:dynstocks/models/common.dart';
+import 'package:dynstocks/models/email.dart';
 import 'package:dynstocks/models/transactions.dart';
 import 'package:dynstocks/models/yahoo_finance_data.dart';
 import 'package:dynstocks/redux/actions/transactions.actions.dart';
 import 'package:dynstocks/redux/actions/ticker_data.actions.dart';
 import 'package:dynstocks/redux/app_state.dart';
+import 'package:dynstocks/services/emailjs.service.dart';
 import 'package:dynstocks/services/gmail_error_message.service.dart';
 import 'package:dynstocks/services/ticker_data.service.dart';
 import 'package:dynstocks/static/last_dispatched_order_time.dart';
@@ -213,8 +215,7 @@ void tickerDataMiddleWare(
                           dynStock.LETolerance) &&
                       (difference.inMinutes >= 1)) {
                     orderPlaced = true;
-                    LastDispatchedOrderTime.data[dynStock.stockCode] =
-                        DateTime.now();
+
                     orderType = 'SELL';
                     store.dispatch(CreateTransactionAction(
                         userId: appStore.state.userId,
@@ -236,8 +237,7 @@ void tickerDataMiddleWare(
                           response.currentLocalMaximumPrice - dynStock.STPr) &&
                       (difference.inMinutes >= 1)) {
                     orderPlaced = true;
-                    LastDispatchedOrderTime.data[dynStock.stockCode] =
-                        DateTime.now();
+
                     orderType = 'SELL';
                     store.dispatch(CreateTransactionAction(
                         userId: appStore.state.userId,
@@ -265,8 +265,7 @@ void tickerDataMiddleWare(
                           dynStock.LETolerance) &&
                       (difference.inMinutes >= 1)) {
                     orderPlaced = true;
-                    LastDispatchedOrderTime.data[dynStock.stockCode] =
-                        DateTime.now();
+
                     orderType = 'SELL';
                     store.dispatch(CreateTransactionAction(
                         userId: appStore.state.userId,
@@ -290,8 +289,7 @@ void tickerDataMiddleWare(
                               .toStringAsFixed(2))) &&
                       (difference.inMinutes >= 1)) {
                     orderPlaced = true;
-                    LastDispatchedOrderTime.data[dynStock.stockCode] =
-                        DateTime.now();
+
                     orderType = 'SELL';
                     store.dispatch(CreateTransactionAction(
                         userId: appStore.state.userId,
@@ -326,8 +324,7 @@ void tickerDataMiddleWare(
                         dynStock.LETolerance) &&
                     (difference.inMinutes >= 1)) {
                   orderPlaced = true;
-                  LastDispatchedOrderTime.data[dynStock.stockCode] =
-                      DateTime.now();
+
                   orderType = 'BUY';
                   store.dispatch(CreateTransactionAction(
                       userId: appStore.state.userId,
@@ -348,8 +345,7 @@ void tickerDataMiddleWare(
                         response.currentLocalMinimumPrice + dynStock.BTPr) &&
                     (difference.inMinutes >= 1)) {
                   orderPlaced = true;
-                  LastDispatchedOrderTime.data[dynStock.stockCode] =
-                      DateTime.now();
+
                   orderType = 'BUY';
                   store.dispatch(CreateTransactionAction(
                       userId: appStore.state.userId,
@@ -376,8 +372,7 @@ void tickerDataMiddleWare(
                         dynStock.LETolerance) &&
                     (difference.inMinutes >= 1)) {
                   orderPlaced = true;
-                  LastDispatchedOrderTime.data[dynStock.stockCode] =
-                      DateTime.now();
+
                   orderType = 'BUY';
                   store.dispatch(CreateTransactionAction(
                       userId: appStore.state.userId,
@@ -400,8 +395,7 @@ void tickerDataMiddleWare(
                             .toStringAsFixed(2))) &&
                     (difference.inMinutes >= 1)) {
                   orderPlaced = true;
-                  LastDispatchedOrderTime.data[dynStock.stockCode] =
-                      DateTime.now();
+
                   orderType = 'BUY';
                   store.dispatch(CreateTransactionAction(
                       userId: appStore.state.userId,
@@ -435,6 +429,17 @@ void tickerDataMiddleWare(
         String emailBodyLine1 = '$error';
         GmailErrorMessageService.sendEmail('Error in ticker data middleware',
                 '<h2>Error in ticker data middleware</h2><br/><p>${emailBodyLine1}</p>')
+            .then((value) {})
+            .catchError((error) {
+          print(error);
+        });
+        EmailJSService()
+            .sendEmail(Email(
+                username: 'Myself',
+                subject: 'Error in ticker data middleware',
+                title: 'Error in ticker data middleware',
+                subtitle: 'Error in ticker data middleware ${emailBodyLine1}',
+                body: emailBodyLine1))
             .then((value) {})
             .catchError((error) {
           print(error);

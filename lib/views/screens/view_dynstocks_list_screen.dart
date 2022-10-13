@@ -111,7 +111,7 @@ class _ViewDynStocksListScreenState extends State<ViewDynStocksListScreen>
     Wakelock.enabled.then((value) {
       if (!value) {
         Wakelock.enable();
-        GmailErrorMessageService.signIntoGoogle();
+        // GmailErrorMessageService.signIntoGoogle();
       }
     });
     DateTime now = DateTime.now();
@@ -326,7 +326,7 @@ class _ViewDynStocksListScreenState extends State<ViewDynStocksListScreen>
                                       }));
                             } else {
                               return Text(
-                                'No DynStocks match your search criteria',
+                                '${searchStocksInput.length != 0 ? 'No DynStocks match your search criteria' : 'No DynStocks exist'}',
                                 style: GoogleFonts.lusitana(
                                     color: Colors.white,
                                     fontSize: 30,

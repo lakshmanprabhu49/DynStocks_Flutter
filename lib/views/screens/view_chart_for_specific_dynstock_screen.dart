@@ -309,7 +309,7 @@ class _ViewChartForSpecificDynStockScreenState
     Wakelock.enabled.then((value) {
       if (!value) {
         Wakelock.enable();
-        GmailErrorMessageService.signIntoGoogle();
+        // GmailErrorMessageService.signIntoGoogle();
       }
     });
     DateTime now = DateTime.now();

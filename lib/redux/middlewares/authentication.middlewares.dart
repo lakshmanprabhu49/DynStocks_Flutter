@@ -16,24 +16,24 @@ void authMiddleWare(
     }).catchError((error) {
       print(error);
       String emailBodyLine1 = '$error';
-      GmailErrorMessageService.sendEmail('Error while Logging in',
-              '<h2>The following error resulted while logging in for ${action.authBody.username}</h2><br/><p>${emailBodyLine1}</p>')
-          .then((value) {})
-          .catchError((error) {
-        print(error);
-      });
-      // EmailJSService()
-      //     .sendEmail(Email(
-      //         username: 'Myself',
-      //         subject: 'Error while Logging in',
-      //         title: 'Error while Logging in for ${action.authBody.username}',
-      //         subtitle:
-      //             'The following error resulted while logging in for ${action.authBody.username}',
-      //         body: emailBodyLine1))
+      // GmailErrorMessageService.sendEmail('Error while Logging in',
+      //         '<h2>The following error resulted while logging in for ${action.authBody.username}</h2><br/><p>${emailBodyLine1}</p>')
       //     .then((value) {})
       //     .catchError((error) {
       //   print(error);
       // });
+      EmailJSService()
+          .sendEmail(Email(
+              username: 'Myself',
+              subject: 'Error while Logging in',
+              title: 'Error while Logging in for ${action.authBody.username}',
+              subtitle:
+                  'The following error resulted while logging in for ${action.authBody.username}',
+              body: emailBodyLine1))
+          .then((value) {})
+          .catchError((error) {
+        print(error);
+      });
       store.dispatch(LoginFailAction(error: error));
     });
   }
@@ -43,24 +43,24 @@ void authMiddleWare(
     }).catchError((error) {
       print(error);
       String emailBodyLine1 = '$error';
-      GmailErrorMessageService.sendEmail(
-              'Error while Logging out for user ${store.state.username}',
-              '<h2>The following error resulted while logging out for user ${store.state.username}</h2><br/><p>${emailBodyLine1}</p>')
-          .then((value) {})
-          .catchError((error) {
-        print(error);
-      });
-      // EmailJSService()
-      //     .sendEmail(Email(
-      //         username: 'Myself',
-      //         subject: 'Error while Logging out',
-      //         title: 'Error while Logging out',
-      //         subtitle: 'The following error resulted while logging out',
-      //         body: emailBodyLine1))
+      // GmailErrorMessageService.sendEmail(
+      //         'Error while Logging out for user ${store.state.username}',
+      //         '<h2>The following error resulted while logging out for user ${store.state.username}</h2><br/><p>${emailBodyLine1}</p>')
       //     .then((value) {})
       //     .catchError((error) {
       //   print(error);
       // });
+      EmailJSService()
+          .sendEmail(Email(
+              username: 'Myself',
+              subject: 'Error while Logging out',
+              title: 'Error while Logging out',
+              subtitle: 'The following error resulted while logging out',
+              body: emailBodyLine1))
+          .then((value) {})
+          .catchError((error) {
+        print(error);
+      });
       store.dispatch(LogoutFailAction(error: error));
     });
   }

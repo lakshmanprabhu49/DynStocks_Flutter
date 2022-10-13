@@ -415,7 +415,7 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
     Wakelock.enabled.then((value) {
       if (!value) {
         Wakelock.enable();
-        GmailErrorMessageService.signIntoGoogle();
+        // GmailErrorMessageService.signIntoGoogle();
       }
     });
     DateTime now = DateTime.now();
@@ -466,7 +466,7 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(
             ToastMessageHandler.showErrorMessageSnackBar(
-                '${appStore.state.allDynStocks.error}'));
+                '${appStore.state.netReturnsForDynStock.error}'));
       });
       setState(() {
         errorMessageShown = true;
@@ -1081,22 +1081,25 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
         body: StoreConnector<AppState, AppState>(
             onDidChange: (previousState, state) {
               if (mounted &&
-                  ((state.transactionsCreateState.data[currentDynStockCode]!
-                              .creating !=
+                  ((state.transactionsCreateState.data[currentDynStockCode]
+                              ?.creating !=
                           creating) ||
-                      (state.transactionsCreateState.data[currentDynStockCode]!
-                              .created !=
+                      (state.transactionsCreateState.data[currentDynStockCode]
+                              ?.created !=
                           created) ||
-                      (state.transactionsCreateState.data[currentDynStockCode]!
-                              .createFailed !=
+                      (state.transactionsCreateState.data[currentDynStockCode]
+                              ?.createFailed !=
                           createFailed))) {
                 setState(() {
                   creating = state.transactionsCreateState
-                      .data[currentDynStockCode]!.creating;
+                          .data[currentDynStockCode]?.creating ??
+                      false;
                   created = state.transactionsCreateState
-                      .data[currentDynStockCode]!.created;
+                          .data[currentDynStockCode]?.created ??
+                      false;
                   createFailed = state.transactionsCreateState
-                      .data[currentDynStockCode]!.createFailed;
+                          .data[currentDynStockCode]?.createFailed ??
+                      false;
                 });
               }
               if (state.allDynStocks.deleteFailed && !errorMessageShown) {
@@ -1126,7 +1129,7 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   ScaffoldMessenger.of(context).showSnackBar(
                       ToastMessageHandler.showErrorMessageSnackBar(
-                          '${state.allDynStocks.error}'));
+                          '${state.netReturnsForDynStock.error}'));
                 });
                 setState(() {
                   errorMessageShown = true;
@@ -1917,7 +1920,7 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                                                       : AccentColors.red1),
                                             ),
                                             Text(
-                                              '(${state.allTickerData.data[currentDynStockCode]?.priceChange.regularMarketChangePercent != null && state.allTickerData.data[currentDynStockCode]!.priceChange.regularMarketChangePercent! > 0 ? '+' : ''}${state.allTickerData.data[currentDynStockCode]!.priceChange.regularMarketChangePercent != null ? state.allTickerData.data[currentDynStockCode]!.priceChange.regularMarketChangePercent!.toStringAsFixed(2) : ''} %)',
+                                              '(${state.allTickerData.data[currentDynStockCode] != null && state.allTickerData.data[currentDynStockCode]?.priceChange.regularMarketChangePercent != null && state.allTickerData.data[currentDynStockCode]!.priceChange.regularMarketChangePercent! > 0 ? '+' : ''}${state.allTickerData.data[currentDynStockCode] != null && state.allTickerData.data[currentDynStockCode]!.priceChange.regularMarketChangePercent != null ? state.allTickerData.data[currentDynStockCode]!.priceChange.regularMarketChangePercent!.toStringAsFixed(2) : ''} %)',
                                               style: GoogleFonts.lusitana(
                                                   fontSize: 15,
                                                   color: state

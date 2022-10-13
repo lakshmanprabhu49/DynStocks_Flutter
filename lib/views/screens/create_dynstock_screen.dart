@@ -154,7 +154,7 @@ class _CreateDynStockScreenState extends State<CreateDynStockScreen>
     Wakelock.enabled.then((value) {
       if (!value) {
         Wakelock.enable();
-        GmailErrorMessageService.signIntoGoogle();
+        // GmailErrorMessageService.signIntoGoogle();
       }
     });
     DateTime now = DateTime.now();

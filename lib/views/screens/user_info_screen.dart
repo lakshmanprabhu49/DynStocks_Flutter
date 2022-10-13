@@ -312,7 +312,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> with RouteAware {
     Wakelock.enabled.then((value) {
       if (!value) {
         Wakelock.enable();
-        GmailErrorMessageService.signIntoGoogle();
+        // GmailErrorMessageService.signIntoGoogle();
       }
     });
     DateTime now = DateTime.now();
@@ -419,7 +419,8 @@ class _UserInfoScreenState extends State<UserInfoScreen> with RouteAware {
                         builder: (context) => EnterLocalUserCredsScreen(
                               shouldAskForUsernameAndPassword: true,
                             ));
-                    Navigator.of(context).pushReplacement(newRoute);
+                    Navigator.of(context).pushAndRemoveUntil(
+                        newRoute, (Route<dynamic> route) => false);
                   }
                 });
               });
