@@ -65,13 +65,6 @@ Future<int> modifyPartialOrdersToFullOrders(Store<AppState> store,
       store.dispatch(CreateTransactionFailAction(
           stockCode: action.stockCode, error: error));
       String emailBodyLine1 = '$error';
-      // GmailErrorMessageService.sendEmail(
-      //         'Error while creating transaction for DynStock ${action.body.stockCode}',
-      //         '<h2>Error while creating transaction for DynStock ${action.body.stockCode} for user ${store.state.username}</h2><br/><p>${emailBodyLine1}</p>')
-      //     .then((value) {})
-      //     .catchError((error) {
-      //   print(error);
-      // });
       EmailJSService()
           .sendEmail(Email(
               username: 'Myself',
@@ -268,13 +261,6 @@ Future<void> placeFullOrders(
                 store.dispatch(CreateTransactionFailAction(
                     stockCode: action.stockCode, error: error));
                 String emailBodyLine1 = '$error';
-                // GmailErrorMessageService.sendEmail(
-                //         'Error while creating transaction for DynStock ${action.body.stockCode}',
-                //         '<h2>Error while creating transaction for DynStock ${action.body.stockCode} for user ${store.state.username}</h2><br/><p>${emailBodyLine1}</p>')
-                //     .then((value) {})
-                //     .catchError((error) {
-                //   print(error);
-                // });
                 EmailJSService()
                     .sendEmail(Email(
                         username: 'Myself',
@@ -307,13 +293,6 @@ Future<void> placeFullOrders(
           store.dispatch(CreateTransactionFailAction(
               stockCode: action.stockCode, error: error));
           String emailBodyLine1 = '$error';
-          // GmailErrorMessageService.sendEmail(
-          //         'Error while creating transaction for DynStock ${action.body.stockCode}',
-          //         '<h2>Error while creating transaction for DynStock ${action.body.stockCode} for user ${store.state.username}</h2><br/><p>${emailBodyLine1}</p>')
-          //     .then((value) {})
-          //     .catchError((error) {
-          //   print(error);
-          // });
           EmailJSService()
               .sendEmail(Email(
                   username: 'Myself',
@@ -344,13 +323,6 @@ Future<void> placeFullOrders(
       store.dispatch(CreateTransactionFailAction(
           stockCode: action.stockCode, error: error));
       String emailBodyLine1 = '$error';
-      // GmailErrorMessageService.sendEmail(
-      //         'Error while creating transaction for DynStock ${action.body.stockCode}',
-      //         '<h2>Error while creating transaction for DynStock ${action.body.stockCode} for user ${store.state.username}</h2><br/><p>${emailBodyLine1}</p>')
-      //     .then((value) {})
-      //     .catchError((error) {
-      //   print(error);
-      // });
       EmailJSService()
           .sendEmail(Email(
               username: 'Myself',
@@ -387,13 +359,6 @@ void transactionsMiddleWare(
     } catch (error) {
       print(error);
       String emailBodyLine1 = '$error';
-      // GmailErrorMessageService.sendEmail(
-      //         'Error while getting all transactions for DynStock ${action.dynStockId}',
-      //         '<h2>Error while getting all transactions for DynStock ${action.dynStockId} for user ${store.state.username}</h2><br/><p>${emailBodyLine1}</p>')
-      //     .then((value) {})
-      //     .catchError((error) {
-      //   print(error);
-      // });
       EmailJSService()
           .sendEmail(Email(
               username: 'Myself',
@@ -450,13 +415,6 @@ void transactionsMiddleWare(
                   stockCode: action.stockCode, error: error));
               print(error);
               String emailBodyLine1 = '$error';
-              // GmailErrorMessageService.sendEmail(
-              //         'Error while creating transaction for DynStock ${action.body.stockCode}',
-              //         '<h2>Error while creating transaction for DynStock ${action.body.stockCode} for user ${store.state.username}</h2><br/><p>${emailBodyLine1}</p>')
-              //     .then((value) {})
-              //     .catchError((error) {
-              //   print(error);
-              // });
               EmailJSService()
                   .sendEmail(Email(
                       username: 'Myself',
@@ -527,13 +485,6 @@ void transactionsMiddleWare(
                 stockCode: action.stockCode, error: error));
             print(error);
             String emailBodyLine1 = '$error';
-            // GmailErrorMessageService.sendEmail(
-            //         'Error while creating transaction for DynStock ${action.body.stockCode}',
-            //         '<h2>Error while creating transaction for DynStock ${action.body.stockCode} for user ${store.state.username}</h2><br/><p>${emailBodyLine1}</p>')
-            //     .then((value) {})
-            //     .catchError((error) {
-            //   print(error);
-            // });
             EmailJSService()
                 .sendEmail(Email(
                     username: 'Myself',
@@ -577,13 +528,6 @@ void transactionsMiddleWare(
         store.dispatch(CreateTransactionFailAction(
             stockCode: action.stockCode, error: error));
         String emailBodyLine1 = '$error';
-        // GmailErrorMessageService.sendEmail(
-        //         'Error while creating transaction for DynStock ${action.body.stockCode}',
-        //         '<h2>Error while creating transaction for DynStock ${action.body.stockCode} for user ${store.state.username}</h2><br/><p>${emailBodyLine1}</p>')
-        //     .then((value) {})
-        //     .catchError((error) {
-        //   print(error);
-        // });
         EmailJSService()
             .sendEmail(Email(
                 username: 'Myself',

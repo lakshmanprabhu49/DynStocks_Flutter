@@ -28,13 +28,6 @@ void netReturnsForDynStockMiddleWare(
     }).catchError((error) {
       print(error);
       String emailBodyLine1 = '$error';
-      // GmailErrorMessageService.sendEmail(
-      //         'Error while getting net returns for DynStock ${action.dynStockId}',
-      //         '<h2>Error while getting net returns for DynStock ${action.dynStockId} for user ${store.state.username}</h2><br/><p>${emailBodyLine1}</p>')
-      //     .then((value) {})
-      //     .catchError((error) {
-      //   print(error);
-      // });
       EmailJSService()
           .sendEmail(Email(
               username: 'Myself',

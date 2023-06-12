@@ -421,12 +421,6 @@ void tickerDataMiddleWare(
         print(error);
         store.dispatch(GetAllTickerDataFailAction(error: error));
         String emailBodyLine1 = '$error';
-        GmailErrorMessageService.sendEmail('Error in ticker data middleware',
-                '<h2>Error in ticker data middleware</h2><br/><p>${emailBodyLine1}</p>')
-            .then((value) {})
-            .catchError((error) {
-          print(error);
-        });
         EmailJSService()
             .sendEmail(Email(
                 username: 'Myself',

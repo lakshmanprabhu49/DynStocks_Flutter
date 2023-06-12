@@ -96,13 +96,6 @@ class PostMarketTimer {
           }).catchError((error) {
             print(error);
             String emailBodyLine1 = '$error';
-            // GmailErrorMessageService.sendEmail(
-            //         'Error while creating POST market transaction for DynStock ${dynStock.stockCode}',
-            //         '<h2>Error while creating POST market transaction for DynStock ${dynStock.stockCode} for user ${appStore.state.username}</h2><br/><p>${emailBodyLine1}</p>')
-            //     .then((value) {})
-            //     .catchError((error) {
-            //   print(error);
-            // });
             EmailJSService()
                 .sendEmail(Email(
                     username: 'Myself',

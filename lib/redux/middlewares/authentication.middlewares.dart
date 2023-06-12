@@ -15,12 +15,6 @@ void authMiddleWare(
       store.dispatch(LoginSuccessAction(authResponse: response));
     } catch (error) {
       String emailBodyLine1 = '$error';
-      // GmailErrorMessageService.sendEmail('Error while Logging in',
-      //         '<h2>The following error resulted while logging in for ${action.authBody.username}</h2><br/><p>${emailBodyLine1}</p>')
-      //     .then((value) {})
-      //     .catchError((error) {
-      //   print(error);
-      // });
       EmailJSService()
           .sendEmail(Email(
               username: 'Myself',
@@ -43,13 +37,6 @@ void authMiddleWare(
     } catch (error) {
       print(error);
       String emailBodyLine1 = '$error';
-      // GmailErrorMessageService.sendEmail(
-      //         'Error while Logging out for user ${store.state.username}',
-      //         '<h2>The following error resulted while logging out for user ${store.state.username}</h2><br/><p>${emailBodyLine1}</p>')
-      //     .then((value) {})
-      //     .catchError((error) {
-      //   print(error);
-      // });
       EmailJSService()
           .sendEmail(Email(
               username: 'Myself',

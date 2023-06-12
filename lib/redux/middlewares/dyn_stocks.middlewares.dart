@@ -67,13 +67,6 @@ Future<int> modifyPartialOrdersToFullOrders(
     pauseTransactions[action.stockCode] = false;
     print(error);
     String emailBodyLine1 = '$error';
-    // GmailErrorMessageService.sendEmail(
-    //         'Error while Deleting DynStock ${action.stockCode} for user ${store.state.username}',
-    //         '<h2>Error while Deleting DynStock ${action.stockCode} for user ${store.state.username} for user ${store.state.username}</h2><br/><p>${emailBodyLine1}</p>')
-    //     .then((value) {})
-    //     .catchError((error) {
-    //   print(error);
-    // });
     EmailJSService()
         .sendEmail(Email(
             username: 'Myself',
@@ -104,13 +97,6 @@ Future<void> deleteDynStockWithoutPlacingOrder(Store<AppState> store,
     print(error);
     pauseTransactions[action.stockCode] = false;
     String emailBodyLine1 = '$error';
-    // GmailErrorMessageService.sendEmail(
-    //         'Error while Deleting DynStock ${action.stockCode} for user ${store.state.username}',
-    //         '<h2>Error while Deleting DynStock ${action.stockCode} for user ${store.state.username} for user ${store.state.username}</h2><br/><p>${emailBodyLine1}</p>')
-    //     .then((value) {})
-    //     .catchError((error) {
-    //   print(error);
-    // });
     EmailJSService()
         .sendEmail(Email(
             username: 'Myself',
@@ -241,13 +227,6 @@ Future<void> placeFullOrderAndDeleteDynStock(
               print(error);
               pauseTransactions[action.stockCode] = false;
               String emailBodyLine1 = '$error';
-              // GmailErrorMessageService.sendEmail(
-              //         'Error while Deleting DynStock ${action.stockCode} for user ${store.state.username}',
-              //         '<h2>Error while Deleting DynStock ${action.stockCode} for user ${store.state.username} for user ${store.state.username}</h2><br/><p>${emailBodyLine1}</p>')
-              //     .then((value) {})
-              //     .catchError((error) {
-              //   print(error);
-              // });
               EmailJSService()
                   .sendEmail(Email(
                       username: 'Myself',
@@ -270,13 +249,6 @@ Future<void> placeFullOrderAndDeleteDynStock(
         print(error);
         pauseTransactions[action.stockCode] = false;
         String emailBodyLine1 = '$error';
-        // GmailErrorMessageService.sendEmail(
-        //         'Error while Deleting DynStock ${action.stockCode}',
-        //         '<h2>Error while Deleting DynStock ${action.stockCode} for user ${store.state.username}</h2><br/><p>${emailBodyLine1}</p>')
-        //     .then((value) {})
-        //     .catchError((error) {
-        //   print(error);
-        // });
         EmailJSService()
             .sendEmail(Email(
                 username: 'Myself',
@@ -295,13 +267,6 @@ Future<void> placeFullOrderAndDeleteDynStock(
     print(error);
     pauseTransactions[action.stockCode] = false;
     String emailBodyLine1 = '$error';
-    // GmailErrorMessageService.sendEmail(
-    //         'Error while Deleting DynStock ${action.stockCode}',
-    //         '<h2>Error while Deleting DynStock ${action.stockCode} for user ${store.state.username}</h2><br/><p>${emailBodyLine1}</p>')
-    //     .then((value) {})
-    //     .catchError((error) {
-    //   print(error);
-    // });
     EmailJSService()
         .sendEmail(Email(
             username: 'Myself',
@@ -356,13 +321,6 @@ void dynStocksMiddleWare(
     } catch (error) {
       print(error);
       String emailBodyLine1 = '$error';
-      // GmailErrorMessageService.sendEmail(
-      //         'Error while Fetching List of DynStocks for ${action.userId}',
-      //         '<h2>Error while Fetching List of DynStocks for ${action.userId} for user ${store.state.username}</h2><br/><p>${emailBodyLine1}</p>')
-      //     .then((value) {})
-      //     .catchError((error) {
-      //   print(error);
-      // });
       EmailJSService()
           .sendEmail(Email(
               username: 'Myself',
@@ -420,12 +378,6 @@ void dynStocksMiddleWare(
     } catch (error) {
       print(error);
       String emailBodyLine1 = '$error';
-      // GmailErrorMessageService.sendEmail('Error while Creating DynStock',
-      //         '<h2>Error while Creating DynStock for ${action.body.stockCode} for user ${store.state.username}</h2><br/><p>${emailBodyLine1}</p>')
-      //     .then((value) {})
-      //     .catchError((error) {
-      //   print(error);
-      // });
       EmailJSService()
           .sendEmail(Email(
               username: 'Myself',
@@ -451,12 +403,6 @@ void dynStocksMiddleWare(
     } catch (error) {
       print(error);
       String emailBodyLine1 = '$error';
-      // GmailErrorMessageService.sendEmail('Error while Updating DynStock',
-      //         '<h2>Error while Updating DynStock for ${action.body.stockCode} for user ${store.state.username}</h2><br/><p>${emailBodyLine1}</p>')
-      //     .then((value) {})
-      //     .catchError((error) {
-      //   print(error);
-      // });
       EmailJSService()
           .sendEmail(Email(
               username: 'Myself',
@@ -535,12 +481,6 @@ void dynStocksMiddleWare(
         print(error);
         String emailBodyLine1 = '$error';
         pauseTransactions[action.stockCode] = false;
-        // GmailErrorMessageService.sendEmail('Error while Deleting DynStock',
-        //         '<h2>Error while Deleting DynStock for ${action.stockCode} for user ${store.state.username}</h2><br/><p>${emailBodyLine1}</p>')
-        //     .then((value) {})
-        //     .catchError((error) {
-        //   print(error);
-        // });
         EmailJSService()
             .sendEmail(Email(
                 username: 'Myself',
@@ -598,13 +538,6 @@ void dynStocksMiddleWare(
       } catch (error) {
         print(error);
         String emailBodyLine1 = '$error';
-        // GmailErrorMessageService.sendEmail(
-        //         'Error while Deleting DynStock ${action.stockCode}',
-        //         '<h2>Error while Deleting DynStock ${action.stockCode} for user ${store.state.username}</h2><br/><p>${emailBodyLine1}</p>')
-        //     .then((value) {})
-        //     .catchError((error) {
-        //   print(error);
-        // });
         EmailJSService()
             .sendEmail(Email(
                 username: 'Myself',
