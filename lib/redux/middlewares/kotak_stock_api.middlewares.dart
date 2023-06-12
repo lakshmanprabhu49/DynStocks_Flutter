@@ -13,14 +13,14 @@ import 'package:redux/redux.dart';
 void kotakStockAPIMiddleWare(
     Store<AppState> store, dynamic action, NextDispatcher next) async {
   if (action is KotakStockAPIPlaceOrderAction) {
-    KotakStockAPIService()
-        .placeOrder(action.userId, action.accessCode, action.body)
-        .then((response) {
+    try {
+      KotakStockApiPlaceOrderResponse? response = await KotakStockAPIService()
+          .placeOrder(action.userId, action.accessCode, action.body);
       store.dispatch(KotakStockAPIPlaceOrderSuccessAction(
           data: response as KotakStockApiPlaceOrderResponse));
       bool transactionHappenedInNSE =
           (response.success?.nse != null ? true : false);
-    }).catchError((error) {
+    } catch (error) {
       print(error);
       String emailBodyLine1 = '$error';
       // GmailErrorMessageService.sendEmail(
@@ -45,15 +45,15 @@ void kotakStockAPIMiddleWare(
         print(error);
       });
       store.dispatch(KotakStockAPIPlaceOrderFailAction(error: error));
-    });
+    }
   }
   if (action is KotakStockAPILoginAction) {
-    KotakStockAPIService()
-        .login(appStore.state.userId, action.accessCode)
-        .then((response) {
+    try {
+      KotakStockApiLoginResponse? response = await KotakStockAPIService()
+          .login(appStore.state.userId, action.accessCode);
       store.dispatch(KotakStockAPILoginSuccessAction(
           data: response as KotakStockApiLoginResponse));
-    }).catchError((error) {
+    } catch (error) {
       print(error);
       String emailBodyLine1 = '$error';
       // GmailErrorMessageService.sendEmail(
@@ -76,7 +76,7 @@ void kotakStockAPIMiddleWare(
         print(error);
       });
       store.dispatch(KotakStockAPILoginFailAction(error: error));
-    });
+    }
   }
   next(action);
 }

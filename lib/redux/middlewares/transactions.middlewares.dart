@@ -372,19 +372,19 @@ Future<void> placeFullOrders(
 void transactionsMiddleWare(
     Store<AppState> store, dynamic action, NextDispatcher next) async {
   if (action is GetAllTransactionsAction) {
-    TransactionsService()
-        .getTransactionsForDate(action.userId,
-            date: action.date,
-            limit: action.limit,
-            offset: action.offset,
-            sortCriterion: action.sortCriterion,
-            sortDirection: action.sortDirection,
-            dynStockId: action.dynStockId,
-            filterCriterionStocks: action.filterCriterionStocks,
-            filterCriterionDay: action.filterCriterionDay)
-        .then((response) {
+    try {
+      TransactionsResponse response = await TransactionsService()
+          .getTransactionsForDate(action.userId,
+              date: action.date,
+              limit: action.limit,
+              offset: action.offset,
+              sortCriterion: action.sortCriterion,
+              sortDirection: action.sortDirection,
+              dynStockId: action.dynStockId,
+              filterCriterionStocks: action.filterCriterionStocks,
+              filterCriterionDay: action.filterCriterionDay);
       store.dispatch(GetAllTransactionsSuccessAction(data: response));
-    }).catchError((error) {
+    } catch (error) {
       print(error);
       String emailBodyLine1 = '$error';
       // GmailErrorMessageService.sendEmail(
@@ -409,7 +409,7 @@ void transactionsMiddleWare(
         print(error);
       });
       store.dispatch(GetAllTransactionsFailAction(error: error));
-    });
+    }
   }
   if (action is CreateTransactionAction) {
     if (action.placeKotakAPIStockOrder) {
@@ -553,17 +553,16 @@ void transactionsMiddleWare(
         /////////////
       }
     } else {
-      TransactionsService()
-          .createTransaction(
-              action.userId,
-              action.dynStockId,
-              TransactionBody(
-                  transactionId: action.body.transactionId,
-                  type: action.body.type,
-                  noOfStocks: action.body.noOfStocks,
-                  stockCode: action.body.stockCode,
-                  stockPrice: action.body.stockPrice))
-          .then((response) {
+      try {
+        Transaction response = await TransactionsService().createTransaction(
+            action.userId,
+            action.dynStockId,
+            TransactionBody(
+                transactionId: action.body.transactionId,
+                type: action.body.type,
+                noOfStocks: action.body.noOfStocks,
+                stockCode: action.body.stockCode,
+                stockPrice: action.body.stockPrice));
         store.dispatch(
             CreateTransactionSuccessAction(stockCode: action.stockCode));
         store.state.allTickerData.data[action.stockCode]!
@@ -573,7 +572,7 @@ void transactionsMiddleWare(
         store.dispatch(GetAllTickerDataSuccessAction(
             allTickerData: store.state.allTickerData.data));
         store.dispatch(GetAllDynStocksAction(userId: action.userId));
-      }).catchError((error) {
+      } catch (error) {
         print(error);
         store.dispatch(CreateTransactionFailAction(
             stockCode: action.stockCode, error: error));
@@ -599,7 +598,7 @@ void transactionsMiddleWare(
             .catchError((error) {
           print(error);
         });
-      });
+      }
     }
   }
   next(action);

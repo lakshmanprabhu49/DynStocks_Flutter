@@ -1,20 +1,19 @@
+import 'package:dynstocks/models/authentication.dart';
 import 'package:dynstocks/models/email.dart';
 import 'package:dynstocks/redux/actions/authentication.actions.dart';
 import 'package:dynstocks/redux/app_state.dart';
 import 'package:dynstocks/services/authentication.service.dart';
-import 'package:dynstocks/services/gmail_error_message.service.dart';
 import 'package:dynstocks/services/emailjs.service.dart';
 import 'package:redux/redux.dart';
 
 void authMiddleWare(
     Store<AppState> store, dynamic action, NextDispatcher next) async {
   if (action is LoginAction) {
-    AuthService()
-        .login(action.authBody.username, action.authBody.password)
-        .then((response) {
+    try {
+      AuthResponse response = await AuthService()
+          .login(action.authBody.username, action.authBody.password);
       store.dispatch(LoginSuccessAction(authResponse: response));
-    }).catchError((error) {
-      print(error);
+    } catch (error) {
       String emailBodyLine1 = '$error';
       // GmailErrorMessageService.sendEmail('Error while Logging in',
       //         '<h2>The following error resulted while logging in for ${action.authBody.username}</h2><br/><p>${emailBodyLine1}</p>')
@@ -35,12 +34,13 @@ void authMiddleWare(
         print(error);
       });
       store.dispatch(LoginFailAction(error: error));
-    });
+    }
   }
   if (action is LogoutAction) {
-    AuthService().logout(action.userId).then((response) {
+    try {
+      AuthResponse response = await AuthService().logout(action.userId);
       store.dispatch(LogoutSuccessAction(authResponse: response));
-    }).catchError((error) {
+    } catch (error) {
       print(error);
       String emailBodyLine1 = '$error';
       // GmailErrorMessageService.sendEmail(
@@ -62,7 +62,7 @@ void authMiddleWare(
         print(error);
       });
       store.dispatch(LogoutFailAction(error: error));
-    });
+    }
   }
   next(action);
 }

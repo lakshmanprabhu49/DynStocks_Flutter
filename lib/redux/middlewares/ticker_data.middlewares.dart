@@ -49,16 +49,17 @@ void tickerDataMiddleWare(
     store.state.allDynStocks.data.forEachIndexed((index, dynStock) async {
       bool orderPlaced = false;
       String orderType = '';
-      TickerDataService()
-          .getTickerData(dynStock.yFinStockCode,
-              fetchChartHistory: fetchChartHistory,
-              currentLocalMaximumPrice: store.state.allTickerData
-                      .data[dynStock.stockCode]?.currentLocalMaximumPrice ??
-                  double.negativeInfinity,
-              currentLocalMinimumPrice: store.state.allTickerData
-                      .data[dynStock.stockCode]?.currentLocalMinimumPrice ??
-                  double.infinity)
-          .then((response) {
+      try {
+        TickerData response = await TickerDataService().getTickerData(
+            dynStock.yFinStockCode,
+            fetchChartHistory: fetchChartHistory,
+            currentLocalMaximumPrice: store.state.allTickerData
+                    .data[dynStock.stockCode]?.currentLocalMaximumPrice ??
+                double.negativeInfinity,
+            currentLocalMinimumPrice: store.state.allTickerData
+                    .data[dynStock.stockCode]?.currentLocalMinimumPrice ??
+                double.infinity);
+
         DateTime now = DateTime.now();
         bool stockMarketClosed = (now.hour < 9) ||
             now.hour >= 16 ||
@@ -416,14 +417,7 @@ void tickerDataMiddleWare(
             }
           }
         }
-
-        // if (orderPlaced) {
-        //   map[dynStock.stockCode]?.currentLocalMaximumPrice =
-        //       response.price.currentPrice!;
-        //   map[dynStock.stockCode]?.currentLocalMinimumPrice =
-        //       response.price.currentPrice!;
-        // }
-      }).catchError((error) {
+      } catch (error) {
         print(error);
         store.dispatch(GetAllTickerDataFailAction(error: error));
         String emailBodyLine1 = '$error';
@@ -444,7 +438,14 @@ void tickerDataMiddleWare(
             .catchError((error) {
           print(error);
         });
-      });
+      }
+
+      // if (orderPlaced) {
+      //   map[dynStock.stockCode]?.currentLocalMaximumPrice =
+      //       response.price.currentPrice!;
+      //   map[dynStock.stockCode]?.currentLocalMinimumPrice =
+      //       response.price.currentPrice!;
+      // }
     });
   }
   next(action);

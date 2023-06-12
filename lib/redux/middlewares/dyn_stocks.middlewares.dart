@@ -35,7 +35,7 @@ Future<int> modifyPartialOrdersToFullOrders(
     var orderReport = orderReports.success[0];
     int quantityTradedAlready =
         orderReport.orderQuantity - orderReport.pendingQuantity;
-    KotakStockApiPlaceOrderResponse modifiedOrder = KotakStockAPIService()
+    KotakStockApiPlaceOrderResponse modifiedOrder = await KotakStockAPIService()
             .modifyOrder(
                 action.userId,
                 store.state.accessCode,
@@ -320,7 +320,9 @@ Future<void> placeFullOrderAndDeleteDynStock(
 void dynStocksMiddleWare(
     Store<AppState> store, dynamic action, NextDispatcher next) async {
   if (action is GetAllDynStocksAction) {
-    DynStocksService().getDynStocks(action.userId).then((response) {
+    try {
+      List<DynStock> response =
+          await DynStocksService().getDynStocks(action.userId);
       store.dispatch(GetAllDynStocksSuccessAction(allDynStocks: response));
       Map<String, TransactionsCreate> map =
           Map<String, TransactionsCreate>.from(
@@ -351,7 +353,7 @@ void dynStocksMiddleWare(
       if (mapAltered) {
         store.dispatch(InitializeCreateTransactionStateAction(data: map));
       }
-    }).catchError((error) {
+    } catch (error) {
       print(error);
       String emailBodyLine1 = '$error';
       // GmailErrorMessageService.sendEmail(
@@ -374,99 +376,48 @@ void dynStocksMiddleWare(
         print(error);
       });
       store.dispatch(GetAllDynStocksFailAction(error: error));
-    });
+    }
   }
 
   if (action is CreateDynStockAction) {
-    KotakStockAPIService()
-        .placeOrder(
-            action.userId,
-            appStore.state.accessCode,
-            KotakStockAPIPlaceOrderBody(
-                orderType: 'N',
-                instrumentToken: action.body.instrumentToken,
-                transactionType: 'BUY',
-                quantity: action.body.noOfStocks,
-                price: 0))
-        .then(
-      (order) {
-        bool orderPlacedInNSE = order!.success!.nse != null ? true : false;
-        PlaceOrderData? orderData =
-            orderPlacedInNSE ? order.success!.nse : order.success!.bse;
-        action.body.transactionForCreateDynStock = TransactionBody(
-            transactionId: orderData!.orderId.toString(),
-            type: 'BUY',
-            noOfStocks: orderData.quantity,
-            stockCode: action.body.stockCode,
-            stockPrice: action.price);
-        Future.delayed(Duration(milliseconds: 200), () {
-          KotakStockAPIService()
-              .getOrderReport(action.userId, appStore.state.accessCode,
-                  orderData.orderId, action.body.instrumentToken)
-              .then((position) {
-            action.body.transactionForCreateDynStock!.stockPrice = position!
-                .success
-                .firstWhere((element) => element.orderId == orderData.orderId)
-                .price;
-            DynStocksService()
-                .createDynStock(action.userId, action.body)
-                .then((response) {
-              store.dispatch(CreateDynStockSuccessAction(dynStock: response));
-              if (!store.state.allTickerData.loading) {
-                store.dispatch(GetAllTickerDataAction());
-              }
-            }).catchError((error) {
-              print(error);
-              String emailBodyLine1 = '$error';
-              // GmailErrorMessageService.sendEmail(
-              //         'Error while Creating DynStock',
-              //         '<h2>Error while Creating DynStock for ${action.body.stockCode} for user ${store.state.username}</h2><br/><p>${emailBodyLine1}</p>')
-              //     .then((value) {})
-              //     .catchError((error) {
-              //   print(error);
-              // });
-              EmailJSService()
-                  .sendEmail(Email(
-                      username: 'Myself',
-                      subject: 'Error while Creating DynStock',
-                      title:
-                          'Error while Creating DynStock for ${action.body.stockCode}',
-                      subtitle:
-                          'The following error resulted while Creating DynStock for ${action.body.stockCode}',
-                      body: emailBodyLine1))
-                  .then((value) {})
-                  .catchError((error) {
-                print(error);
-              });
-              store.dispatch(CreateDynStockFailAction(error: error));
-            });
-          }).catchError((error) {
-            print(error);
-            String emailBodyLine1 = '$error';
-            // GmailErrorMessageService.sendEmail('Error while Creating DynStock',
-            //         '<h2>Error while Creating DynStock for ${action.body.stockCode} for user ${store.state.username}</h2><br/><p>${emailBodyLine1}</p>')
-            //     .then((value) {})
-            //     .catchError((error) {
-            //   print(error);
-            // });
-            EmailJSService()
-                .sendEmail(Email(
-                    username: 'Myself',
-                    subject: 'Error while Creating DynStock',
-                    title:
-                        'Error while Creating DynStock for ${action.body.stockCode}',
-                    subtitle:
-                        'The following error resulted while Creating DynStock for ${action.body.stockCode}',
-                    body: emailBodyLine1))
-                .then((value) {})
-                .catchError((error) {
-              print(error);
-            });
-            store.dispatch(CreateDynStockFailAction(error: error));
-          });
-        });
-      },
-    ).catchError((error) {
+    try {
+      KotakStockApiPlaceOrderResponse? order = await KotakStockAPIService()
+          .placeOrder(
+              action.userId,
+              appStore.state.accessCode,
+              KotakStockAPIPlaceOrderBody(
+                  orderType: 'N',
+                  instrumentToken: action.body.instrumentToken,
+                  transactionType: 'BUY',
+                  quantity: action.body.noOfStocks,
+                  price: 0));
+      bool orderPlacedInNSE = order!.success!.nse != null ? true : false;
+      PlaceOrderData? orderData =
+          orderPlacedInNSE ? order.success!.nse : order.success!.bse;
+      action.body.transactionForCreateDynStock = TransactionBody(
+          transactionId: orderData!.orderId.toString(),
+          type: 'BUY',
+          noOfStocks: orderData.quantity,
+          stockCode: action.body.stockCode,
+          stockPrice: action.price);
+      Future.delayed(Duration(milliseconds: 200), () async {
+        KotakStockApiOrderReportsResponse? position =
+            await KotakStockAPIService().getOrderReport(
+                action.userId,
+                appStore.state.accessCode,
+                orderData.orderId,
+                action.body.instrumentToken);
+        action.body.transactionForCreateDynStock!.stockPrice = position!.success
+            .firstWhere((element) => element.orderId == orderData.orderId)
+            .price;
+        DynStock response =
+            await DynStocksService().createDynStock(action.userId, action.body);
+        store.dispatch(CreateDynStockSuccessAction(dynStock: response));
+        if (!store.state.allTickerData.loading) {
+          store.dispatch(GetAllTickerDataAction());
+        }
+      });
+    } catch (error) {
       print(error);
       String emailBodyLine1 = '$error';
       // GmailErrorMessageService.sendEmail('Error while Creating DynStock',
@@ -489,15 +440,15 @@ void dynStocksMiddleWare(
         print(error);
       });
       store.dispatch(CreateDynStockFailAction(error: error));
-    });
+    }
   }
 
   if (action is UpdateDynStockAction) {
-    DynStocksService()
-        .updateDynStock(action.userId, action.dynStockId, action.body)
-        .then((response) {
+    try {
+      DynStock response = await DynStocksService()
+          .updateDynStock(action.userId, action.dynStockId, action.body);
       store.dispatch(UpdateDynStockSuccessAction(dynStock: response));
-    }).catchError((error) {
+    } catch (error) {
       print(error);
       String emailBodyLine1 = '$error';
       // GmailErrorMessageService.sendEmail('Error while Updating DynStock',
@@ -520,7 +471,7 @@ void dynStocksMiddleWare(
         print(error);
       });
       store.dispatch(UpdateDynStockFailAction(error: error));
-    });
+    }
   }
 
   if (action is DeleteDynStockAction) {
