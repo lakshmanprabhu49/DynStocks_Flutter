@@ -192,4 +192,23 @@ class KotakStockAPIService {
       throw Exception(ErrorClass.fromJson(jsonDecode(res)).message);
     }
   }
+
+  Future<KotakStockApiQuotesResponse?> getQuotes(
+      String userId, String quotes, String accessCode) async {
+    String urlString =
+        '${dotenv.env["DYNSTOCKS_API_ENDPOINT_PROD"]}/$userId/kotakStock/quotes/$quotes?accessCode=$accessCode';
+    Uri url = Uri.parse(urlString);
+    var client = http.Client();
+    var response = await client.get(url, headers: {
+      HttpHeaders.authorizationHeader:
+          'Bearer ${appStore.state.kotakStockAPI.jwtToken}',
+      'x-request-id': appStore.state.DYNSTOCKS_X_REQUEST_ID
+    });
+    String res = response.body;
+    if (response.statusCode < 400) {
+      return kotakStockApiQuotesResponseFromJson(res);
+    } else {
+      throw Exception(ErrorClass.fromJson(jsonDecode(res)).message);
+    }
+  }
 }

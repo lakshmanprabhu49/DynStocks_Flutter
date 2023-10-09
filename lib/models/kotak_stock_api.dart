@@ -349,3 +349,128 @@ class OrderCategories {
         "TRAD": List<dynamic>.from(TRAD.map((x) => x)),
       };
 }
+
+// To parse this JSON data, do
+//
+//     final kotakStockApiQuotesResponse = kotakStockApiQuotesResponseFromJson(jsonString);
+
+KotakStockApiQuotesResponse kotakStockApiQuotesResponseFromJson(String str) =>
+    KotakStockApiQuotesResponse.fromJson(json.decode(str));
+
+String kotakStockApiQuotesResponseToJson(KotakStockApiQuotesResponse data) =>
+    json.encode(data.toJson());
+
+class KotakStockApiQuotesResponse {
+  List<KotakStockApiQuotesSuccess> success;
+
+  KotakStockApiQuotesResponse({
+    required this.success,
+  });
+
+  factory KotakStockApiQuotesResponse.fromJson(Map<String, dynamic> json) =>
+      KotakStockApiQuotesResponse(
+        success: List<KotakStockApiQuotesSuccess>.from(
+            json["success"].map((x) => KotakStockApiQuotesSuccess.fromJson(x))),
+      );
+
+  Map<String, dynamic> toJson() => {
+        "success": List<dynamic>.from(success.map((x) => x.toJson())),
+      };
+}
+
+class KotakStockApiQuotesSuccess {
+  String wtoken;
+  double ltp;
+  double lvNetChg;
+  double lvNetChgPerc;
+  double openPrice;
+  double closingPrice;
+  double highPrice;
+  double lowPrice;
+  double averageTradePrice;
+  int lastTradeQty;
+  String bdLastTradedTime;
+  int oi;
+  int bdTtq;
+  String marketExchange;
+  String stkName;
+  String stkIt;
+  double stkStrikePrice;
+  double upperCktLimit;
+  double lowerCktLimit;
+  String displaySegment;
+  String displayFnoEq;
+
+  KotakStockApiQuotesSuccess({
+    required this.wtoken,
+    required this.ltp,
+    required this.lvNetChg,
+    required this.lvNetChgPerc,
+    required this.openPrice,
+    required this.closingPrice,
+    required this.highPrice,
+    required this.lowPrice,
+    required this.averageTradePrice,
+    required this.lastTradeQty,
+    required this.bdLastTradedTime,
+    required this.oi,
+    required this.bdTtq,
+    required this.marketExchange,
+    required this.stkName,
+    required this.stkIt,
+    required this.stkStrikePrice,
+    required this.upperCktLimit,
+    required this.lowerCktLimit,
+    required this.displaySegment,
+    required this.displayFnoEq,
+  });
+
+  factory KotakStockApiQuotesSuccess.fromJson(Map<String, dynamic> json) =>
+      KotakStockApiQuotesSuccess(
+        wtoken: json["wtoken"],
+        ltp: double.parse(json["ltp"]),
+        lvNetChg: double.parse(json["lv_net_chg"]),
+        lvNetChgPerc: double.parse(json["lv_net_chg_perc"]),
+        openPrice: double.parse(json["open_price"]),
+        closingPrice: double.parse(json["closing_price"]),
+        highPrice: double.parse(json["high_price"]),
+        lowPrice: double.parse(json["low_price"]),
+        averageTradePrice: double.parse(json["average_trade_price"]),
+        lastTradeQty: int.parse(json["last_trade_qty"]),
+        bdLastTradedTime: json["BD_last_traded_time"],
+        oi: int.parse(json["OI"]),
+        bdTtq: int.parse(json["BD_TTQ"]),
+        marketExchange: json["market_exchange"],
+        stkName: json["stk_name"],
+        stkIt: json["stk_it"],
+        stkStrikePrice: double.parse(json["stk_strike_price"]),
+        upperCktLimit: double.parse(json["upper_ckt_limit"]),
+        lowerCktLimit: double.parse(json["lower_ckt_limit"]),
+        displaySegment: json["display_segment"],
+        displayFnoEq: json["display_fno_eq"],
+      );
+
+  Map<String, dynamic> toJson() => {
+        "wtoken": wtoken,
+        "ltp": ltp.toString(),
+        "lv_net_chg": lvNetChg.toString(),
+        "lv_net_chg_perc": lvNetChgPerc.toString(),
+        "open_price": openPrice.toString(),
+        "closing_price": closingPrice.toString(),
+        "high_price": highPrice.toString(),
+        "low_price": lowPrice.toString(),
+        "average_trade_price": averageTradePrice.toString(),
+        "last_trade_qty": lastTradeQty.toString(),
+        "BD_last_traded_time": bdLastTradedTime,
+        "OI": oi.toString(),
+        "BD_TTQ": bdTtq.toString(),
+        "market_exchange": marketExchange,
+        "stk_name": stkName,
+        "stk_it": stkIt,
+        "stk_strike_price": stkStrikePrice.toString(),
+        "upper_ckt_limit": upperCktLimit.toString(),
+        "lower_ckt_limit": lowerCktLimit.toString(),
+        "display_segment": displaySegment,
+        "display_fno_eq": displayFnoEq,
+      };
+}
