@@ -24,7 +24,7 @@ class UserInfo {
   });
 
   Id id;
-  UserId userId;
+  String userId;
   String username;
   int noOfDynStocksOwned;
   int noOfTransactionsMade;
@@ -35,7 +35,7 @@ class UserInfo {
     if (json["dynStocks"] == null) {
       return UserInfo(
         id: Id.fromJson(json["_id"]),
-        userId: UserId.fromJson(json["userId"]),
+        userId: json["userId"],
         username: json["username"],
         noOfDynStocksOwned: json["noOfDynStocksOwned"],
         noOfTransactionsMade: json["noOfTransactionsMade"],
@@ -44,7 +44,7 @@ class UserInfo {
     } else {
       return UserInfo(
         id: Id.fromJson(json["_id"]),
-        userId: UserId.fromJson(json["userId"]),
+        userId: json["userId"],
         username: json["username"],
         noOfDynStocksOwned: json["noOfDynStocksOwned"],
         noOfTransactionsMade: json["noOfTransactionsMade"],
@@ -56,7 +56,7 @@ class UserInfo {
 
   Map<String, dynamic> toJson() => {
         "_id": id.toJson(),
-        "userId": userId.toJson(),
+        "userId": userId,
         "username": username,
         "noOfDynStocksOwned": noOfDynStocksOwned,
         "noOfTransactionsMade": noOfTransactionsMade,
@@ -78,21 +78,5 @@ class Id {
 
   Map<String, dynamic> toJson() => {
         "\u0024oid": oid,
-      };
-}
-
-class UserId {
-  UserId({
-    required this.uuid,
-  });
-
-  String uuid;
-
-  factory UserId.fromJson(Map<String, dynamic> json) => UserId(
-        uuid: json["\u0024uuid"],
-      );
-
-  Map<String, dynamic> toJson() => {
-        "\u0024uuid": uuid,
       };
 }

@@ -193,7 +193,7 @@ class KotakStockAPIService {
     }
   }
 
-  Future<KotakStockApiQuotesResponse?> getQuotes(
+  Future<KotakStockApiQuotesResponse> getQuotes(
       String userId, String quotes, String accessCode) async {
     String urlString =
         '${dotenv.env["DYNSTOCKS_API_ENDPOINT_PROD"]}/$userId/kotakStock/quotes/$quotes?accessCode=$accessCode';

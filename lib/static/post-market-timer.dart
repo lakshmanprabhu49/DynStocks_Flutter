@@ -53,7 +53,7 @@ class PostMarketTimer {
                           userId: appStore.state.userId,
                           instrumentToken:
                               orderReport.instrumentToken.toString(),
-                          dynStockId: dynStock.dynStockId.uuid,
+                          dynStockId: dynStock.dynStockId,
                           stockCode: dynStock.stockCode,
                           body: TransactionBody(
                             transactionId:
@@ -77,7 +77,7 @@ class PostMarketTimer {
                           userId: appStore.state.userId,
                           instrumentToken:
                               orderReport.instrumentToken.toString(),
-                          dynStockId: dynStock.dynStockId.uuid,
+                          dynStockId: dynStock.dynStockId,
                           stockCode: dynStock.stockCode,
                           body: TransactionBody(
                             transactionId:

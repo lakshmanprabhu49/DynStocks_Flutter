@@ -1,20 +1,9 @@
-import 'package:yahoofin/yahoofin.dart';
+import 'package:dynstocks/models/kotak_stock_api.dart';
 
 class TickerData {
-  StockInfo stockInfo;
-  StockQuote price;
-  StockQuote priceChange;
-  StockHistory? hist;
-  StockChart? chart;
-  double currentLocalMaximumPrice = double.negativeInfinity;
-  double currentLocalMinimumPrice = double.infinity;
+  KotakStockApiQuotesSuccess stockQuote;
 
-  TickerData(
-      {required this.stockInfo,
-      required this.price,
-      required this.priceChange,
-      this.hist,
-      this.chart,
-      this.currentLocalMaximumPrice = double.negativeInfinity,
-      this.currentLocalMinimumPrice = double.infinity});
+  TickerData({
+    required this.stockQuote,
+  });
 }

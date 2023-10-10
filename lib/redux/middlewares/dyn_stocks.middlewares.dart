@@ -526,7 +526,7 @@ void dynStocksMiddleWare(
   if (action is DeleteDynStockAction) {
     DynStock dynStockToBeDeleted =
         store.state.allDynStocks.data.firstWhere((element) {
-      return element.dynStockId.uuid == action.dynStockId;
+      return element.dynStockId == action.dynStockId;
     });
     pauseTransactions[dynStockToBeDeleted.stockCode] = true;
     if (dynStockToBeDeleted.lastTransactionType == 'BUY') {

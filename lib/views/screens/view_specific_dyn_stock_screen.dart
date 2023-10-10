@@ -179,7 +179,7 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
       deleteButtonDisabled = false;
     }
     StoreProvider.of<AppState>(context).dispatch(GetNetReturnsForDynStockAction(
-        userId: userId, dynStockId: dynStock.dynStockId.uuid, period: '1h'));
+        userId: userId, dynStockId: dynStock.dynStockId, period: '1h'));
   }
 
   Future<String?> showDeleteDialog(DynStock currentDynStock) {
@@ -275,7 +275,7 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                     .dispatch(DeleteDynStockAction(
                   userId: userId,
                   stockCode: currentDynStock.stockCode,
-                  dynStockId: currentDynStock.dynStockId.uuid,
+                  dynStockId: currentDynStock.dynStockId,
                 ));
                 setState(() {
                   errorMessageShown = false;
@@ -357,7 +357,7 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                       CreateTransactionAction(
                           userId: userId,
                           instrumentToken: currentDynStock.instrumentToken,
-                          dynStockId: currentDynStock.dynStockId.uuid,
+                          dynStockId: currentDynStock.dynStockId,
                           stockCode: currentDynStock.stockCode,
                           body: TRANSACTIONS.TransactionBody(
                               transactionId:
@@ -375,7 +375,7 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                       CreateTransactionAction(
                           userId: userId,
                           instrumentToken: currentDynStock.instrumentToken,
-                          dynStockId: currentDynStock.dynStockId.uuid,
+                          dynStockId: currentDynStock.dynStockId,
                           stockCode: currentDynStock.stockCode,
                           body: TRANSACTIONS.TransactionBody(
                               transactionId:
@@ -991,7 +991,7 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                                                   userId: userId,
                                                   dynStockId:
                                                       dynStockToBeUpdated
-                                                          .dynStockId.uuid,
+                                                          .dynStockId,
                                                   body: DynStockBody(
                                                     stockCode:
                                                         dynStockToBeUpdated
@@ -1008,9 +1008,6 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                                                     stockType:
                                                         dynStockToBeUpdated
                                                             .stockType,
-                                                    yFinStockCode:
-                                                        dynStockToBeUpdated
-                                                            .yFinStockCode,
                                                     noOfStocks: int.parse(
                                                         currentNoOfStocks),
                                                     DSTPUnit: currentDSTPUnit ==
@@ -1157,10 +1154,9 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
               DynStock? currentDynStock = state.allDynStocks.data.firstWhere(
                   (element) => element.stockCode == currentDynStockCode,
                   orElse: () => DynStock(
-                      userId: Id(uuid: appStore.state.userId),
-                      dynStockId: Id(uuid: ''),
+                      userId: appStore.state.userId,
+                      dynStockId: '',
                       stockCode: '',
-                      yFinStockCode: '',
                       stockName: '',
                       exchange: '',
                       stockType: '',
@@ -1169,7 +1165,7 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                       HETolerance: 3.0,
                       LETolerance: 2.0,
                       noOfStocks: 0));
-              if (currentDynStock.dynStockId.uuid.isNotEmpty) {
+              if (currentDynStock.dynStockId.isNotEmpty) {
                 return SingleChildScrollView(
                     child: Container(
                         child: Column(
@@ -1834,20 +1830,12 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                                             ),
                                             Text(
                                               state
-                                                          .allTickerData
-                                                          .data[
-                                                              currentDynStockCode]
-                                                          ?.price
-                                                          .currentPrice !=
-                                                      null
-                                                  ? state
                                                       .allTickerData
-                                                      .data[
-                                                          currentDynStockCode]!
-                                                      .price
-                                                      .currentPrice!
-                                                      .toStringAsFixed(2)
-                                                  : '',
+                                                      .data[currentDynStockCode]
+                                                      ?.stockQuote
+                                                      .ltp
+                                                      .toString() ??
+                                                  '',
                                               style: GoogleFonts.overlock(
                                                   fontSize: 30,
                                                   color: PaletteColors.blue2,
@@ -1870,73 +1858,44 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                                           child: Column(children: [
                                             Text(
                                               (state
-                                                                  .allTickerData
-                                                                  .data[
-                                                                      currentDynStockCode]
-                                                                  ?.priceChange
-                                                                  .regularMarketChange !=
-                                                              null &&
-                                                          state
-                                                                  .allTickerData
-                                                                  .data[
-                                                                      currentDynStockCode]!
-                                                                  .priceChange
-                                                                  .regularMarketChange! >
-                                                              0
+                                                              .allTickerData
+                                                              .data[
+                                                                  currentDynStockCode]!
+                                                              .stockQuote
+                                                              .lvNetChg >
+                                                          0
                                                       ? '+'
                                                       : '') +
                                                   (state
-                                                              .allTickerData
-                                                              .data[
-                                                                  currentDynStockCode]
-                                                              ?.priceChange
-                                                              .regularMarketChange !=
-                                                          null
-                                                      ? state
-                                                          .allTickerData
-                                                          .data[
-                                                              currentDynStockCode]!
-                                                          .priceChange
-                                                          .regularMarketChange!
-                                                          .toStringAsFixed(2)
-                                                      : ''),
+                                                      .allTickerData
+                                                      .data[
+                                                          currentDynStockCode]!
+                                                      .stockQuote
+                                                      .lvNetChg
+                                                      .toStringAsFixed(2)),
                                               style: GoogleFonts.lusitana(
                                                   fontSize: 17,
                                                   color: state
-                                                                  .allTickerData
-                                                                  .data[
-                                                                      currentDynStockCode]
-                                                                  ?.priceChange
-                                                                  .regularMarketChange !=
-                                                              null &&
-                                                          state
-                                                                  .allTickerData
-                                                                  .data[
-                                                                      currentDynStockCode]!
-                                                                  .priceChange
-                                                                  .regularMarketChange! >
-                                                              0
+                                                              .allTickerData
+                                                              .data[
+                                                                  currentDynStockCode]!
+                                                              .stockQuote
+                                                              .lvNetChg >
+                                                          0
                                                       ? AccentColors.green1
                                                       : AccentColors.red1),
                                             ),
                                             Text(
-                                              '(${state.allTickerData.data[currentDynStockCode] != null && state.allTickerData.data[currentDynStockCode]?.priceChange.regularMarketChangePercent != null && state.allTickerData.data[currentDynStockCode]!.priceChange.regularMarketChangePercent! > 0 ? '+' : ''}${state.allTickerData.data[currentDynStockCode] != null && state.allTickerData.data[currentDynStockCode]!.priceChange.regularMarketChangePercent != null ? state.allTickerData.data[currentDynStockCode]!.priceChange.regularMarketChangePercent!.toStringAsFixed(2) : ''} %)',
+                                              '(${state.allTickerData.data[currentDynStockCode]!.stockQuote.lvNetChg > 0 ? '+' : ''}${state.allTickerData.data[currentDynStockCode] != null && state.allTickerData.data[currentDynStockCode]!.stockQuote.lvNetChgPerc != null ? state.allTickerData.data[currentDynStockCode]!.stockQuote.lvNetChgPerc.toStringAsFixed(2) : ''} %)',
                                               style: GoogleFonts.lusitana(
                                                   fontSize: 15,
                                                   color: state
-                                                                  .allTickerData
-                                                                  .data[
-                                                                      currentDynStockCode]
-                                                                  ?.priceChange
-                                                                  .regularMarketChangePercent !=
-                                                              null &&
-                                                          state
-                                                                  .allTickerData
-                                                                  .data[
-                                                                      currentDynStockCode]!
-                                                                  .priceChange
-                                                                  .regularMarketChangePercent! >
-                                                              0
+                                                              .allTickerData
+                                                              .data[
+                                                                  currentDynStockCode]!
+                                                              .stockQuote
+                                                              .lvNetChgPerc >
+                                                          0
                                                       ? AccentColors.green1
                                                       : AccentColors.red1),
                                             )
@@ -2002,8 +1961,8 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                                         .dispatch(
                                             GetNetReturnsForDynStockAction(
                                                 userId: userId,
-                                                dynStockId: currentDynStock
-                                                    .dynStockId.uuid,
+                                                dynStockId:
+                                                    currentDynStock.dynStockId,
                                                 period:
                                                     currentDynStockTimePeriod));
                                     setState(() {

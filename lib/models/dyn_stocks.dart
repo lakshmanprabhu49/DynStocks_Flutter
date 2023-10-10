@@ -13,7 +13,6 @@ class DynStock {
     required this.userId,
     required this.dynStockId,
     required this.stockCode,
-    required this.yFinStockCode,
     required this.stockName,
     required this.exchange,
     required this.stockType,
@@ -34,11 +33,10 @@ class DynStock {
     this.transactions = const [],
   });
 
-  Id userId;
-  Id dynStockId;
+  String userId;
+  String dynStockId;
   String stockCode;
   String instrumentToken;
-  String yFinStockCode;
   String stockName;
   String exchange;
   String stockType;
@@ -58,11 +56,10 @@ class DynStock {
   List<Transaction> transactions;
 
   factory DynStock.fromJson(Map<String, dynamic> json) => DynStock(
-        userId: Id.fromJson(json["userId"]),
-        dynStockId: Id.fromJson(json["dynStockId"]),
+        userId: json["userId"],
+        dynStockId: json["dynStockId"],
         stockCode: json["stockCode"],
         instrumentToken: json["instrumentToken"],
-        yFinStockCode: json["yFinStockCode"],
         stockName: json["stockName"],
         exchange: json["exchange"],
         stockType: json["stockType"],
@@ -85,11 +82,10 @@ class DynStock {
       );
 
   Map<String, dynamic> toJson() => {
-        "userId": userId.toJson(),
-        "dynStockId": dynStockId.toJson(),
+        "userId": userId,
+        "dynStockId": dynStockId,
         "stockCode": stockCode,
         "instrumentToken": instrumentToken,
-        "yFinStockCode": yFinStockCode,
         "stockName": stockName,
         "exchange": exchange,
         "stockType": stockType,
@@ -110,27 +106,10 @@ class DynStock {
       };
 }
 
-class Id {
-  Id({
-    required this.uuid,
-  });
-
-  String uuid;
-
-  factory Id.fromJson(Map<String, dynamic> json) => Id(
-        uuid: json["\u0024uuid"],
-      );
-
-  Map<String, dynamic> toJson() => {
-        "\u0024uuid": uuid,
-      };
-}
-
 class DynStockBody {
   DynStockBody({
     required this.stockCode,
     required this.instrumentToken,
-    required this.yFinStockCode,
     required this.stockName,
     required this.exchange,
     required this.stockType,
@@ -148,7 +127,6 @@ class DynStockBody {
 
   String stockCode;
   String instrumentToken;
-  String yFinStockCode;
   String stockName;
   String exchange;
   String stockType;
@@ -166,7 +144,6 @@ class DynStockBody {
   factory DynStockBody.fromJson(Map<String, dynamic> json) => DynStockBody(
         stockCode: json["stockCode"],
         instrumentToken: json["instrumentToken"],
-        yFinStockCode: json["yFinStockCode"],
         stockName: json["stockName"],
         exchange: json["exchange"],
         stockType: json["stockType"],
@@ -186,7 +163,6 @@ class DynStockBody {
   Map<String, dynamic> toJson() => {
         "stockCode": stockCode,
         "instrumentToken": instrumentToken,
-        "yFinStockCode": yFinStockCode,
         "stockName": stockName,
         "exchange": exchange,
         "stockType": stockType,

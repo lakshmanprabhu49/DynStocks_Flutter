@@ -53,9 +53,9 @@ class Transaction {
     required this.amount,
   });
 
-  Id userId;
-  Id dynStockId;
-  Id transactionId;
+  String userId;
+  String dynStockId;
+  String transactionId;
   TransactionTime transactionTime;
   String type;
   int noOfStocks;
@@ -64,9 +64,9 @@ class Transaction {
   double amount;
 
   factory Transaction.fromJson(Map<String, dynamic> json) => Transaction(
-        userId: Id.fromJson(json["userId"]),
-        dynStockId: Id.fromJson(json["dynStockId"]),
-        transactionId: Id.fromJson(json["transactionId"]),
+        userId: json["userId"],
+        dynStockId: json["dynStockId"],
+        transactionId: json["transactionId"],
         transactionTime: TransactionTime.fromJson(json["transactionTime"]),
         type: json["type"],
         noOfStocks: json["noOfStocks"],
@@ -76,31 +76,15 @@ class Transaction {
       );
 
   Map<String, dynamic> toJson() => {
-        "userId": userId.toJson(),
-        "dynStockId": dynStockId.toJson(),
-        "transactionId": transactionId.toJson(),
+        "userId": userId,
+        "dynStockId": dynStockId,
+        "transactionId": transactionId,
         "transactionTime": transactionTime.toJson(),
         "type": type,
         "noOfStocks": noOfStocks,
         "stockCode": stockCode,
         "stockPrice": stockPrice,
         "amount": amount,
-      };
-}
-
-class Id {
-  Id({
-    required this.uuid,
-  });
-
-  String uuid;
-
-  factory Id.fromJson(Map<String, dynamic> json) => Id(
-        uuid: json["\u0024uuid"],
-      );
-
-  Map<String, dynamic> toJson() => {
-        "\u0024uuid": uuid,
       };
 }
 

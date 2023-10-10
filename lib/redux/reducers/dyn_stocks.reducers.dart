@@ -136,7 +136,7 @@ DynStocksState dynStocksReducer(DynStocksState state, dynamic action) {
         deleted: state.deleted,
         deleteFailed: false,
         data: state.data.map((item) {
-          if (item.dynStockId.uuid == action.dynStock.dynStockId.uuid) {
+          if (item.dynStockId == action.dynStock.dynStockId) {
             return action.dynStock;
           } else {
             return item;
@@ -193,7 +193,7 @@ DynStocksState dynStocksReducer(DynStocksState state, dynamic action) {
         deleted: true,
         deleteFailed: false,
         data: state.data.where((item) {
-          return (item.dynStockId.uuid != action.dynStockId);
+          return (item.dynStockId != action.dynStockId);
         }).toList(),
         error: null);
   }

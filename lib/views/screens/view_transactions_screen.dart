@@ -164,12 +164,9 @@ class _ViewTransactionsScreenState extends State<ViewTransactionsScreen>
     }
     if (dynStockId.isEmpty && customStockCode.isNotEmpty) {
       setState(() {
-        dynStockId = appStore.state.allDynStocks.data
-            .firstWhere((element) {
-              return element.stockCode == customStockCode;
-            })
-            .dynStockId
-            .uuid;
+        dynStockId = appStore.state.allDynStocks.data.firstWhere((element) {
+          return element.stockCode == customStockCode;
+        }).dynStockId;
       });
     }
     Size screenSize = MediaQuery.of(context).size;
