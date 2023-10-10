@@ -49,6 +49,7 @@ class _EventsTodayScreenState extends State<EventsTodayScreen> with RouteAware {
   Map<String, int> noOfStocks = Map();
   double netReturnsToday = 0.0;
   bool isLoaded = false;
+  bool isTransactionsLoaded = false;
   int selectedBottomBarIndex = 0;
   bool isTimedTickerFetchStarted = false;
   bool errorMessageShown = false;
@@ -92,6 +93,7 @@ class _EventsTodayScreenState extends State<EventsTodayScreen> with RouteAware {
       });
     }
     transactionsToday = null;
+    isTransactionsLoaded = false;
     isLoaded = false;
     noOfStocks.putIfAbsent('SELL', () => 0);
     noOfStocks.putIfAbsent('BUY', () => 0);
@@ -100,7 +102,8 @@ class _EventsTodayScreenState extends State<EventsTodayScreen> with RouteAware {
   void getTransactionsForToday() async {
     try {
       if (appStore.state.userId.isNotEmpty &&
-          appStore.state.accessCode.isNotEmpty) {
+          appStore.state.accessCode.isNotEmpty &&
+          !isTransactionsLoaded) {
         DateTime now = DateTime.now();
         String formattedDate = DateFormat('MMM dd yyyy').format(now);
         TransactionsResponse temp = await TransactionsService()
@@ -254,7 +257,7 @@ class _EventsTodayScreenState extends State<EventsTodayScreen> with RouteAware {
         ];
         maxTradedAmount = maxAmount;
         setState(() {
-          isLoaded = true;
+          isTransactionsLoaded = true;
           transactionsToday = res;
           barChartData = barChartData;
           maxTradedAmount = maxAmount;
@@ -270,6 +273,7 @@ class _EventsTodayScreenState extends State<EventsTodayScreen> with RouteAware {
       }
       setState(() {
         errorMessageShown = true;
+        isTransactionsLoaded = true;
       });
     }
   }
@@ -378,6 +382,7 @@ class _EventsTodayScreenState extends State<EventsTodayScreen> with RouteAware {
     }
     if (!appStore.state.allDynStocks.loaded &&
         !appStore.state.allDynStocks.loading &&
+        !appStore.state.allDynStocks.loadFailed &&
         appStore.state.userId.isNotEmpty &&
         appStore.state.accessCode.isNotEmpty) {
       StoreProvider.of<AppState>(context)

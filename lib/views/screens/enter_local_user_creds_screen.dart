@@ -288,6 +288,33 @@ class _EnterLocalUserCredsScreenState extends State<EnterLocalUserCredsScreen>
                                     color: Colors.white,
                                     fontSize: 25,
                                     fontWeight: FontWeight.bold),
+                              ))),
+                      Container(
+                          margin: EdgeInsets.fromLTRB(0, 20, 0, 0),
+                          child: ElevatedButton(
+                              style: ButtonStyle(
+                                padding: MaterialStateProperty.all(
+                                    EdgeInsets.fromLTRB(15, 15, 15, 15)),
+                                shape: MaterialStateProperty.all(
+                                    RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(25),
+                                )),
+                                backgroundColor: MaterialStateProperty.all(
+                                    PaletteColors.blue3),
+                              ),
+                              onPressed: () {
+                                if (mounted) {
+                                  setState(() {
+                                    userNameAndPasswordObtained = false;
+                                  });
+                                }
+                              },
+                              child: Text(
+                                'Logout',
+                                style: GoogleFonts.lusitana(
+                                    color: PaletteColors.blue2,
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold),
                               )))
                     ]);
               } else {

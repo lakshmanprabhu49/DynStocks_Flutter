@@ -2,10 +2,12 @@ import 'dart:async';
 
 import 'package:dynstocks/models/common.dart';
 import 'package:dynstocks/models/dyn_stocks.dart';
+import 'package:dynstocks/models/dyn_stocks_real_time_price.dart';
 import 'package:dynstocks/models/email.dart';
 import 'package:dynstocks/models/kotak_stock_api.dart';
 import 'package:dynstocks/models/transactions.dart';
 import 'package:dynstocks/redux/actions/dyn_stocks.actions.dart';
+import 'package:dynstocks/redux/actions/dyn_stocks_real_time_price.actions.dart';
 import 'package:dynstocks/redux/actions/ticker_data.actions.dart';
 import 'package:dynstocks/redux/actions/transactions.actions.dart';
 import 'package:dynstocks/redux/app_state.dart';
@@ -149,12 +151,14 @@ Future<void> placeFullOrders(
                   stockPrice: tradedStock.price));
           store.dispatch(
               CreateTransactionSuccessAction(stockCode: action.stockCode));
-          store.state.allTickerData.data[action.stockCode]!
-              .currentLocalMaximumPrice = tradedStock.price;
-          store.state.allTickerData.data[action.stockCode]!
-              .currentLocalMinimumPrice = tradedStock.price;
-          store.dispatch(GetAllTickerDataSuccessAction(
-              allTickerData: store.state.allTickerData.data));
+          List<StockDetail> updatedRealTimePrice = [
+            StockDetail(
+                stockCode: action.stockCode,
+                currentLocalMaximumPrice: action.body.stockPrice,
+                currentLocalMinimumPrice: action.body.stockPrice)
+          ];
+          store.dispatch(UpdateDynStocksRealTimePriceAction(
+              userId: action.userId, stockDetails: updatedRealTimePrice));
           store.dispatch(GetAllDynStocksAction(userId: action.userId));
         } else {
           Timer.periodic(Duration(seconds: 5), (timer) async {
@@ -194,12 +198,14 @@ Future<void> placeFullOrders(
                 store.dispatch(CreateTransactionSuccessAction(
                   stockCode: action.stockCode,
                 ));
-                store.state.allTickerData.data[action.stockCode]!
-                    .currentLocalMaximumPrice = tradedStock.price;
-                store.state.allTickerData.data[action.stockCode]!
-                    .currentLocalMinimumPrice = tradedStock.price;
-                store.dispatch(GetAllTickerDataSuccessAction(
-                    allTickerData: store.state.allTickerData.data));
+                List<StockDetail> updatedRealTimePrice = [
+                  StockDetail(
+                      stockCode: action.stockCode,
+                      currentLocalMaximumPrice: action.body.stockPrice,
+                      currentLocalMinimumPrice: action.body.stockPrice)
+                ];
+                store.dispatch(UpdateDynStocksRealTimePriceAction(
+                    userId: action.userId, stockDetails: updatedRealTimePrice));
                 store.dispatch(GetAllDynStocksAction(userId: action.userId));
               } else if (tradedStock.status == EStockTradeStatus.CAN.name) {
                 timer.cancel();
@@ -566,12 +572,14 @@ void transactionsMiddleWare(
           .then((response) {
         store.dispatch(
             CreateTransactionSuccessAction(stockCode: action.stockCode));
-        store.state.allTickerData.data[action.stockCode]!
-            .currentLocalMaximumPrice = action.body.stockPrice;
-        store.state.allTickerData.data[action.stockCode]!
-            .currentLocalMinimumPrice = action.body.stockPrice;
-        store.dispatch(GetAllTickerDataSuccessAction(
-            allTickerData: store.state.allTickerData.data));
+        List<StockDetail> updatedRealTimePrice = [
+          StockDetail(
+              stockCode: action.stockCode,
+              currentLocalMaximumPrice: action.body.stockPrice,
+              currentLocalMinimumPrice: action.body.stockPrice)
+        ];
+        store.dispatch(UpdateDynStocksRealTimePriceAction(
+            userId: action.userId, stockDetails: updatedRealTimePrice));
         store.dispatch(GetAllDynStocksAction(userId: action.userId));
       }).catchError((error) {
         print(error);

@@ -4,6 +4,7 @@ import 'package:dynstocks/main.dart';
 import 'package:dynstocks/models/colors.dart';
 import 'package:dynstocks/models/common.dart';
 import 'package:dynstocks/models/dyn_stocks.dart';
+import 'package:dynstocks/models/dyn_stocks_real_time_price.dart';
 import 'package:dynstocks/models/transactions.dart' as TRANSACTIONS;
 import 'package:dynstocks/models/user_info.dart' as USERINFO;
 import 'package:dynstocks/redux/actions/dyn_stocks.actions.dart';
@@ -64,6 +65,10 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
   Map<EDSTPUnit, String> DSTPUnitMap = Map();
   String currentNoOfStocks = '0';
   String currentBTP = '0.0';
+  StockDetail currentRealTimePrice = StockDetail(
+      stockCode: '',
+      currentLocalMaximumPrice: 0.0,
+      currentLocalMinimumPrice: 0.0);
   double netReturnsForDynStocks = 0.0;
   String currentSTP = '0.0';
   String currentHETolerance = '3.0';
@@ -155,6 +160,8 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
         : dynStock.STPe.toString();
     currentHETolerance = dynStock.HETolerance.toString();
     currentLETolerance = dynStock.LETolerance.toString();
+    currentRealTimePrice = appStore.state.dynStocksRealTimePriceState.data
+        .firstWhere((element) => element.stockCode == dynStock.stockCode);
     stallTransactions = dynStock.stallTransactions ? EChoice.Yes : EChoice.No;
     DateTime lastTransactionTime =
         DateTime.fromMillisecondsSinceEpoch(dynStock.lastTransactionTime!.date);
@@ -1788,7 +1795,7 @@ class _ViewSpecificDynStockScreenState extends State<ViewSpecificDynStockScreen>
                                           MainAxisAlignment.center,
                                       children: [
                                         Text(
-                                          '${currentDynStock.lastTransactionType == 'BUY' ? (state.allTickerData.data[currentDynStockCode]?.currentLocalMaximumPrice.toStringAsFixed(2) ?? '') : (state.allTickerData.data[currentDynStockCode]?.currentLocalMinimumPrice.toStringAsFixed(2))}',
+                                          '${currentDynStock.lastTransactionType == 'BUY' ? (currentRealTimePrice.currentLocalMaximumPrice.toStringAsFixed(2)) : (currentRealTimePrice.currentLocalMinimumPrice.toStringAsFixed(2))}',
                                           style: GoogleFonts.daysOne(
                                             color: PaletteColors.blue2,
                                             fontSize: 20,

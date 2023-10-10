@@ -12,7 +12,27 @@ class DynStocksRealTimePriceService {
     String userId,
   ) async {
     Uri url = Uri.parse(
-        '${dotenv.env["DYNSTOCKS_API_ENDPOINT_PROD"]}/realTimePrice/$userId?accessCode=${appStore.state.accessCode}');
+        '${dotenv.env["DYNSTOCKS_API_ENDPOINT_LOCAL"]}/realTimePrice/$userId?accessCode=${appStore.state.accessCode}');
+    var client = http.Client();
+    var response = await client.get(url, headers: {
+      HttpHeaders.authorizationHeader:
+          'Bearer ${appStore.state.kotakStockAPI.jwtToken}',
+      'x-request-id': appStore.state.DYNSTOCKS_X_REQUEST_ID,
+    });
+    String res = response.body;
+    if (response.statusCode < 400) {
+      return dynStocksRealTimePriceFromJson(res);
+    } else {
+      throw Exception(ErrorClass.fromJson(jsonDecode(res)).message);
+    }
+  }
+
+  Future<DynStocksRealTimePrice> getRealTimePriceForStockCode(
+    String userId,
+    String stockCode,
+  ) async {
+    Uri url = Uri.parse(
+        '${dotenv.env["DYNSTOCKS_API_ENDPOINT_LOCAL"]}/realTimePrice/$userId/$stockCode?accessCode=${appStore.state.accessCode}');
     var client = http.Client();
     var response = await client.get(url, headers: {
       HttpHeaders.authorizationHeader:
@@ -32,7 +52,7 @@ class DynStocksRealTimePriceService {
     List<StockDetail> stockDetails,
   ) async {
     Uri url = Uri.parse(
-        '${dotenv.env["DYNSTOCKS_API_ENDPOINT_PROD"]}/realTimePrice/$userId?accessCode=${appStore.state.accessCode}');
+        '${dotenv.env["DYNSTOCKS_API_ENDPOINT_LOCAL"]}/realTimePrice/$userId?accessCode=${appStore.state.accessCode}');
     var client = http.Client();
     var response = await client
         .put(url, body: jsonEncode({'stockDetails': stockDetails}), headers: {

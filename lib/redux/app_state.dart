@@ -1,6 +1,7 @@
 import 'package:dynstocks/models/local_user_creds.dart';
 import 'package:dynstocks/redux/state/authentication.state.dart';
 import 'package:dynstocks/redux/state/dyn_stocks.state.dart';
+import 'package:dynstocks/redux/state/dyn_stocks_real_time_price.state.dart';
 import 'package:dynstocks/redux/state/transactions_create.state.dart';
 import 'package:dynstocks/redux/state/kotak_stock_api.state.dart';
 import 'package:dynstocks/redux/state/net_returns_for_dyn_stock.state.dart';
@@ -25,6 +26,8 @@ class AppState {
   KotakStockAPIState kotakStockAPI = KotakStockAPIState.initialState();
   UserInfoState userInfo = UserInfoState.initialState();
   AuthState authState = AuthState.initialState();
+  DynStocksRealTimePriceState dynStocksRealTimePriceState =
+      DynStocksRealTimePriceState.initialState();
   AppState.initialState() {
     userId = '';
     accessCode = '';
@@ -37,6 +40,7 @@ class AppState {
     authState = AuthState.initialState();
     netReturnsForDynStock = NetReturnsForDynStockState.initialState();
     transactionsCreateState = TransactionsCreateState.initialState();
+    dynStocksRealTimePriceState = DynStocksRealTimePriceState.initialState();
   }
   AppState.updatedState(
       {TransactionsState? allTransactions,
@@ -50,7 +54,8 @@ class AppState {
       String? userId,
       String? username,
       NetReturnsForDynStockState? netReturnsForDynStock,
-      TransactionsCreateState? transactionsCreateState}) {
+      TransactionsCreateState? transactionsCreateState,
+      DynStocksRealTimePriceState? dynStocksRealTimePriceState}) {
     if (allDynStocks != null) {
       this.allDynStocks = allDynStocks;
     }
@@ -86,6 +91,9 @@ class AppState {
     }
     if (timedTickerPeriod != null) {
       this.timedTickerPeriod = timedTickerPeriod;
+    }
+    if (dynStocksRealTimePriceState != null) {
+      this.dynStocksRealTimePriceState = dynStocksRealTimePriceState;
     }
   }
 }

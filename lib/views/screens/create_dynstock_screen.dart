@@ -11,7 +11,9 @@ import 'package:dynstocks/redux/actions/kotak_stock_api.actions.dart';
 import 'package:dynstocks/redux/actions/ticker_data.actions.dart';
 import 'package:dynstocks/redux/actions/transactions.actions.dart';
 import 'package:dynstocks/redux/app_state.dart';
+import 'package:dynstocks/services/dynstocks_real_time_price.service.dart';
 import 'package:dynstocks/services/gmail_error_message.service.dart';
+import 'package:dynstocks/services/kotak_stock_api.service.dart';
 import 'package:dynstocks/services/transactions.service.dart';
 import 'package:dynstocks/static/post-market-timer.dart';
 import 'package:dynstocks/static/toast_message_handler.dart';
@@ -30,7 +32,6 @@ import '../../models/transactions.dart';
 import 'package:intl/intl.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import '../../models/colors.dart';
-import 'package:dynstocks/models/yahoo_finance_data.dart';
 
 class CreateDynStockScreen extends StatefulWidget {
   const CreateDynStockScreen({Key? key}) : super(key: key);
@@ -46,7 +47,6 @@ class _CreateDynStockScreenState extends State<CreateDynStockScreen>
   String userId = appStore.state.userId;
   bool isTimedTickerFetchStarted = false;
   bool doesDynStockAlreadyExist = false;
-  String stockSearchInput = '';
   double? searchedStockPrice;
   double? searchedStockPriceChange;
   double? searchedStockPriceChangePercent;
@@ -135,15 +135,15 @@ class _CreateDynStockScreenState extends State<CreateDynStockScreen>
   // This function is invoked when the user searches for a particular ticker
   // yFin package is used for the purpose, to get price and priceChange
   void querySearchedTickerPrice() async {
-    StockInfo info = yFin.getStockInfo(ticker: stockSearchInput);
-    StockQuote price = await yFin.getPrice(stockInfo: info);
-    StockQuote priceChange = await yFin.getPriceChange(stockInfo: info);
+    List<KotakStockApiQuotesSuccess> stockQuote = (await KotakStockAPIService()
+            .getQuotes(appStore.state.userId, currentInstrumentToken,
+                appStore.state.accessCode))
+        .success;
     if (mounted) {
       setState(() {
-        searchedStockPrice = price.currentPrice;
-        searchedStockPriceChange = priceChange.regularMarketChange;
-        searchedStockPriceChangePercent =
-            priceChange.regularMarketChangePercent;
+        searchedStockPrice = stockQuote[0].ltp;
+        searchedStockPriceChange = stockQuote[0].lvNetChg;
+        searchedStockPriceChangePercent = stockQuote[0].lvNetChgPerc;
       });
     }
   }
@@ -211,7 +211,7 @@ class _CreateDynStockScreenState extends State<CreateDynStockScreen>
           });
         });
         setState(() {
-          stockSearchInput = '';
+          currentInstrumentToken = '';
           creatingDynStock = false;
         });
       } else if (appStore.state.allDynStocks.createFailed &&
@@ -276,7 +276,8 @@ class _CreateDynStockScreenState extends State<CreateDynStockScreen>
                           child: TextFormField(
                             textCapitalization: TextCapitalization.characters,
                             decoration: InputDecoration(
-                                hintText: 'Enter Yahoo stock code',
+                                hintText:
+                                    'Enter Kotak Instrument Token stock code',
                                 icon: Icon(
                                   Icons.search_rounded,
                                   size: 20,
@@ -285,16 +286,17 @@ class _CreateDynStockScreenState extends State<CreateDynStockScreen>
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
                                 color: PaletteColors.purple1),
-                            initialValue: stockSearchInput,
+                            initialValue: currentInstrumentToken,
                             onChanged: (newValue) async {
                               setState(() {
-                                stockSearchInput = newValue;
+                                currentInstrumentToken = newValue;
                               });
                             },
                             onEditingComplete: () async {
                               bool flag = false;
                               state.allDynStocks.data.every((element) {
-                                if (element.yFinStockCode == stockSearchInput) {
+                                if (element.instrumentToken ==
+                                    currentInstrumentToken) {
                                   flag = true;
                                   return false;
                                 }
@@ -327,7 +329,6 @@ class _CreateDynStockScreenState extends State<CreateDynStockScreen>
                               setState(() {
                                 doesDynStockAlreadyExist = flag;
                                 currentKOTAKStockCode = '';
-                                currentInstrumentToken = '';
                                 currentStockName = '';
                                 currentNoOfStocks = '';
                                 currentDSTPUnit = EDSTPUnit.Price;
@@ -492,53 +493,6 @@ class _CreateDynStockScreenState extends State<CreateDynStockScreen>
                                             onChanged: (newValue) =>
                                                 setState(() {
                                               currentKOTAKStockCode = newValue;
-                                            }),
-                                          ))),
-                                    ])),
-                                Container(
-                                    margin: EdgeInsets.fromLTRB(5, 10, 5, 0),
-                                    padding: EdgeInsets.fromLTRB(20, 5, 20, 5),
-                                    decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius:
-                                            BorderRadius.circular(30)),
-                                    child: Column(children: [
-                                      Row(children: [
-                                        Text(
-                                          'Instrument Token',
-                                          textAlign: TextAlign.left,
-                                          style: GoogleFonts.lusitana(
-                                              fontSize: 23,
-                                              color: PaletteColors.blue2),
-                                        )
-                                      ]),
-                                      Container(
-                                          margin:
-                                              EdgeInsets.fromLTRB(0, 0, 0, 10),
-                                          decoration: BoxDecoration(
-                                              borderRadius:
-                                                  BorderRadius.circular(10),
-                                              color: PaletteColors.blue3),
-                                          padding:
-                                              EdgeInsets.fromLTRB(10, 0, 10, 0),
-                                          child: (TextFormField(
-                                            validator: (value) {
-                                              if (value!.isEmpty) {
-                                                return 'Please enter a value';
-                                              }
-                                              if (value.contains('.')) {
-                                                return 'No decimal places allowed';
-                                              }
-                                              return null;
-                                            },
-                                            autovalidateMode: AutovalidateMode
-                                                .onUserInteraction,
-                                            initialValue:
-                                                currentInstrumentToken,
-                                            keyboardType: TextInputType.number,
-                                            onChanged: (newValue) =>
-                                                setState(() {
-                                              currentInstrumentToken = newValue;
                                             }),
                                           ))),
                                     ])),
@@ -1096,7 +1050,6 @@ class _CreateDynStockScreenState extends State<CreateDynStockScreen>
                                     body: DynStockBody(
                                       stockCode: currentKOTAKStockCode,
                                       instrumentToken: currentInstrumentToken,
-                                      yFinStockCode: stockSearchInput,
                                       stockName: currentStockName,
                                       exchange: currentExchange.name,
                                       stockType: currentStockType.name,
